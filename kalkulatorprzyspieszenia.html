@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Moc silnika z czasu 100–200 km/h v1.0 – ECU-Perfect</title>
+<meta name="description" content="Oszacuj moc silnika na podstawie czasu przyspieszenia 100–200 km/h i masy auta.">
+<style>
+  :root { --red:#e5202e; --red2:#ff4b57; --bg:#0b0b10; --card:#15151d; --line:#262633; --txt:#f2f2f6; --muted:#9a9aab; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Segoe UI",system-ui,Arial,sans-serif; background:var(--bg); color:var(--txt); line-height:1.5; }
+  a { color:inherit; }
+  nav { position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center; padding:12px 24px; background:rgba(11,11,16,.9); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+  .logo { font-weight:800; letter-spacing:2px; text-decoration:none; } .logo b { color:var(--red); }
+  nav .links a { margin-left:20px; text-decoration:none; color:var(--muted); font-size:.95rem; } nav .links a:hover { color:var(--txt); }
+  main { max-width:1000px; margin:0 auto; padding:30px 20px 50px; }
+  h1 { margin:0 0 6px; font-size:clamp(1.6rem,4.5vw,2.4rem); }
+  h1::after { content:""; display:block; width:56px; height:3px; background:var(--red); margin-top:10px; border-radius:2px; }
+  .lead { color:var(--muted); margin:14px 0 26px; max-width:760px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; margin-bottom:18px; }
+  .card h2 { margin:0 0 14px; font-size:1.05rem; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; }
+  label { display:block; font-size:.8rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
+  label small { text-transform:none; letter-spacing:0; display:block; opacity:.8; }
+  select, input { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:#0f0f16; color:var(--txt); font-size:1.05rem; font-family:inherit; }
+  select:focus, input:focus { outline:2px solid var(--red); border-color:var(--red); }
+  button { padding:11px 22px; border-radius:10px; border:2px solid var(--red); background:var(--red); color:#fff; font-weight:700; font-size:1rem; cursor:pointer; margin-top:14px; }
+  button:hover { background:var(--red2); border-color:var(--red2); }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; }
+  .big { background:#0f0f16; border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .big .v { font-size:1.7rem; font-weight:800; line-height:1.1; } .big .v span { font-size:.9rem; color:var(--muted); font-weight:600; }
+  .big .t { color:var(--muted); font-size:.75rem; text-transform:uppercase; letter-spacing:1.2px; }
+  .small { color:var(--muted); font-size:.82rem; margin-top:14px; }
+  .error { color:var(--red2); margin-top:10px; min-height:1em; }
+  footer { text-align:center; color:var(--muted); font-size:.85rem; padding:30px 20px; border-top:1px solid var(--line); }
+</style>
+</head>
+<body>
+<nav>
+  <a class="logo" href="index.html">ECU-<b>PERFECT</b></a>
+  <div class="links"><a href="index.html">← Strona główna</a><a href="index.html#download">Narzędzia</a></div>
+</nav>
+<main>
+  <h1>Moc silnika z czasu 100–200 km/h v1.0</h1>
+  <p class="lead">Podaj masę auta i zmierzony czas przyspieszenia od 100 do 200 km/h – kalkulator oszacuje moc silnika. Przy tych prędkościach przyczepność nie ma znaczenia, więc wynik zależy głównie od mocy, masy i oporu powietrza.</p>
+
+  <div class="card">
+    <h2>Dane</h2>
+    <div class="grid">
+      <div><label for="m">Masa auta [kg]<small>np. 1600</small></label><input id="m" value="1600" inputmode="decimal"></div>
+      <div><label for="d">Kierowca + ładunek [kg]<small>np. 120</small></label><input id="d" value="120" inputmode="decimal"></div>
+      <div><label for="t">Czas 100–200 km/h [s]<small>np. 14,5</small></label><input id="t" value="14,5" inputmode="decimal"></div>
+      <div><label for="sl">Nachylenie drogi [%]<small>np. 1 (pod górę), -1 (z górki), 0 = płasko</small></label><input id="sl" value="0" inputmode="decimal"></div>
+      <div><label for="drv">Napęd<small>wpływa na straty w układzie napędowym</small></label><select id="drv"><option value="0.90">Przedni (FWD) – straty ok. 10%</option><option value="0.88">Tylny (RWD) – straty ok. 12%</option><option value="0.84" selected>4x4 (xDrive/quattro) – straty ok. 16%</option></select></div>
+      <div><label for="cda">Cd × powierzchnia czołowa [m²]<small>np. 0,65 (typowo 0,6–0,75)</small></label><input id="cda" value="0,65" inputmode="decimal"></div>
+    </div>
+    <button id="go">Oblicz</button>
+    <div class="error" id="err"></div>
+  </div>
+
+  <div class="card">
+    <h2>Wynik</h2>
+    <div class="stats">
+      <div class="big"><div class="t">Moc silnika</div><div class="v" id="r1">–<span> KM</span></div></div>
+      <div class="big"><div class="t">Moc silnika</div><div class="v" id="r2">–<span> kW</span></div></div>
+      <div class="big"><div class="t">Moc na kołach</div><div class="v" id="r3">–<span> KM</span></div></div>
+      <div class="big"><div class="t">Czas 100–200 po korekcie na 0%</div><div class="v" id="r5">–<span> s</span></div></div>
+      <div class="big"><div class="t">Moc / masa</div><div class="v" id="r4">–<span> KM/t</span></div></div>
+    </div>
+    <p class="small">Model: moc na kołach = moc silnika pomniejszona o straty napędu wybranego typu (FWD 90%, RWD 88%, 4x4 84% sprawności; skrzynia pomijana), uwzględnia opór powietrza i toczenia. Silnik pracuje w tym zakresie blisko maksimum mocy, więc przyjęto 90% mocy szczytowej wykorzystane średnio na odcinku (zmiany biegów, spadek mocy na wysokich obrotach). Wynik to szacunek – dokładność zależy od jakości pomiaru czasu (najlepiej GPS), wiatru, nachylenia drogi, przełożeń i aerodynamiki auta. Nachylenie: wpisz średnie nachylenie odcinka (+ pod górę, − z górki) – kalkulator wyliczy moc z uwzględnieniem siły ciężkości, a następnie pokaże, jaki czas auto uzyska na płaskiej drodze. Wiatru nie uwzględniamy. Najlepiej mierz w obu kierunkach i uśrednij.</p>
+  </div>
+</main>
+<footer>&copy; ECU-Perfect · chiptuning · Wrocław</footer>
+<script>
+function $(id){return document.getElementById(id);}
+function num(id){var s=$(id).value.trim().replace(',','.');return s===''?NaN:parseFloat(s);}
+function f(x,d){return x.toFixed(d).replace('.',',');}
+var G=9.81,RHO=1.2,CRR=0.012,ETA=0.84,UTIL=0.9;
+function time100200(psEngine,mass,cda,slope){
+  var pw=psEngine*735.499*ETA*UTIL, v=100/3.6, vEnd=200/3.6, t=0, dt=0.005;
+  while(t<300){
+    var a=(pw/v-0.5*RHO*cda*v*v-CRR*mass*G-mass*G*Math.sin(Math.atan(slope)))/mass;
+    if(a<=0)return Infinity;
+    var vn=v+a*dt;
+    if(vn>=vEnd){t+=dt*(vEnd-v)/(vn-v);break;}
+    v=vn;t+=dt;
+  }
+  return t;
+}
+function calc(){
+  $('err').textContent='';
+  ETA=parseFloat($('drv').value);
+  var sl=num('sl'); if(isNaN(sl))sl=0; sl=sl/100;
+  var m=num('m'),d=num('d'),T=num('t'),cda=num('cda');
+  if(!(m>300)||!(d>=0)||!(T>0)||!(cda>0)){$('err').textContent='Sprawdź pola (masa, czas, Cd×A).';return;}
+  var mass=m+d, lo=20, hi=3000;
+  for(var i=0;i<50;i++){var mid=(lo+hi)/2; if(time100200(mid,mass,cda,sl)>T)lo=mid;else hi=mid;}
+  var ps=(lo+hi)/2;
+  if(ps>2900||ps<25)$('err').textContent='Wynik poza sensownym zakresem – sprawdź dane.';
+  var t0=time100200(ps,mass,cda,0);
+  $('r5').innerHTML=(isFinite(t0)?f(t0,2):'–')+'<span> s</span>';
+  $('r1').innerHTML=f(ps,0)+'<span> KM</span>';
+  $('r2').innerHTML=f(ps*0.735499,0)+'<span> kW</span>';
+  $('r3').innerHTML=f(ps*ETA,0)+'<span> KM</span>';
+  $('r4').innerHTML=f(ps/(mass/1000),0)+'<span> KM/t</span>';
+}
+$('go').addEventListener('click',calc);
+['m','d','t','cda','sl'].forEach(function(id){$(id).addEventListener('input',calc);});
+$('drv').addEventListener('change',calc);
+calc();
+</script>
+</body>
+</html>

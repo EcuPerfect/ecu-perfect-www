@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kalkulator mocy turbobenzyn v1.0 – ECU-Perfect</title>
+<meta name="description" content="Darmowy kalkulator szacujący moc i moment turbodoładowanego silnika benzynowego na podstawie obrotów, doładowania, pojemności, VE, lambdy i rodzaju paliwa (benzyna, E85, mieszanki).">
+<style>
+  :root { --red:#e5202e; --red2:#ff4b57; --bg:#0b0b10; --card:#15151d; --line:#262633; --txt:#f2f2f6; --muted:#9a9aab; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Segoe UI",system-ui,Arial,sans-serif; background:var(--bg); color:var(--txt); line-height:1.5; }
+  a { color:inherit; }
+  nav { position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center;
+        padding:12px 24px; background:rgba(11,11,16,.9); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+  .logo { font-weight:800; letter-spacing:2px; text-decoration:none; }
+  .logo b { color:var(--red); }
+  nav .links a { margin-left:20px; text-decoration:none; color:var(--muted); font-size:.95rem; }
+  nav .links a:hover { color:var(--txt); }
+  main { max-width:1000px; margin:0 auto; padding:30px 20px 50px; }
+  h1 { margin:0 0 6px; font-size:clamp(1.6rem,4.5vw,2.4rem); }
+  h1::after { content:""; display:block; width:56px; height:3px; background:var(--red); margin-top:10px; border-radius:2px; }
+  .lead { color:var(--muted); margin:14px 0 26px; max-width:760px; }
+  .layout { display:grid; grid-template-columns:1.1fr .9fr; gap:18px; align-items:start; }
+  @media (max-width:820px){ .layout { grid-template-columns:1fr; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; }
+  .card h2 { margin:0 0 14px; font-size:1.05rem; }
+  .row { display:grid; grid-template-columns:1fr 130px; gap:10px; align-items:center; margin-bottom:10px; }
+  .row label { font-size:.93rem; }
+  .row label small { display:block; color:var(--muted); font-size:.78rem; }
+  input, select { width:100%; padding:9px 10px; border-radius:8px; border:1px solid var(--line); background:#0f0f16; color:var(--txt); font-size:1rem; }
+  input:focus, select:focus { outline:2px solid var(--red); border-color:var(--red); }
+  .opt { margin-top:14px; padding-top:12px; border-top:1px dashed var(--line); color:var(--muted); font-size:.85rem; }
+  .btns { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+  button { cursor:pointer; background:var(--red); color:#fff; border:2px solid var(--red); border-radius:9px; padding:10px 18px;
+           font-weight:700; font-size:.95rem; }
+  button:hover { background:var(--red2); border-color:var(--red2); }
+  button.ghost { background:transparent; color:var(--txt); border-color:var(--line); }
+  button.ghost:hover { border-color:var(--red); background:transparent; }
+  .res { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .big { background:#0f0f16; border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .big .v { font-size:1.9rem; font-weight:800; line-height:1.1; }
+  .big .v span { font-size:.95rem; color:var(--muted); font-weight:600; }
+  .big .t { color:var(--muted); font-size:.78rem; text-transform:uppercase; letter-spacing:1.2px; }
+  .kv { margin-top:12px; font-size:.92rem; color:var(--muted); }
+  .kv div { display:flex; justify-content:space-between; gap:10px; padding:4px 0; border-bottom:1px solid var(--line); }
+  .kv b { color:var(--txt); font-weight:600; text-align:right; }
+  .note { margin-top:12px; color:#f5a524; font-size:.88rem; }
+  .error { color:var(--red2); margin-top:10px; font-size:.9rem; }
+  table { width:100%; border-collapse:collapse; margin-top:12px; font-size:.9rem; }
+  th, td { padding:7px 8px; text-align:center; border-bottom:1px solid var(--line); }
+  th { color:var(--muted); font-weight:600; font-size:.78rem; text-transform:uppercase; }
+  .full { grid-column:1 / -1; }
+  .small { color:var(--muted); font-size:.82rem; margin-top:22px; }
+  footer { text-align:center; color:var(--muted); font-size:.85rem; padding:30px 20px; border-top:1px solid var(--line); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="index.html">ECU-<b>PERFECT</b></a>
+  <div class="links">
+    <a href="index.html">← Strona główna</a>
+    <a href="index.html#download">Narzędzia</a>
+  </div>
+</nav>
+
+<main>
+  <h1>Kalkulator mocy turbobenzyn v1.0</h1>
+  <p class="lead">Szacuje moc i moment turbodoładowanego silnika benzynowego na podstawie ilości powietrza
+     (doładowanie + VE albo wskazanie MAF), lambdy i rodzaju paliwa. Dodatkowo podpowiada
+     przepływ powietrza, zużycie paliwa i minimalny rozmiar wtryskiwaczy. Kropka lub przecinek – oba działają.</p>
+
+  <div class="layout">
+    <div class="card">
+      <h2>Dane wejściowe</h2>
+      <div class="row"><label>Obroty [rpm]<small>np. 5500</small></label><input id="rpm" value="5500" inputmode="decimal"></div>
+      <div class="row"><label>Doładowanie względne [bar]<small>np. 1.2 (puste, jeśli podasz MAF)</small></label><input id="boost" value="1.2" inputmode="decimal"></div>
+      <div class="row"><label>Pojemność silnika [l]<small>np. 2.0</small></label><input id="disp" value="2.0" inputmode="decimal"></div>
+      <div class="row"><label>VE – sprawność napełnienia [%]<small>np. 95 (turbobenzyny: 85–105)</small></label><input id="ve" value="95" inputmode="decimal"></div>
+      <div class="row"><label>Lambda<small>np. 0.85 (pełne doładowanie 0.78–0.90)</small></label><input id="lam" value="0.85" inputmode="decimal"></div>
+      <div class="row"><label>Paliwo<small>wpływa na AFR i energię</small></label>
+        <select id="fuel">
+          <option value="5">Benzyna 95/98</option>
+          <option value="85">E85</option>
+          <option value="custom">Własna mieszanka…</option>
+        </select></div>
+      <div class="row" id="ethRow" style="display:none"><label>Zawartość etanolu [%]<small>np. 30 (E30)</small></label><input id="eth" value="30" inputmode="decimal"></div>
+
+      <div class="opt">Opcjonalnie</div>
+      <div class="row"><label>MAF – przepływ powietrza [g/s]<small>np. 190 (puste = z doładowania i VE)</small></label><input id="maf" value="" inputmode="decimal"></div>
+      <div class="row"><label>Liczba cylindrów<small>np. 4 (do doboru wtryskiwaczy)</small></label><input id="cyl" value="" inputmode="numeric"></div>
+
+      <div class="opt">Korekty</div>
+      <div class="row"><label>Temp. powietrza za chłodnicą [°C]<small>np. 45</small></label><input id="tint" value="45" inputmode="decimal"></div>
+      <div class="row"><label>Korekta wyniku [%]<small>np. 100 (mnożnik wyniku)</small></label><input id="eff" value="100" inputmode="decimal"></div>
+
+      <div class="btns">
+        <button id="calc">Oblicz</button>
+        <button id="add" class="ghost">Dodaj do tabeli</button>
+      </div>
+      <div id="err" class="error"></div>
+    </div>
+
+    <div class="card">
+      <h2>Wynik</h2>
+      <div class="res">
+        <div class="big"><div class="t">Moment</div><div class="v" id="rT">–<span> Nm</span></div></div>
+        <div class="big"><div class="t">Moc</div><div class="v" id="rP">–<span> KM</span></div></div>
+      </div>
+      <div class="kv">
+        <div><span>Moc [kW]</span><b id="rKw">–</b></div>
+        <div><span>BMEP [bar]</span><b id="rBmep">–</b></div>
+        <div><span>Doładowanie abs. [bar]</span><b id="rAbs">–</b></div>
+        <div><span>Przepływ powietrza</span><b id="rAir">–</b></div>
+        <div><span>VE (użyte / wyliczone)</span><b id="rVe">–</b></div>
+        <div><span>Zużycie paliwa</span><b id="rFuel">–</b></div>
+        <div><span>BSFC [g/kWh]</span><b id="rBsfc">–</b></div>
+        <div><span>Wtryskiwacz (przy 80% wypełnienia)</span><b id="rInj">–</b></div>
+      </div>
+      <div class="note" id="notes"></div>
+    </div>
+
+    <div class="card full">
+      <h2>Tabela punktów</h2>
+      <table id="tbl">
+        <thead><tr><th>rpm</th><th>bar</th><th>lambda</th><th>Nm</th><th>kW</th><th>KM</th><th>BMEP</th><th>g/s powietrza</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="btns">
+        <button id="csv" class="ghost">Eksport CSV</button>
+        <button id="clr" class="ghost">Wyczyść tabelę</button>
+      </div>
+    </div>
+  </div>
+
+  <p class="small">Wyniki mają charakter orientacyjny (model uproszczony; realnie ±10% przy dobrej kalibracji).
+     Moc benzynowego silnika turbo zależy też od wyprzedzenia zapłonu, detonacji i temperatury, których
+     kalkulator nie zna. Pole „Korekta wyniku" pozwala skalibrować model do znanego pomiaru z hamowni,
+     np. 95 daje wynik o ok. 5% niższy.</p>
+</main>
+
+<footer>&copy; ECU-Perfect · chiptuning · Wrocław</footer>
+
+<script>
+// ---------- model ----------
+var P_AMB = 1.013;
+var RHO_G = 0.745, RHO_E = 0.789;              // g/cm3
+var AFR_G = 14.7, AFR_E = 9.0;                 // stechiometria
+var LHV_G = 43.0e6, LHV_E = 26.8e6;            // J/kg
+
+function clamp(x, a, b) { return Math.min(b, Math.max(a, x)); }
+function lambdaFactor(lam) { return lam >= 1 ? 1 : Math.max(0.6, 1 - 0.35 * (1 - lam)); }
+
+function estimate(p) {
+  var r = { notes: [] };
+  var e = p.ethPct / 100;
+  var rhoF = (1 - e) * RHO_G + e * RHO_E;                       // g/cm3 mieszanki
+  var w = e * RHO_E / ((1 - e) * RHO_G + e * RHO_E);            // ulamek masowy etanolu
+  var afr = w * AFR_E + (1 - w) * AFR_G;
+  var lhv = w * LHV_E + (1 - w) * LHV_G;
+  var vd = p.dispL * 1e-3;
+
+  var rho = null;
+  r.boostAbs = (p.boostRel !== null) ? p.boostRel + P_AMB : null;
+  if (r.boostAbs !== null) rho = r.boostAbs * 1e5 / (287.0 * (273.15 + p.tIntC));
+
+  var mAir, ve;                                                  // mAir [kg/cykl]
+  if (p.maf !== null) {
+    mAir = p.maf / 1000 * 120 / p.rpm;
+    ve = (rho !== null) ? mAir / (rho * vd) : null;
+    r.veUsed = false;
+    if (ve !== null && (ve > 1.25 || ve < 0.5))
+      r.notes.push("Wyliczone VE = " + (ve * 100).toFixed(0) + "% – sprawdź MAF, doładowanie lub temperaturę.");
+  } else {
+    ve = p.ve;
+    mAir = ve * rho * vd;
+    r.veUsed = true;
+  }
+  r.ve = ve;
+
+  var mFuel = mAir / (afr * p.lam);                              // kg/cykl (cały silnik)
+  r.airGs = mAir * 1000 * p.rpm / 120;                           // g/s
+  r.airKgh = r.airGs * 3.6;
+  r.fuelGs = mFuel * 1000 * p.rpm / 120;                         // g/s
+  r.fuelCcMin = r.fuelGs / rhoF * 60;
+  r.fuelLh = r.fuelCcMin * 60 / 1000;
+
+  var etaI = clamp(0.38 - 0.012 * (p.rpm - 3000) / 1000, 0.30, 0.40);
+  etaI *= 1 + 0.05 * (e / 0.85);                                 // etanol: chlodzenie ladunku, wiekszy zapas do detonacji
+  var wi = mFuel * lhv * etaI * lambdaFactor(p.lam) * p.effScale;
+  var fmep = 0.9 + 0.07 * Math.pow(p.rpm / 1000, 2);
+  var wb = Math.max(wi - fmep * 1e5 * vd, 0);
+
+  r.torque = wb / (4 * Math.PI);
+  r.kw = r.torque * 2 * Math.PI * p.rpm / 60 / 1000;
+  r.ps = r.kw * 1.35962;
+  r.bmep = wb / (vd * 1e5);
+  r.bsfc = r.kw > 0 ? r.fuelGs * 3600 / r.kw : null;
+  r.injCcMin = p.cyl ? r.fuelCcMin / (p.cyl * 0.8) : null;
+
+  if (p.lam < 0.75) r.notes.push("Lambda < 0.75 – bardzo bogata mieszanka, moc spada, rośnie zużycie paliwa.");
+  if (p.lam > 1.0 && r.boostAbs !== null && r.boostAbs > 1.6)
+    r.notes.push("Przy takim doładowaniu lambda > 1.0 grozi detonacją – zwykle stosuje się 0.80–0.90.");
+  if (r.bmep > 30) r.notes.push("BMEP > 30 bar – bardzo wysoko dla silnika benzynowego, wynik może być zawyżony.");
+  if (r.bmep < 3 && wb === 0) r.notes.push("Energia z paliwa nie pokrywa tarcia – sprawdź dane wejściowe.");
+  return r;
+}
+
+// ---------- interfejs ----------
+function $(id) { return document.getElementById(id); }
+function num(id, optional) {
+  var s = $(id).value.trim().replace(',', '.');
+  if (s === '') { if (optional) return null; throw new Error(id); }
+  var v = parseFloat(s);
+  if (isNaN(v)) throw new Error(id);
+  return v;
+}
+function readParams() {
+  var fuel = $('fuel').value;
+  var eth = fuel === 'custom' ? num('eth') : parseFloat(fuel);
+  var maf = num('maf', true), boost = num('boost', true);
+  var p = {
+    rpm: num('rpm'), boostRel: boost, dispL: num('disp'),
+    ve: maf === null ? num('ve') / 100 : (num('ve', true) === null ? null : num('ve', true) / 100),
+    lam: num('lam'), ethPct: eth, maf: maf,
+    cyl: (function () { var c = num('cyl', true); return c === null ? null : Math.round(c); })(),
+    tIntC: num('tint'), effScale: num('eff') / 100
+  };
+  if (maf === null && boost === null) throw new Error('boost');
+  if (p.rpm <= 0 || p.dispL <= 0 || p.lam <= 0 || p.ethPct < 0 || p.ethPct > 100) throw new Error('zakres');
+  if (maf !== null && maf <= 0) throw new Error('zakres');
+  if (maf === null && (p.ve <= 0 || p.ve > 1.5)) throw new Error('zakres');
+  return p;
+}
+var last = null;
+function calc() {
+  $('err').textContent = '';
+  try {
+    var p = readParams(), r = estimate(p);
+    last = { p: p, r: r };
+    $('rT').innerHTML = r.torque.toFixed(0) + '<span> Nm</span>';
+    $('rP').innerHTML = r.ps.toFixed(0) + '<span> KM</span>';
+    $('rKw').textContent = r.kw.toFixed(1);
+    $('rBmep').textContent = r.bmep.toFixed(1);
+    $('rAbs').textContent = r.boostAbs !== null ? r.boostAbs.toFixed(2) : '–';
+    $('rAir').textContent = r.airGs.toFixed(0) + ' g/s (' + r.airKgh.toFixed(0) + ' kg/h)';
+    $('rVe').textContent = r.ve !== null ? (r.ve * 100).toFixed(0) + '% ' + (r.veUsed ? '(wpisane)' : '(z MAF)') : '–';
+    $('rFuel').textContent = r.fuelGs.toFixed(1) + ' g/s (' + r.fuelLh.toFixed(0) + ' l/h)';
+    $('rBsfc').textContent = r.bsfc !== null ? r.bsfc.toFixed(0) : '–';
+    $('rInj').textContent = r.injCcMin !== null ? 'min. ' + r.injCcMin.toFixed(0) + ' cm³/min na wtryskiwacz' : '(podaj liczbę cylindrów)';
+    $('notes').innerHTML = r.notes.join('<br>');
+    return true;
+  } catch (e) {
+    $('err').textContent = 'Sprawdź pola liczbowe (podaj doładowanie lub MAF; wartości > 0).';
+    return false;
+  }
+}
+function addRow() {
+  if (!calc()) return;
+  var p = last.p, r = last.r;
+  var tr = document.createElement('tr');
+  [p.rpm.toFixed(0), r.boostAbs !== null ? (r.boostAbs - P_AMB).toFixed(2) : '–', p.lam.toFixed(2),
+   r.torque.toFixed(0), r.kw.toFixed(1), r.ps.toFixed(0), r.bmep.toFixed(1), r.airGs.toFixed(0)].forEach(function (t) {
+    var td = document.createElement('td'); td.textContent = t; tr.appendChild(td);
+  });
+  document.querySelector('#tbl tbody').appendChild(tr);
+}
+function exportCsv() {
+  var lines = ['rpm;bar_rel;lambda;Nm;kW;KM;BMEP;g_s_powietrza'];
+  document.querySelectorAll('#tbl tbody tr').forEach(function (tr) {
+    var c = []; tr.querySelectorAll('td').forEach(function (td) { c.push(td.textContent); });
+    lines.push(c.join(';'));
+  });
+  var blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'kalkulator_mocy_turbobenzyn.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+$('fuel').addEventListener('change', function () { $('ethRow').style.display = this.value === 'custom' ? '' : 'none'; });
+$('calc').addEventListener('click', calc);
+$('add').addEventListener('click', addRow);
+$('csv').addEventListener('click', exportCsv);
+$('clr').addEventListener('click', function () { document.querySelector('#tbl tbody').innerHTML = ''; });
+document.addEventListener('keydown', function (e) { if (e.key === 'Enter') calc(); });
+calc();
+</script>
+</body>
+</html>
