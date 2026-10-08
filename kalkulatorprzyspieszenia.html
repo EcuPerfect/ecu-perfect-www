@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Moc silnika z czasu 100–200 km/h – ECU-Perfect</title>
+<title>Moc silnika na podstawie przyspieszenia 100–200 km/h – ECU-Perfect</title>
 <meta name="description" content="Oszacuj moc silnika na podstawie czasu przyspieszenia 100–200 km/h i masy auta.">
 <style>
   :root { --red:#e5202e; --red2:#ff4b57; --bg:#0b0b10; --card:#15151d; --line:#262633; --txt:#f2f2f6; --muted:#9a9aab; }
@@ -55,7 +55,7 @@
   <div class="links"><a href="index.html">← Strona główna</a><a href="index.html#tools">Narzędzia</a></div>
 </nav>
 <main>
-  <h1>Moc silnika z czasu 100–200 km/h</h1>
+  <h1>Moc silnika na podstawie przyspieszenia 100–200 km/h</h1>
   <p class="lead">Podaj masę auta i zmierzony czas przyspieszenia od 100 do 200 km/h – kalkulator oszacuje moc silnika.</p>
 
   <div class="card">
@@ -77,9 +77,9 @@
     </div>
     <div class="grid2">
       <div><label for="note">Opis do raportu<small>np. BMW 335d, Stage 1</small></label><textarea id="note" rows="2" placeholder=""></textarea></div>
-      <div><label for="ph">Zdjęcie do raportu<small>opcjonalnie, np. wynik z aplikacji (Dragy) lub zdjęcie auta; zostaje w Twojej przeglądarce, nigdzie nie jest wysyłane</small></label>
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><label for="ph" class="filebtn">Wybierz zdjęcie</label><span id="phcnt" class="small" style="margin:0"></span></div>
-      <input id="ph" type="file" accept="image/*" style="display:none">
+      <div><label for="ph">Zdjęcia do raportu (maks. 2)<small>opcjonalnie, np. wynik z aplikacji (Dragy) lub zdjęcie auta; możesz też wkleić ze schowka (Ctrl+V); zostają w Twojej przeglądarce, nigdzie nie są wysyłane</small></label>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><label for="ph" class="filebtn">Wybierz zdjęcia</label><span id="phcnt" class="small" style="margin:0"></span></div>
+      <input id="ph" type="file" accept="image/*" multiple style="display:none">
       <div id="thumbs" class="thumbs"></div></div>
     </div>
     <div class="btnrow"><button id="rep">Raport / wydruk</button></div>
@@ -124,10 +124,10 @@ function calc(){
 }
 
 
-var photos=[], MAXDIM=1400;
+var photos=[], MAXPH=2, MAXDIM=1400;
 function drawThumbs(){
   var box=$('thumbs'); box.innerHTML='';
-  $('phcnt').textContent=photos.length?I18N.t('Zdjęcie dodane','Photo added'):'';
+  $('phcnt').textContent=photos.length?I18N.t('Dodano: '+photos.length+' / '+MAXPH,'Added: '+photos.length+' / '+MAXPH):'';
   photos.forEach(function(src,i){
     var d=document.createElement('div'); d.className='th';
     var im=document.createElement('img'); im.src=src;
@@ -149,13 +149,25 @@ function shrink(file){
     img.src=url;
   });
 }
-$('ph').addEventListener('change',function(){
-  var f=this.files[0], inp=this;
-  if(!f)return;
-  shrink(f).then(function(d){photos=[d];inp.value='';drawThumbs();},function(){
-    inp.value='';
-    alert(I18N.t('Nie udało się wczytać pliku – obsługiwane są zwykłe zdjęcia (JPG, PNG, WebP).','Could not load the file – regular images (JPG, PNG, WebP) are supported.'));
+function addPhotos(files){
+  var bad=0, over=0, chain=Promise.resolve();
+  Array.prototype.slice.call(files).forEach(function(f){
+    chain=chain.then(function(){
+      if(photos.length>=MAXPH){over++;return;}
+      return shrink(f).then(function(d){photos.push(d);},function(){bad++;});
+    });
   });
+  return chain.then(function(){
+    drawThumbs();
+    if(bad)alert(I18N.t('Nie udało się wczytać '+bad+' plik(ów) – obsługiwane są zwykłe zdjęcia (JPG, PNG, WebP).','Could not load '+bad+' file(s) – regular images (JPG, PNG, WebP) are supported.'));
+    if(over)alert(I18N.t('Maksymalnie '+MAXPH+' zdjęcia – nadmiarowe pominięto (usuń któreś przyciskiem ×).','Maximum '+MAXPH+' photos – the extra ones were skipped (remove one with ×).'));
+  });
+}
+$('ph').addEventListener('change',function(){ var inp=this; addPhotos(inp.files).then(function(){inp.value='';}); });
+document.addEventListener('paste',function(e){
+  var items=(e.clipboardData&&e.clipboardData.items)||[], files=[];
+  for(var i=0;i<items.length;i++){ if(items[i].kind==='file'&&items[i].type.indexOf('image/')===0){ var f=items[i].getAsFile(); if(f)files.push(f); } }
+  if(files.length){ e.preventDefault(); addPhotos(files); }
 });
 I18N.onChange(drawThumbs);
 var lastRes=null;
@@ -163,6 +175,7 @@ function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 function openReport(){
   calc(); if(!lastRes)return;
   var r=lastRes, L=I18N.t, en=I18N.lang()==='en';
+  var title=L('Raport: moc silnika na podstawie przyspieszenia 100–200 km/h','Report: engine power based on 100–200 km/h acceleration');
   var d=new Date(), when=d.toLocaleString(en?'en-GB':'pl-PL');
   var rows=[
     [L('Masa auta','Car mass'), f(r.m,0)+' kg'],
@@ -181,25 +194,24 @@ function openReport(){
   ];
   function tbl(a){return '<table>'+a.map(function(x){return '<tr><td>'+esc(x[0])+'</td><td><b>'+esc(x[1])+'</b></td></tr>';}).join('')+'</table>';}
   var note=$('note').value.trim();
-  var html='<!DOCTYPE html><html lang="'+(en?'en':'pl')+'"><head><meta charset="utf-8"><title>'+esc(L('Raport – moc silnika z czasu 100–200 km/h','Report – engine power from 100–200 km/h time'))+'</title>'+
+  var html='<!DOCTYPE html><html lang="'+(en?'en':'pl')+'"><head><meta charset="utf-8"><title>'+esc(title)+'</title>'+
   '<style>body{font-family:"Segoe UI",Arial,sans-serif;color:#111;max-width:760px;margin:24px auto;padding:0 20px;line-height:1.45}'+
-  '.hd{display:flex;justify-content:space-between;align-items:baseline;border-bottom:3px solid #e5202e;padding-bottom:8px;margin-bottom:16px}'+
-  '.logo{font-weight:800;letter-spacing:2px}.logo b{color:inherit}h1{font-size:1.35rem;margin:0 0 4px}h2{font-size:1rem;margin:20px 0 6px;color:#e5202e}'+
+  '.hd{border-bottom:3px solid #e5202e;padding-bottom:10px;margin-bottom:16px}.dt{color:#666;font-size:.85rem;margin-top:4px}'+
+  '.logo{font-weight:800;letter-spacing:2px}.logo b{color:inherit}h1{font-size:1.3rem;margin:0;line-height:1.3}h2{font-size:1rem;margin:20px 0 6px;color:#e5202e}'+
   'table{width:100%;border-collapse:collapse}td{padding:6px 8px;border-bottom:1px solid #ddd}td:last-child{text-align:right}'+
   '.note{white-space:pre-wrap;background:#f5f5f7;border-left:4px solid #e5202e;padding:8px 12px}.big{font-size:1.5rem}'+
   '.small{color:#555;font-size:.8rem;margin-top:18px}.ft{margin-top:24px;border-top:1px solid #ddd;padding-top:8px;color:#555;font-size:.85rem;display:flex;justify-content:space-between}'+
   'button{background:#e5202e;color:#fff;border:0;border-radius:8px;padding:9px 18px;font-weight:700;cursor:pointer;margin-right:8px}button.g{background:#eee;color:#111}'+
-  '.ph img{max-width:100%;max-height:340px;display:block;margin:0 auto 10px;border:1px solid #ddd;break-inside:avoid}.ph{break-inside:auto}'+
-  '@media print{.np{display:none}body{margin:0}}</style></head><body>'+
+  '.ph{display:flex;gap:10px;justify-content:center;align-items:flex-start;break-inside:avoid}.ph img{max-width:100%;max-height:420px;border:1px solid #ddd;display:block}.ph.p2 img{max-width:calc(50% - 5px);max-height:380px;object-fit:contain}'+
+  '@page{size:A4;margin:0}@media print{.np{display:none}body{margin:0;padding:14mm 16mm;max-width:none}}</style></head><body>'+
   '<div class="np" style="margin-bottom:14px"><button onclick="window.print()">'+esc(L('Drukuj / zapisz jako PDF','Print / save as PDF'))+'</button><button class="g" onclick="window.close()">'+esc(L('Zamknij','Close'))+'</button></div>'+
-  '<div class="hd"><div class="logo">ECU-<b>Perfect</b></div><div>'+esc(when)+'</div></div>'+
-  '<h1>'+esc(L('Raport: moc silnika z czasu 100–200 km/h','Report: engine power from 100–200 km/h time'))+'</h1>'+
+  '<div class="hd"><h1>'+esc(title)+'</h1><div class="dt">'+esc(L('Wydruk z: ','Printed: ')+when)+' · '+esc(L('wygenerowano narzędziem ze strony ','generated with the tool at '))+'<a href="https://ecu-perfect.pl" style="color:inherit;text-decoration:none">ecu-perfect.pl</a></div></div>'+
   (note?'<h2>'+esc(L('Opis','Description'))+'</h2><div class="note">'+esc(note)+'</div>':'')+
   '<h2>'+esc(L('Dane wejściowe','Input data'))+'</h2>'+tbl(rows)+
   '<h2>'+esc(L('Wynik','Result'))+'</h2>'+tbl(res)+
-  (photos.length?'<div class="ph" style="margin-top:18px">'+photos.map(function(s){return '<img src="'+s+'">';}).join('')+'</div>':'')+
+  (photos.length?'<div class="ph p'+photos.length+'" style="margin-top:18px">'+photos.map(function(s){return '<img src="'+s+'">';}).join('')+'</div>':'')+
   '<p class="small">'+esc(L('Wynik jest szacunkiem na podstawie uproszczonego modelu fizycznego (opór powietrza i toczenia, nachylenie, straty napędu '+f(r.eta*100,0)+'% sprawności, średnio 90% mocy szczytowej na odcinku). Nie zastępuje pomiaru na hamowni.','The result is an estimate from a simplified physical model (air and rolling resistance, gradient, drivetrain efficiency '+f(r.eta*100,0)+'%, on average 90% of peak power over the run). It does not replace a dyno measurement.'))+'</p>'+
-  '<div class="ft"><span>ECU-Perfect · '+esc(L('chiptuning','chip tuning'))+' · Wrocław</span><span>ecu-perfect.pl</span></div>'+
+  '<div class="ft"><span>ECU-Perfect · '+esc(L('chiptuning','chip tuning'))+' · Wrocław</span><span>ecu-perfect.pl · v1.0</span></div>'+
   '<div class="ft" style="border:0;margin-top:2px"><span>'+esc(L('Kontakt','Contact'))+': contact@ecu-perfect.pl</span><span>facebook.com/EcuPerfect</span></div></body></html>';
   var w=window.open('','_blank');
   if(!w){alert(L('Przeglądarka zablokowała nowe okno – zezwól na wyskakujące okna dla tej strony.','The browser blocked the new window – allow pop-ups for this site.'));return;}
