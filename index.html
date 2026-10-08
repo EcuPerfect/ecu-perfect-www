@@ -17,7 +17,7 @@
   nav { position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center;
         padding:12px 24px; background:rgba(11,11,16,.88); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
   .logo { font-weight:800; letter-spacing:2px; text-decoration:none; }
-  .logo b { color:var(--red); }
+  .logo b { color:inherit; }
   nav .links a { margin-left:20px; text-decoration:none; color:var(--muted); font-size:.95rem; }
   nav .links a:hover { color:var(--txt); }
 
@@ -64,14 +64,15 @@
   footer { text-align:center; color:var(--muted); font-size:.85rem; padding:34px 20px; border-top:1px solid var(--line); margin-top:30px; }
   @media (max-width:560px){ nav .links a:not(:last-child){ display:none; } }
 </style>
+<script src="i18n.js"></script>
 </head>
 <body>
 
 <nav>
-  <a class="logo" href="#">ECU-<b>PERFECT</b></a>
+  <a class="logo" href="#">ECU-<b>Perfect</b></a>
   <div class="links">
     <a href="#uslugi">Usługi</a>
-    <a href="#download">Narzędzia</a>
+    <a href="#tools">Narzędzia</a>
     <a href="#kontakt">Kontakt</a>
   </div>
 </nav>
@@ -82,14 +83,13 @@
 
 <div class="invite">
   <h1>Zapraszamy na nasz <span>profil na Facebooku</span></h1>
-  <p>Realizacje, wyniki z hamowni, ciekawe przypadki z warsztatu i bieżące informacje.
-     Wpadnij, zostaw like i napisz, jeśli masz pytanie o swoje auto.</p>
+  <p>Realizacje, wyniki z hamowni, ciekawe projekty. Napisz, jeśli masz pytanie o swoje auto.</p>
   <div class="btns">
     <a class="btn" href="https://www.facebook.com/EcuPerfect/" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.78-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99A10 10 0 0 0 22 12z"/></svg>
       Odwiedź nas na Facebooku
     </a>
-    <a class="btn ghost" href="#download">Narzędzia</a>
+    <a class="btn ghost" href="#tools">Narzędzia</a>
   </div>
 </div>
 
@@ -98,9 +98,21 @@
   <p class="lead big">Indywidualny chiptuning z pomiarem mocy oraz diagnostyką komputerową.</p>
 </section>
 
-<section id="download">
+<section id="tools">
+  <a id="download"></a>
   <h2>Narzędzia</h2>
   <div class="grid">
+    <div class="card dl">
+      <div>
+        <span class="tag">Online · v1.0</span>
+        <h3>Moc silnika z czasu 100–200 km/h</h3>
+        <p>Szacuje moc silnika na podstawie masy auta i zmierzonego czasu przyspieszenia
+           od 100 do 200 km/h.</p>
+      </div>
+      <div class="btnrow">
+        <a class="btn" href="kalkulatorprzyspieszenia.html">Otwórz kalkulator</a>
+      </div>
+    </div>
     <div class="card dl">
       <div>
         <span class="tag">Online · v1.0</span>
@@ -132,17 +144,6 @@
       </div>
       <div class="btnrow">
         <a class="btn" href="kalkulatoropon.html">Otwórz kalkulator</a>
-      </div>
-    </div>
-    <div class="card dl">
-      <div>
-        <span class="tag">Online · v1.0</span>
-        <h3>Moc silnika z czasu 100–200 km/h</h3>
-        <p>Szacuje moc silnika na podstawie masy auta i zmierzonego czasu przyspieszenia
-           od 100 do 200 km/h.</p>
-      </div>
-      <div class="btnrow">
-        <a class="btn" href="kalkulatorprzyspieszenia.html">Otwórz kalkulator</a>
       </div>
     </div>
     <div class="card dl">
@@ -191,7 +192,6 @@
 </section>
 
 <footer>&copy; ECU-Perfect · chiptuning · Wrocław · <a href="https://www.ecu-perfect.pl">www.ecu-perfect.pl</a></footer>
-  
 
 </body>
 </html>
