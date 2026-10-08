@@ -46,6 +46,8 @@
   .small { color:var(--muted); font-size:.82rem; margin-top:14px; }
   .error { color:var(--red2); margin-top:10px; min-height:1em; }
   footer { text-align:center; color:var(--muted); font-size:.85rem; padding:30px 20px; border-top:1px solid var(--line); }
+  .btn-help { display:inline-block; padding:11px 22px; border-radius:10px; border:2px solid var(--red); background:transparent; color:var(--txt); font-weight:700; font-size:1rem; text-decoration:none; margin-top:14px; line-height:normal; }
+  .btn-help:hover { background:var(--red); color:#fff; }
 </style>
 <script src="i18n.js"></script>
 </head>
@@ -74,10 +76,11 @@
       <div><label for="sl">Nachylenie drogi [%]<small>np. 1 (pod górę), -1 (z górki), 0 = płasko</small></label><input id="sl" value="0" inputmode="decimal"></div>
       <div><label for="drv">Napęd<small>wpływa na straty w układzie napędowym</small></label><select id="drv"><option value="0.90">Przedni (FWD) – straty ok. 10%</option><option value="0.88">Tylny (RWD) – straty ok. 12%</option><option value="0.84" selected>4x4 (xDrive/quattro) – straty ok. 16%</option></select></div>
       <div><label for="cda">Cd × pow.czołowa [m²]<small>np. 0,65 (typowo 0,6–0,75)</small></label><input id="cda" value="0,65" inputmode="decimal"></div>
+      <div><label for="util">Wykorzystanie mocy szczytowej [%]<small>średnio na odcinku; np. 90 (turbodiesel 85–90, turbobenzyna 90–95, wolnossąca 80–85)</small></label><input id="util" value="90" inputmode="decimal"></div>
     </div>
     <div class="grid2">
       <div><label for="note">Opis do raportu<small>np. BMW 335d, Stage 1</small></label><textarea id="note" rows="2" placeholder=""></textarea>
-        <div class="btnrow" style="margin-top:12px"><button id="rep">Raport / wydruk</button></div></div>
+        <div class="btnrow" style="margin-top:12px"><button id="rep">Raport / wydruk</button><a class="btn-help" href="powerfromaccelerationhelp.html">❓ Pomoc</a><button type="button" class="ghost" id="sv">Zapisz dane</button><button type="button" class="ghost" id="ld">Wczytaj dane</button><input type="file" id="ldf" accept=".json,application/json" style="display:none"></div></div>
       <div><label for="ph">Zdjęcia do raportu (maks. 2)<small>opcjonalnie, np. wynik z aplikacji (Dragy) lub zdjęcie auta; możesz też wkleić ze schowka (Ctrl+V); zostają w Twojej przeglądarce, nigdzie nie są wysyłane</small></label>
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><label for="ph" class="filebtn">Wybierz zdjęcia</label><span id="phcnt" class="small" style="margin:0"></span></div>
       <input id="ph" type="file" accept="image/*" multiple style="display:none">
@@ -85,7 +88,7 @@
     </div>
     <div class="error" id="err"></div>
   </div>
-  <p class="small" style="margin-top:0">Model: moc na kołach = moc silnika pomniejszona o straty napędu wybranego typu (FWD 90%, RWD 88%, 4x4 84% sprawności; skrzynia pomijana), uwzględnia opór powietrza i toczenia. Silnik pracuje w tym zakresie blisko maksimum mocy, więc przyjęto 90% mocy szczytowej wykorzystane średnio na odcinku (zmiany biegów, spadek mocy na wysokich obrotach). Wynik to szacunek – dokładność zależy od jakości pomiaru czasu (najlepiej GPS), wiatru, nachylenia drogi, przełożeń i aerodynamiki auta. Nachylenie: wpisz średnie nachylenie odcinka (+ pod górę, − z górki) – kalkulator wyliczy moc z uwzględnieniem siły ciężkości, a następnie pokaże, jaki czas auto uzyska na płaskiej drodze. Wiatru nie uwzględniamy. Najlepiej mierz w obu kierunkach i uśrednij.</p>
+  <p class="small" style="margin-top:0">Model: moc na kołach = moc silnika pomniejszona o straty napędu wybranego typu (FWD 90%, RWD 88%, 4x4 84% sprawności; skrzynia pomijana), uwzględnia opór powietrza i toczenia. Pole „Wykorzystanie mocy szczytowej" określa, jaką część mocy maksymalnej silnik oddaje średnio na całym odcinku (zmiany biegów, spadek mocy na wysokich obrotach); domyślnie 90%. Wartości w podpowiedzi są orientacyjne. Wynik to szacunek – dokładność zależy od jakości pomiaru czasu (najlepiej GPS), wiatru, nachylenia drogi, przełożeń i aerodynamiki auta. Nachylenie: wpisz średnie nachylenie odcinka (+ pod górę, − z górki) – kalkulator wyliczy moc z uwzględnieniem siły ciężkości, a następnie pokaże, jaki czas auto uzyska na płaskiej drodze. Wiatru nie uwzględniamy. Najlepiej mierz w obu kierunkach i uśrednij.</p>
 </main>
 <footer>&copy; ECU-Perfect · chiptuning · Wrocław<small style="display:block;margin-top:6px;opacity:.8">Kopiowanie, przerabianie i wykorzystywanie treści, narzędzi oraz logo tej strony wymaga zgody. Udostępnianie linków jest dozwolone. Wyniki są orientacyjne.</small></footer>
 <script>
@@ -107,6 +110,9 @@ function time100200(psEngine,mass,cda,slope){
 function calc(){
   $('err').textContent='';
   ETA=parseFloat($('drv').value);
+  var uu=num('util');
+  if(!(uu>=50&&uu<=100)){$('err').textContent=I18N.t('Wykorzystanie mocy szczytowej: wpisz wartość od 50 do 100 %.','Peak power utilisation: enter a value between 50 and 100 %.');return;}
+  UTIL=uu/100;
   var sl=num('sl'); if(isNaN(sl))sl=0; sl=sl/100;
   var m=num('m'),d=num('d'),T=num('t'),cda=num('cda');
   if(!(m>300)||!(d>=0)||!(T>0)||!(cda>0)){$('err').textContent=I18N.t('Sprawdź pola (masa, czas, Cd×A).','Check the fields (mass, time, Cd×A).');return;}
@@ -115,7 +121,7 @@ function calc(){
   var ps=(lo+hi)/2;
   if(ps>2900||ps<25)$('err').textContent=I18N.t('Wynik poza sensownym zakresem – sprawdź dane.','Result outside a sensible range – check the data.');
   var t0=time100200(ps,mass,cda,0);
-  lastRes={m:m,d:d,mass:mass,T:T,sl:sl,drv:$('drv').options[$('drv').selectedIndex].text,cda:cda,ps:ps,eta:ETA,t0:t0};
+  lastRes={m:m,d:d,mass:mass,T:T,sl:sl,drv:$('drv').options[$('drv').selectedIndex].text,cda:cda,ps:ps,eta:ETA,util:UTIL,t0:t0};
   $('r5').innerHTML=(isFinite(t0)?f(t0,2):'–')+'<span> s</span>';
   $('r1').innerHTML=f(ps,0)+'<span> KM</span>';
   $('r2').innerHTML=f(ps*0.735499,0)+'<span> kW</span>';
@@ -184,7 +190,8 @@ function openReport(){
     [L('Czas 100–200 km/h','100–200 km/h time'), f(r.T,2)+' s'],
     [L('Nachylenie drogi','Road gradient'), f(r.sl*100,1)+' %'],
     [L('Napęd','Drivetrain'), r.drv.split(' – ')[0]],
-    [L('Cd × pow. czołowa','Cd × frontal area'), f(r.cda,2)+' m²']
+    [L('Cd × pow. czołowa','Cd × frontal area'), f(r.cda,2)+' m²'],
+    [L('Wykorzystanie mocy szczytowej','Peak power utilisation'), f(r.util*100,0)+' %']
   ];
   var res=[
     [L('Moc silnika','Engine power'), f(r.ps,0)+' '+L('KM','hp')+' / '+f(r.ps*0.735499,0)+' kW'],
@@ -210,15 +217,57 @@ function openReport(){
   '<div class="cols"><div><h2>'+esc(L('Dane wejściowe','Input data'))+'</h2>'+tbl(rows)+'</div>'+
   '<div><h2>'+esc(L('Wynik','Result'))+'</h2>'+tbl(res)+'</div></div>'+
   (photos.length?'<div class="ph p'+photos.length+'" style="margin-top:12px">'+photos.map(function(s){return '<img src="'+s+'">';}).join('')+'</div>':'')+
-  '<p class="small">'+esc(L('Wynik jest szacunkiem na podstawie uproszczonego modelu fizycznego (opór powietrza i toczenia, nachylenie, straty napędu '+f(r.eta*100,0)+'% sprawności, średnio 90% mocy szczytowej na odcinku). Nie zastępuje pomiaru na hamowni.','The result is an estimate from a simplified physical model (air and rolling resistance, gradient, drivetrain efficiency '+f(r.eta*100,0)+'%, on average 90% of peak power over the run). It does not replace a dyno measurement.'))+'</p>'+
+  '<p class="small">'+esc(L('Wynik jest szacunkiem na podstawie uproszczonego modelu fizycznego (opór powietrza i toczenia, nachylenie, straty napędu '+f(r.eta*100,0)+'% sprawności, średnio '+f(r.util*100,0)+'% mocy szczytowej na odcinku). Nie zastępuje pomiaru na hamowni.','The result is an estimate from a simplified physical model (air and rolling resistance, gradient, drivetrain efficiency '+f(r.eta*100,0)+'%, on average '+f(r.util*100,0)+'% of peak power over the run). It does not replace a dyno measurement.'))+'</p>'+
   '<div class="ft"><span>ECU-Perfect · '+esc(L('chiptuning','chip tuning'))+' · Wrocław · '+esc(L('Kontakt','Contact'))+': contact@ecu-perfect.pl · facebook.com/EcuPerfect</span><span>ecu-perfect.pl · v1.0</span></div></body></html>';
   var w=window.open('','_blank');
   if(!w){alert(L('Przeglądarka zablokowała nowe okno – zezwól na wyskakujące okna dla tej strony.','The browser blocked the new window – allow pop-ups for this site.'));return;}
   w.document.open(); w.document.write(html); w.document.close();
 }
 $('rep').addEventListener('click',openReport);
-['m','d','t','cda','sl'].forEach(function(id){$(id).addEventListener('input',calc);});
+['m','d','t','cda','sl','util'].forEach(function(id){$(id).addEventListener('input',calc);});
 $('drv').addEventListener('change',calc);
+
+var NUMS=['m','d','t','sl','cda','util'], SELS=['drv'], TXTS=['note'], SKEY='ecup_acc';
+function collect(){
+  var o={v:1};
+  NUMS.forEach(function(id){var n=num(id); o[id]=isNaN(n)?null:n;});
+  SELS.forEach(function(id){o[id]=$(id).value;});
+  TXTS.forEach(function(id){o[id]=$(id).value;});
+  return o;
+}
+function apply(o){
+  if(!o||typeof o!=='object')return;
+  NUMS.forEach(function(id){
+    if(!$(id)||typeof o[id]!=='number'||!isFinite(o[id]))return;
+    $(id).value=String(o[id]).replace('.',I18N.lang()==='pl'?',':'.');
+  });
+  SELS.forEach(function(id){
+    if(!$(id)||typeof o[id]!=='string')return;
+    if($(id).querySelector('option[value="'+o[id]+'"]'))$(id).value=o[id];
+  });
+  TXTS.forEach(function(id){ if($(id)&&typeof o[id]==='string')$(id).value=o[id]; });
+}
+function persist(){ try{localStorage.setItem(SKEY,JSON.stringify(collect()));}catch(e){} }
+try{ var saved=localStorage.getItem(SKEY); if(saved) apply(JSON.parse(saved)); }catch(e){}
+NUMS.concat(TXTS).forEach(function(id){$(id).addEventListener('input',persist);});
+SELS.forEach(function(id){$(id).addEventListener('change',persist);});
+$('sv').addEventListener('click',function(){
+  var name=($('note').value.trim().replace(/[^\w\-]+/g,'_').replace(/^_+|_+$/g,'').slice(0,40))||'acceleration';
+  var blob=new Blob([JSON.stringify(collect(),null,2)],{type:'application/json'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name+'.json';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+});
+$('ld').addEventListener('click',function(){$('ldf').click();});
+$('ldf').addEventListener('change',function(){
+  var file=this.files[0], inp=this; if(!file)return;
+  var r=new FileReader();
+  r.onload=function(){
+    try{ apply(JSON.parse(r.result)); persist(); calc(); }
+    catch(e){ $('err').textContent=I18N.t('Nie udało się wczytać pliku.','Could not read the file.'); }
+    inp.value='';
+  };
+  r.readAsText(file);
+});
 calc();
 I18N.onChange(calc);
 </script>
