@@ -3,106 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Prędkość auta na biegach v1.0 – ECU-Perfect</title>
-<meta name="description" content="Oblicz prędkość auta z obrotów silnika, przełożeń skrzyni, dyferencjału i rozmiaru opon – i odwrotnie.">
-<style>
-  :root { --red:#e5202e; --red2:#ff4b57; --bg:#0b0b10; --card:#15151d; --line:#262633; --txt:#f2f2f6; --muted:#9a9aab; }
-  * { box-sizing:border-box; }
-  body { margin:0; font-family:"Segoe UI",system-ui,Arial,sans-serif; background:var(--bg); color:var(--txt); line-height:1.5; }
-  a { color:inherit; }
-  nav { position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center; padding:12px 24px; background:rgba(11,11,16,.9); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
-  .logo { font-weight:800; letter-spacing:2px; text-decoration:none; } .logo b { color:inherit; }
-  nav .links a { margin-left:20px; text-decoration:none; color:var(--muted); font-size:.95rem; } nav .links a:hover { color:var(--txt); }
-  main { max-width:1000px; margin:0 auto; padding:30px 20px 50px; }
-  h1 { margin:0 0 6px; font-size:clamp(1.6rem,4.5vw,2.4rem); }
-  h1::after { content:""; display:block; width:56px; height:3px; background:var(--red); margin-top:10px; border-radius:2px; }
-  .lead { color:var(--muted); margin:14px 0 26px; max-width:760px; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; margin-bottom:18px; }
-  .card h2 { margin:0 0 14px; font-size:1.05rem; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; }
-  label { display:block; font-size:.8rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
-  label small { text-transform:none; letter-spacing:0; display:block; opacity:.8; }
-  select, input, textarea { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:#0f0f16; color:var(--txt); font-size:1.05rem; font-family:inherit; }
-  select:focus, input:focus, textarea:focus { outline:2px solid var(--red); border-color:var(--red); }
-  button { padding:11px 22px; border-radius:10px; border:2px solid var(--red); background:var(--red); color:#fff; font-weight:700; font-size:1rem; cursor:pointer; margin-top:14px; }
-  button:hover { background:var(--red2); border-color:var(--red2); }
-  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-top:6px; }
-  .big { background:#0f0f16; border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
-  .big .v { font-size:1.7rem; font-weight:800; line-height:1.1; } .big .v span { font-size:.9rem; color:var(--muted); font-weight:600; }
-  .big .t { color:var(--muted); font-size:.75rem; text-transform:uppercase; letter-spacing:1.2px; }
-  .scroll { overflow-x:auto; }
-  table { width:100%; border-collapse:collapse; font-size:.95rem; min-width:520px; }
-  th, td { padding:8px 10px; text-align:center; border-bottom:1px solid var(--line); white-space:nowrap; }
-  th { color:var(--muted); font-weight:600; font-size:.75rem; text-transform:uppercase; }
-  .small { color:var(--muted); font-size:.82rem; margin-top:14px; }
-  .error { color:var(--red2); margin-top:10px; min-height:1em; }
-  footer { text-align:center; color:var(--muted); font-size:.85rem; padding:30px 20px; border-top:1px solid var(--line); }
-</style>
-<script src="i18n.js"></script>
+<title>ECU-Perfect – strona przeniesiona / page moved</title>
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://ecu-perfect.pl/gearspeedcalculator.html">
+<meta http-equiv="refresh" content="0; url=gearspeedcalculator.html">
+<script>location.replace('gearspeedcalculator.html' + location.search + location.hash);</script>
+<style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0b0b10;color:#f2f2f6;font-family:"Segoe UI",system-ui,Arial,sans-serif;text-align:center}a{color:#ff4b57}</style>
 </head>
 <body>
-<nav>
-  <a class="logo" href="index.html">ECU-<b>Perfect</b></a>
-  <div class="links"><a href="index.html">← Strona główna</a><a href="index.html#tools">Narzędzia</a></div>
-</nav>
-<main>
-  <h1>Prędkość auta na biegach v1.0</h1>
-  <p class="lead">Podaj rozmiar opony, przełożenie główne (dyfer), przełożenia biegów i obroty silnika – kalkulator pokaże prędkość auta na każdym biegu.</p>
-
-  <div class="card">
-    <h2>Opona</h2>
-    <div class="grid">
-      <div><label for="tw">Szerokość [mm]</label><select id="tw"></select></div>
-      <div><label for="tp">Profil [%]</label><select id="tp"></select></div>
-      <div><label for="tr">Felga [cale]</label><select id="tr"></select></div>
-    </div>
-    <div class="stats" style="margin-top:12px"><div class="big"><div class="t">Obwód opony</div><div class="v" id="circ">–<span> cm</span></div></div></div>
-  </div>
-
-  <div class="card">
-    <h2>Przełożenia</h2>
-    <div class="grid">
-      <div><label for="fd">Przełożenie główne (dyfer)<small>np. 3,46</small></label><input id="fd" value="3,46" inputmode="decimal"></div>
-      <div><label for="rpm">Obroty silnika [rpm]<small>np. 3000</small></label><input id="rpm" value="3000" inputmode="decimal"></div>
-    </div>
-    <div class="grid" style="margin-top:12px;grid-template-columns:repeat(auto-fit,minmax(110px,1fr))"><div><label for="g1">Bieg 1</label><input id="g1" inputmode="decimal" value="4,17"></div><div><label for="g2">Bieg 2</label><input id="g2" inputmode="decimal" value="2,34"></div><div><label for="g3">Bieg 3</label><input id="g3" inputmode="decimal" value="1,52"></div><div><label for="g4">Bieg 4</label><input id="g4" inputmode="decimal" value="1,14"></div><div><label for="g5">Bieg 5</label><input id="g5" inputmode="decimal" value="0,87"></div><div><label for="g6">Bieg 6</label><input id="g6" inputmode="decimal" value="0,69"></div><div><label for="g7">Bieg 7</label><input id="g7" inputmode="decimal" value=""></div><div><label for="g8">Bieg 8</label><input id="g8" inputmode="decimal" value=""></div></div>
-    <p class="small">Przełożenia biegów np. 4,17 / 2,34 / 1,52… Puste pola są pomijane (wpisz tyle biegów, ile ma skrzynia, do 8).</p>
-    <div class="error" id="err"></div>
-  </div>
-
-  <div class="card">
-    <h2>Prędkość auta</h2>
-    <div class="scroll"><table id="tbl"><thead><tr><th>Bieg</th><th>Przełożenie</th><th>Prędkość [km/h]</th></tr></thead><tbody></tbody></table></div>
-    <p class="small">Prędkość [km/h] = obroty × obwód opony [m] × 60 / (przełożenie biegu × przełożenie główne × 1000). Obwód opony jest nominalny; faktyczny zależy od marki, zużycia i ciśnienia. W automacie z konwerterem występuje poślizg, więc rzeczywista prędkość może być nieco niższa.</p>
-  </div>
-</main>
-<footer>&copy; ECU-Perfect · chiptuning · Wrocław</footer>
-<script>
-function $(id){return document.getElementById(id);}
-function num(id){var s=$(id).value.trim().replace(',','.');return s===''?NaN:parseFloat(s);}
-function f(x,d){return I18N.f(x,d);}
-var Wl=[];for(var w=125;w<=395;w+=(w<135?10:5))Wl.push(w);var Pl=[];for(var p=25;p<=85;p+=5)Pl.push(p);var Rl=[];for(var r=12;r<=24;r++)Rl.push(r);
-function fill(id,a,d){a.forEach(function(v){var o=document.createElement('option');o.value=v;o.textContent=v;if(v===d)o.selected=true;$(id).appendChild(o);});}
-fill('tw',Wl,225);fill('tp',Pl,55);fill('tr',Rl,17);
-function calc(){
-  $('err').textContent='';
-  var C=Math.PI*(+$('tr').value*25.4+2*(+$('tw').value)*(+$('tp').value)/100)/1000;
-  $('circ').innerHTML=f(C*100,2)+'<span> cm</span>';
-  var fd=num('fd'),rpm=num('rpm');
-  var tb=$('tbl').querySelector('tbody');tb.innerHTML='';
-  if(!(fd>0)||!(rpm>0)){$('err').textContent=I18N.t('Podaj przełożenie główne i obroty silnika.','Enter the final drive ratio and engine RPM.');return;}
-  var n=0;
-  for(var i=1;i<=8;i++){
-    var g=num('g'+i); if(!(g>0))continue; n++;
-    var v=rpm*C*60/(g*fd*1000);
-    var cells=[i,f(g,3),f(v,1)];
-    var tr=document.createElement('tr');cells.forEach(function(c){var td=document.createElement('td');td.textContent=c;tr.appendChild(td);});tb.appendChild(tr);
-  }
-  if(!n)$('err').textContent=I18N.t('Wpisz przynajmniej jedno przełożenie biegu.','Enter at least one gear ratio.');
-}
-['tw','tp','tr','fd','rpm','g1','g2','g3','g4','g5','g6','g7','g8'].forEach(function(id){$(id).addEventListener('input',calc);$(id).addEventListener('change',calc);});
-calc();
-I18N.onChange(calc);
-</script>
+<p>Strona została przeniesiona / This page has moved.<br><a href="gearspeedcalculator.html">gearspeedcalculator.html</a></p>
 </body>
 </html>

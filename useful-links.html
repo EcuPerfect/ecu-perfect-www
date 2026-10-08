@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Przydatne linki – ECU-Perfect</title>
+<meta name="description" content="Przydatne linki dla chiptunerów i pasjonatów motoryzacji: wiki o ECU, kody błędów, katalogi części, kalkulatory turbo.">
+<style>
+  :root { --red:#e5202e; --red2:#ff4b57; --bg:#0b0b10; --card:#15151d; --line:#262633; --txt:#f2f2f6; --muted:#9a9aab; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Segoe UI",system-ui,Arial,sans-serif; background:var(--bg); color:var(--txt); line-height:1.5; }
+  a { color:inherit; }
+  nav { position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center; padding:12px 24px; background:rgba(11,11,16,.9); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+  .logo { font-weight:800; letter-spacing:2px; text-decoration:none; } .logo b { color:inherit; }
+  nav .links a { margin-left:20px; text-decoration:none; color:var(--muted); font-size:.95rem; } nav .links a:hover { color:var(--txt); }
+  main { max-width:1000px; margin:0 auto; padding:30px 20px 50px; }
+  h1 { margin:0 0 6px; font-size:clamp(1.6rem,4.5vw,2.4rem); }
+  h1::after { content:""; display:block; width:56px; height:3px; background:var(--red); margin-top:10px; border-radius:2px; }
+  .lead { color:var(--muted); margin:14px 0 26px; max-width:760px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; margin-bottom:18px; }
+  .card h2 { margin:0 0 14px; font-size:1.05rem; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; }
+  label { display:block; font-size:.8rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
+  label small { text-transform:none; letter-spacing:0; display:block; opacity:.8; }
+  select, input, textarea { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:#0f0f16; color:var(--txt); font-size:1.05rem; font-family:inherit; }
+  select:focus, input:focus, textarea:focus { outline:2px solid var(--red); border-color:var(--red); }
+  button { padding:11px 22px; border-radius:10px; border:2px solid var(--red); background:var(--red); color:#fff; font-weight:700; font-size:1rem; cursor:pointer; margin-top:14px; }
+  button:hover { background:var(--red2); border-color:var(--red2); }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-top:6px; }
+  .big { background:#0f0f16; border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .big .v { font-size:1.7rem; font-weight:800; line-height:1.1; } .big .v span { font-size:.9rem; color:var(--muted); font-weight:600; }
+  .big .t { color:var(--muted); font-size:.75rem; text-transform:uppercase; letter-spacing:1.2px; }
+  .scroll { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:.95rem; min-width:520px; }
+  th, td { padding:8px 10px; text-align:center; border-bottom:1px solid var(--line); white-space:nowrap; }
+  th { color:var(--muted); font-weight:600; font-size:.75rem; text-transform:uppercase; }
+  .small { color:var(--muted); font-size:.82rem; margin-top:14px; }
+  .error { color:var(--red2); margin-top:10px; min-height:1em; }
+  footer { text-align:center; color:var(--muted); font-size:.85rem; padding:30px 20px; border-top:1px solid var(--line); }
+  .links-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; }
+  a.lk { display:block; text-decoration:none; background:#0f0f16; border:1px solid var(--line); border-radius:10px; padding:12px 14px; transition:.15s; }
+  a.lk:hover { border-color:var(--red); transform:translateY(-1px); }
+  a.lk b { display:block; color:var(--txt); }
+  a.lk span { display:block; color:var(--muted); font-size:.88rem; margin-top:2px; }
+  a.lk i { display:block; color:var(--red2); font-style:normal; font-size:.75rem; margin-top:4px; word-break:break-all; }
+</style>
+<script src="i18n.js"></script>
+</head>
+<body>
+<nav>
+  <a class="logo" href="index.html">ECU-<b>Perfect</b></a>
+  <div class="links"><a href="index.html">← Strona główna</a><a href="index.html#tools">Narzędzia</a></div>
+</nav>
+<main>
+  <h1>Przydatne linki</h1>
+  <p class="lead">Strony, z których korzystamy lub które polecamy – wiki o sterownikach, kody błędów, narzędzia i katalogi części. Linki otwierają się w nowej karcie. Strony zewnętrzne, nie nasze.</p>
+  <div class="card">
+    <h2>Wiki o ECU i strojeniu</h2>
+    <div class="links-list">
+      <a class="lk" href="https://nefariousmotorsports.com/wiki/index.php?title=Main_Page" target="_blank" rel="noopener"><b>NefMoto Wiki</b><span>Wiki społeczności o strojeniu, diagnostyce i inżynierii wstecznej sterowników Bosch Motronic (VW, Audi, Porsche, Volvo).</span><i>nefariousmotorsports.com</i></a>
+      <a class="lk" href="https://www.ms4x.net/index.php?title=Main_Page" target="_blank" rel="noopener"><b>MS4X Wiki</b><span>Wiki o sterownikach Siemens MS41/MS42/MS43/MS45 w benzynowych BMW: opisy DME, narzędzia, definicje i oprogramowanie.</span><i>ms4x.net</i></a>
+      <a class="lk" href="https://www.simoswiki.com/index.php?title=Main_Page" target="_blank" rel="noopener"><b>SimosWiki</b><span>Wiki o sterownikach Simos (VW/Audi/Skoda/Seat): budowa, odczyt i zapis, strojenie.</span><i>simoswiki.com</i></a>
+      <a class="lk" href="https://s4wiki.com/wiki/Tuning" target="_blank" rel="noopener"><b>S4wiki – Tuning</b><span>Opis strojenia Audi S4 z silnikiem V6 biturbo, w tym podstawy ME7.</span><i>s4wiki.com</i></a>
+      <a class="lk" href="https://www.tuning-database.co.uk/bosch-me7-tuning-complete-technical-guide/" target="_blank" rel="noopener"><b>Bosch ME7 Tuning: The Complete Technical Guide</b><span>Obszerny przewodnik po budowie i najważniejszych mapach ME7.</span><i>tuning-database.co.uk</i></a>
+      <a class="lk" href="https://en.wikipedia.org/wiki/Motronic" target="_blank" rel="noopener"><b>Wikipedia – Motronic</b><span>Ogólny opis rodziny sterowników Bosch Motronic i jej historii.</span><i>en.wikipedia.org</i></a>
+      <a class="lk" href="https://tunersguild.com/blog/bosch-edc17-tuning-guide/" target="_blank" rel="noopener"><b>Bosch EDC17 tuning guide (Tuners Guild)</b><span>Opis logiki sterownika diesla EDC17: żądanie momentu, ograniczniki, dawka paliwa i doładowanie.</span><i>tunersguild.com</i></a>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Kody błędów i diagnostyka</h2>
+    <div class="links-list">
+      <a class="lk" href="https://bmwfault.codes/" target="_blank" rel="noopener"><b>BMW Fault Codes</b><span>Wyszukiwarka kodów błędów BMW (P-kody i szesnastkowe), z opisem w wielu językach, także po polsku.</span><i>bmwfault.codes</i></a>
+      <a class="lk" href="https://e46forum.pl/kody-bledow-bmw-tlumaczenie-wersja-pl-baza-kodow-bledow-bmw-po-polsku-10317" target="_blank" rel="noopener"><b>Kody błędów BMW po polsku (e46forum.pl)</b><span>Polskie tłumaczenie bazy kodów błędów BMW.</span><i>e46forum.pl</i></a>
+      <a class="lk" href="https://vw-clubpolska.pl/index.php/page,kodyusterekvag.html" target="_blank" rel="noopener"><b>Kody usterek VAG (VW Klub Polska)</b><span>Polska lista kodów usterek aut z grupy VAG.</span><i>vw-clubpolska.pl</i></a>
+      <a class="lk" href="https://www.ross-tech.com/vag-com/m_blocks/" target="_blank" rel="noopener"><b>Ross-Tech – bloki pomiarowe VCDS</b><span>Opis bloków pomiarowych (Measuring Blocks) do odczytu parametrów w VCDS.</span><i>ross-tech.com</i></a>
+      <a class="lk" href="https://www.ross-tech.com/vag-com/cars/tdi.html" target="_blank" rel="noopener"><b>Ross-Tech – VCDS dla TDI</b><span>Informacje o diagnostyce silników TDI w VCDS.</span><i>ross-tech.com</i></a>
+      <a class="lk" href="https://www.e90post.com/forums/showthread.php?t=1677556" target="_blank" rel="noopener"><b>TestO – logowanie parametrów BMW (E90Post)</b><span>Wątek o narzędziu TestO do logowania parametrów w BMW (kabel K+DCAN i laptop z Windows).</span><i>e90post.com</i></a>
+      <a class="lk" href="https://log.tunezilla.com/" target="_blank" rel="noopener"><b>TuneZilla Log Viewer</b><span>Darmowa przeglądarka i udostępnianie logów z VCDS, COBB, ScanXL, ME7Logger, BlueDriver i OBDeleven. Bez konta.</span><i>log.tunezilla.com</i></a>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Narzędzia i oprogramowanie</h2>
+    <div class="links-list">
+      <a class="lk" href="https://www.tunerpro.net/downloadBinDefs.htm" target="_blank" rel="noopener"><b>TunerPro – definicje BIN</b><span>Pliki definicji (XDF/ADX) do TunerPro, programu do edycji plików ECU.</span><i>tunerpro.net</i></a>
+      <a class="lk" href="https://github.com/bri3d/VW_Flash/blob/ba58fbe48bb380be45e76640a70e2fa2ce265b59/docs/windows.md" target="_blank" rel="noopener"><b>VW_Flash – instrukcja dla Windows</b><span>Instrukcja instalacji i użycia VW_Flash na Windows, narzędzia open source do flashowania sterowników VW/Audi.</span><i>github.com</i></a>
+      <a class="lk" href="https://manual.turbolamik.eu/docs/" target="_blank" rel="noopener"><b>Manual TurboLamik</b><span>Instrukcje do sterownika skrzyni TCU TurboLamik: BMW (F, G, E90), Dodge/Jeep 8HP, komunikacja CAN, TunerPro, kody błędów.</span><i>manual.turbolamik.eu</i></a>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Osiągi, turbo i części</h2>
+    <div class="links-list">
+      <a class="lk" href="https://fastestlaps.com/lists/top-fastest-cars-bikes-quarter-mile" target="_blank" rel="noopener"><b>FastestLaps – ranking 1/4 mili</b><span>Ranking najszybszych aut i motocykli na ćwierć mili z czasami i prędkością.</span><i>fastestlaps.com</i></a>
+      <a class="lk" href="https://strikeengine.com/turbo-size-calculator-find-cfm-pressure-ratio/" target="_blank" rel="noopener"><b>Strike Engine – kalkulator turbo</b><span>Kalkulator doboru rozmiaru turbosprężarki: przepływ powietrza (CFM) i stopień sprężania.</span><i>strikeengine.com</i></a>
+      <a class="lk" href="https://www.borgwarner.com/matchbot/" target="_blank" rel="noopener"><b>BorgWarner MatchBot</b><span>Narzędzie producenta do doboru turbosprężarki do silnika.</span><i>borgwarner.com</i></a>
+      <a class="lk" href="https://7zap.com/pl/catalog/cars/" target="_blank" rel="noopener"><b>7zap – katalogi części</b><span>Katalogi części oryginalnych (schematy i numery) wielu marek.</span><i>7zap.com</i></a>
+      <a class="lk" href="https://www.bmwstore.pl/" target="_blank" rel="noopener"><b>BMWStore.pl</b><span>Polski sklep z częściami BMW.</span><i>bmwstore.pl</i></a>
+    </div>
+  </div>
+</main>
+<footer>&copy; ECU-Perfect · chiptuning · Wrocław</footer>
+</body>
+</html>

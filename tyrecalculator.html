@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kalkulator obwodu opon i zamienników v1.0 – ECU-Perfect</title>
+<meta name="description" content="Oblicz obwód opony (np. 225/55 R17) i znajdź zamienniki o najbliższym obwodzie z różnicą w cm i procentach oraz wpływem na prędkościomierz.">
+<style>
+  :root { --red:#e5202e; --red2:#ff4b57; --bg:#0b0b10; --card:#15151d; --line:#262633; --txt:#f2f2f6; --muted:#9a9aab; --ok:#3ecf8e; --warn:#f5a524; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Segoe UI",system-ui,Arial,sans-serif; background:var(--bg); color:var(--txt); line-height:1.5; }
+  a { color:inherit; }
+  nav { position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center;
+        padding:12px 24px; background:rgba(11,11,16,.9); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+  .logo { font-weight:800; letter-spacing:2px; text-decoration:none; }
+  .logo b { color:inherit; }
+  nav .links a { margin-left:20px; text-decoration:none; color:var(--muted); font-size:.95rem; }
+  nav .links a:hover { color:var(--txt); }
+  main { max-width:1000px; margin:0 auto; padding:30px 20px 50px; }
+  h1 { margin:0 0 6px; font-size:clamp(1.6rem,4.5vw,2.4rem); }
+  h1::after { content:""; display:block; width:56px; height:3px; background:var(--red); margin-top:10px; border-radius:2px; }
+  .lead { color:var(--muted); margin:14px 0 26px; max-width:760px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; margin-bottom:18px; }
+  .card h2 { margin:0 0 14px; font-size:1.05rem; }
+  .sel { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  @media (max-width:560px){ .sel { grid-template-columns:1fr; } }
+  .sel label, .opts label { display:block; font-size:.8rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
+  select, input { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:#0f0f16; color:var(--txt); font-size:1.1rem; }
+  select:focus, input:focus { outline:2px solid var(--red); border-color:var(--red); }
+  .size { margin-top:14px; font-size:1.3rem; font-weight:700; }
+  .size span { color:var(--red2); }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-top:14px; }
+  .big { background:#0f0f16; border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .big .v { font-size:1.6rem; font-weight:800; line-height:1.1; }
+  .big .v span { font-size:.9rem; color:var(--muted); font-weight:600; }
+  .big .t { color:var(--muted); font-size:.75rem; text-transform:uppercase; letter-spacing:1.2px; }
+  .opts { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
+  .scroll { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:.95rem; min-width:560px; }
+  th, td { padding:8px 10px; text-align:center; border-bottom:1px solid var(--line); white-space:nowrap; }
+  th { color:var(--muted); font-weight:600; font-size:.75rem; text-transform:uppercase; }
+  td.sz { font-weight:700; text-align:left; }
+  tr.cur td { background:rgba(229,32,46,.12); }
+  .ok { color:var(--ok); } .warn { color:var(--warn); } .bad { color:var(--red2); }
+  .small { color:var(--muted); font-size:.82rem; margin-top:14px; }
+  .empty { color:var(--muted); padding:10px 0; }
+  footer { text-align:center; color:var(--muted); font-size:.85rem; padding:30px 20px; border-top:1px solid var(--line); }
+</style>
+<script src="i18n.js"></script>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="index.html">ECU-<b>Perfect</b></a>
+  <div class="links">
+    <a href="index.html">← Strona główna</a>
+    <a href="index.html#tools">Narzędzia</a>
+  </div>
+</nav>
+
+<main>
+  <h1>Kalkulator obwodu opon v1.0</h1>
+  <p class="lead">Wybierz rozmiar opony (szerokość / profil / średnica felgi). Kalkulator policzy obwód w cm
+     i pokaże zamienniki o najbliższym obwodzie wraz z różnicą w cm i w procentach oraz wpływem na prędkościomierz.</p>
+
+  <div class="card">
+    <h2>Twoja opona</h2>
+    <div class="sel">
+      <div><label for="w">Szerokość [mm]</label><select id="w"></select></div>
+      <div><label for="p">Profil [%]</label><select id="p"></select></div>
+      <div><label for="r">Felga [cale]</label><select id="r"></select></div>
+    </div>
+    <div class="size" id="size">–</div>
+    <div class="stats">
+      <div class="big"><div class="t">Obwód</div><div class="v" id="sC">–<span> cm</span></div></div>
+      <div class="big"><div class="t">Średnica opony</div><div class="v" id="sD">–<span> cm</span></div></div>
+      <div class="big"><div class="t">Wysokość boku</div><div class="v" id="sS">–<span> mm</span></div></div>
+      <div class="big"><div class="t">Obrotów na 1 km</div><div class="v" id="sK">–</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Zamienniki</h2>
+    <div class="opts">
+      <div><label for="tol">Maks. różnica obwodu [%]</label><input id="tol" value="2" inputmode="decimal"></div>
+      <div><label for="mode">Średnica felgi</label>
+        <select id="mode">
+          <option value="same">Ta sama felga</option>
+          <option value="one" selected>±1 cal</option>
+          <option value="two">±2 cale</option>
+          <option value="any">Dowolna</option>
+        </select></div>
+      <div><label for="max">Ile wyników</label>
+        <select id="max"><option>10</option><option selected>20</option><option>40</option><option>100</option></select></div>
+    </div>
+    <div class="scroll" style="margin-top:14px">
+      <table id="tbl">
+        <thead><tr>
+          <th style="text-align:left">Rozmiar</th><th>Obwód [cm]</th><th>Różnica [cm]</th><th>Różnica [%]</th>
+          <th>Średnica [cm]</th><th>Prędkościomierz: wskazuje 100 → rzecz.</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="empty" id="empty" style="display:none">Brak zamienników w podanych granicach – zwiększ dopuszczalną różnicę lub rozszerz zakres felg.</div>
+    <p class="small">Obwód = π × (średnica felgi + 2 × szerokość × profil). Wartości dotyczą rozmiarów nominalnych – faktyczny obwód
+       zależy od producenta, zużycia bieżnika, ciśnienia i obciążenia. Zwykle przyjmuje się, że różnica do ok. ±2% jest bezpieczna dla
+       prędkościomierza i układów ABS/ESP, ale zawsze sprawdź dozwolone rozmiary w dowodzie rejestracyjnym lub dokumentacji pojazdu
+       i dobierz nośność oraz indeks prędkości. Prędkościomierz: gdy wskazuje 100 km/h, rzeczywista prędkość to 100 × obwód nowej / obwód
+       oryginalnej opony. Kalkulator ma charakter pomocniczy.</p>
+  </div>
+</main>
+
+<footer>&copy; ECU-Perfect · chiptuning · Wrocław</footer>
+
+<script>
+var WIDTHS = [];  for (var w = 125; w <= 395; w += (w < 135 ? 10 : 5)) WIDTHS.push(w);
+var PROFILES = []; for (var p = 25; p <= 85; p += 5) PROFILES.push(p);
+var RIMS = [];     for (var r = 12; r <= 24; r++) RIMS.push(r);
+
+function circ(w, p, r) {            // obwod w mm
+  var d = r * 25.4 + 2 * w * p / 100;
+  return Math.PI * d;
+}
+function $(id) { return document.getElementById(id); }
+function fill(sel, arr, def) {
+  arr.forEach(function (v) {
+    var o = document.createElement('option'); o.value = v; o.textContent = v;
+    if (v === def) o.selected = true; sel.appendChild(o);
+  });
+}
+fill($('w'), WIDTHS, 225); fill($('p'), PROFILES, 55); fill($('r'), RIMS, 17);
+
+function cls(pct) { var a = Math.abs(pct); return a <= 1 ? 'ok' : (a <= 2 ? 'warn' : 'bad'); }
+function sign(x, d) { return (x > 0 ? '+' : '') + I18N.f(x, d); }
+function fmt2(x) { return I18N.f(x, 2); }
+
+function update() {
+  var w = +$('w').value, p = +$('p').value, r = +$('r').value;
+  var c0 = circ(w, p, r);
+  var dia = r * 25.4 + 2 * w * p / 100;
+  $('size').innerHTML = 'Rozmiar: <span>' + w + '/' + p + ' R' + r + '</span>';
+  $('sC').innerHTML = fmt2(c0 / 10) + '<span> cm</span>';
+  $('sD').innerHTML = fmt2(dia / 10) + '<span> cm</span>';
+  $('sS').innerHTML = I18N.f(w * p / 100, 1) + '<span> mm</span>';
+  $('sK').textContent = Math.round(1e6 / c0);
+
+  var tol = parseFloat($('tol').value.replace(',', '.'));
+  if (isNaN(tol) || tol < 0) tol = 2;
+  var mode = $('mode').value, max = +$('max').value;
+  var span = { same: 0, one: 1, two: 2, any: 99 }[mode];
+
+  var list = [];
+  WIDTHS.forEach(function (ww) { PROFILES.forEach(function (pp) { RIMS.forEach(function (rr) {
+    if (Math.abs(rr - r) > span) return;
+    var c = circ(ww, pp, rr);
+    var diffPct = (c - c0) / c0 * 100;
+    if (Math.abs(diffPct) > tol) return;
+    list.push({ w: ww, p: pp, r: rr, c: c, dcm: (c - c0) / 10, dpct: diffPct, dia: (rr * 25.4 + 2 * ww * pp / 100) });
+  }); }); });
+  list.sort(function (a, b) {
+    var d = Math.abs(a.dpct) - Math.abs(b.dpct);
+    if (Math.abs(d) > 1e-9) return d;
+    return Math.abs(a.r - r) - Math.abs(b.r - r);
+  });
+
+  var tb = document.querySelector('#tbl tbody'); tb.innerHTML = '';
+  var shown = 0;
+  list.some(function (x) {
+    var same = (x.w === w && x.p === p && x.r === r);
+    var tr = document.createElement('tr'); if (same) tr.className = 'cur';
+    var spd = 100 * x.c / c0;
+    var cells = [
+      ['sz', x.w + '/' + x.p + ' R' + x.r + (same ? I18N.t('  (Twoja)', '  (yours)') : '')],
+      ['', fmt2(x.c / 10)],
+      [cls(x.dpct), same ? I18N.f(0, 2) : sign(x.dcm, 2)],
+      [cls(x.dpct), same ? I18N.f(0, 2) + '%' : sign(x.dpct, 2) + '%'],
+      ['', fmt2(x.dia / 10)],
+      ['', '100 → ' + I18N.f(spd, 1) + ' km/h']
+    ];
+    cells.forEach(function (c) {
+      var td = document.createElement('td'); if (c[0]) td.className = c[0]; td.textContent = c[1]; tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+    shown++;
+    return shown >= max;
+  });
+  $('empty').style.display = shown ? 'none' : 'block';
+}
+['w', 'p', 'r', 'tol', 'mode', 'max'].forEach(function (id) {
+  $(id).addEventListener('change', update); $(id).addEventListener('input', update);
+});
+update();
+I18N.onChange(update);
+</script>
+</body>
+</html>
