@@ -76,13 +76,13 @@
       <div><label for="cda">Cd × pow.czołowa [m²]<small>np. 0,65 (typowo 0,6–0,75)</small></label><input id="cda" value="0,65" inputmode="decimal"></div>
     </div>
     <div class="grid2">
-      <div><label for="note">Opis do raportu<small>np. BMW 335d, Stage 1</small></label><textarea id="note" rows="2" placeholder=""></textarea></div>
+      <div><label for="note">Opis do raportu<small>np. BMW 335d, Stage 1</small></label><textarea id="note" rows="2" placeholder=""></textarea>
+        <div class="btnrow" style="margin-top:12px"><button id="rep">Raport / wydruk</button></div></div>
       <div><label for="ph">Zdjęcia do raportu (maks. 2)<small>opcjonalnie, np. wynik z aplikacji (Dragy) lub zdjęcie auta; możesz też wkleić ze schowka (Ctrl+V); zostają w Twojej przeglądarce, nigdzie nie są wysyłane</small></label>
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><label for="ph" class="filebtn">Wybierz zdjęcia</label><span id="phcnt" class="small" style="margin:0"></span></div>
       <input id="ph" type="file" accept="image/*" multiple style="display:none">
       <div id="thumbs" class="thumbs"></div></div>
     </div>
-    <div class="btnrow"><button id="rep">Raport / wydruk</button></div>
     <div class="error" id="err"></div>
   </div>
   <p class="small" style="margin-top:0">Model: moc na kołach = moc silnika pomniejszona o straty napędu wybranego typu (FWD 90%, RWD 88%, 4x4 84% sprawności; skrzynia pomijana), uwzględnia opór powietrza i toczenia. Silnik pracuje w tym zakresie blisko maksimum mocy, więc przyjęto 90% mocy szczytowej wykorzystane średnio na odcinku (zmiany biegów, spadek mocy na wysokich obrotach). Wynik to szacunek – dokładność zależy od jakości pomiaru czasu (najlepiej GPS), wiatru, nachylenia drogi, przełożeń i aerodynamiki auta. Nachylenie: wpisz średnie nachylenie odcinka (+ pod górę, − z górki) – kalkulator wyliczy moc z uwzględnieniem siły ciężkości, a następnie pokaże, jaki czas auto uzyska na płaskiej drodze. Wiatru nie uwzględniamy. Najlepiej mierz w obu kierunkach i uśrednij.</p>
@@ -183,7 +183,7 @@ function openReport(){
     [L('Masa całkowita','Total mass'), f(r.mass,0)+' kg'],
     [L('Czas 100–200 km/h','100–200 km/h time'), f(r.T,2)+' s'],
     [L('Nachylenie drogi','Road gradient'), f(r.sl*100,1)+' %'],
-    [L('Napęd','Drivetrain'), r.drv],
+    [L('Napęd','Drivetrain'), r.drv.split(' – ')[0]],
     [L('Cd × pow. czołowa','Cd × frontal area'), f(r.cda,2)+' m²']
   ];
   var res=[
@@ -195,24 +195,23 @@ function openReport(){
   function tbl(a){return '<table>'+a.map(function(x){return '<tr><td>'+esc(x[0])+'</td><td><b>'+esc(x[1])+'</b></td></tr>';}).join('')+'</table>';}
   var note=$('note').value.trim();
   var html='<!DOCTYPE html><html lang="'+(en?'en':'pl')+'"><head><meta charset="utf-8"><title>'+esc(title)+'</title>'+
-  '<style>body{font-family:"Segoe UI",Arial,sans-serif;color:#111;max-width:760px;margin:24px auto;padding:0 20px;line-height:1.45}'+
-  '.hd{border-bottom:3px solid #e5202e;padding-bottom:10px;margin-bottom:16px}.dt{color:#666;font-size:.85rem;margin-top:4px}'+
-  '.logo{font-weight:800;letter-spacing:2px}.logo b{color:inherit}h1{font-size:1.3rem;margin:0;line-height:1.3}h2{font-size:1rem;margin:20px 0 6px;color:#e5202e}'+
-  'table{width:100%;border-collapse:collapse}td{padding:6px 8px;border-bottom:1px solid #ddd}td:last-child{text-align:right}'+
-  '.note{white-space:pre-wrap;background:#f5f5f7;border-left:4px solid #e5202e;padding:8px 12px}.big{font-size:1.5rem}'+
-  '.small{color:#555;font-size:.8rem;margin-top:18px}.ft{margin-top:24px;border-top:1px solid #ddd;padding-top:8px;color:#555;font-size:.85rem;display:flex;justify-content:space-between}'+
+  '<style>body{font-family:"Segoe UI",Arial,sans-serif;color:#111;max-width:900px;margin:20px auto;padding:0 20px;line-height:1.35;font-size:14px}'+
+  '.hd{border-bottom:3px solid #e5202e;padding-bottom:8px;margin-bottom:10px}.dt{color:#666;font-size:.8rem;margin-top:3px}'+
+  '.logo{font-weight:800;letter-spacing:2px}.logo b{color:inherit}h1{font-size:1.2rem;margin:0;line-height:1.3}h2{font-size:.95rem;margin:12px 0 4px;color:#e5202e}.cols{display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;align-items:start}'+
+  'table{width:100%;border-collapse:collapse}td{padding:4px 6px;border-bottom:1px solid #ddd}td:last-child{text-align:right}'+
+  '.note{white-space:pre-wrap;background:#f5f5f7;border-left:4px solid #e5202e;padding:5px 10px}.big{font-size:1.5rem}'+
+  '.small{color:#555;font-size:.75rem;margin:10px 0 0}.ft{margin-top:12px;border-top:1px solid #ddd;padding-top:6px;color:#555;font-size:.75rem;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}'+
   'button{background:#e5202e;color:#fff;border:0;border-radius:8px;padding:9px 18px;font-weight:700;cursor:pointer;margin-right:8px}button.g{background:#eee;color:#111}'+
-  '.ph{display:flex;gap:10px;justify-content:center;align-items:flex-start;break-inside:avoid}.ph img{max-width:100%;max-height:420px;border:1px solid #ddd;display:block}.ph.p2 img{max-width:calc(50% - 5px);max-height:380px;object-fit:contain}'+
-  '@page{size:A4;margin:0}@media print{.np{display:none}body{margin:0;padding:14mm 16mm;max-width:none}}</style></head><body>'+
+  '.ph{display:flex;gap:10px;justify-content:center;align-items:flex-start;break-inside:avoid}.ph img{max-width:100%;max-height:300px;border:1px solid #ddd;display:block}.ph.p2 img{max-width:calc(50% - 5px);max-height:260px;object-fit:contain}'+
+  '@page{size:A4;margin:0}@media print{.np{display:none}body{margin:0;padding:10mm 14mm;max-width:none}}</style></head><body>'+
   '<div class="np" style="margin-bottom:14px"><button onclick="window.print()">'+esc(L('Drukuj / zapisz jako PDF','Print / save as PDF'))+'</button><button class="g" onclick="window.close()">'+esc(L('Zamknij','Close'))+'</button></div>'+
   '<div class="hd"><h1>'+esc(title)+'</h1><div class="dt">'+esc(L('Wydruk z: ','Printed: ')+when)+' · '+esc(L('wygenerowano narzędziem ze strony ','generated with the tool at '))+'<a href="https://ecu-perfect.pl" style="color:inherit;text-decoration:none">ecu-perfect.pl</a></div></div>'+
   (note?'<h2>'+esc(L('Opis','Description'))+'</h2><div class="note">'+esc(note)+'</div>':'')+
-  '<h2>'+esc(L('Dane wejściowe','Input data'))+'</h2>'+tbl(rows)+
-  '<h2>'+esc(L('Wynik','Result'))+'</h2>'+tbl(res)+
-  (photos.length?'<div class="ph p'+photos.length+'" style="margin-top:18px">'+photos.map(function(s){return '<img src="'+s+'">';}).join('')+'</div>':'')+
+  '<div class="cols"><div><h2>'+esc(L('Dane wejściowe','Input data'))+'</h2>'+tbl(rows)+'</div>'+
+  '<div><h2>'+esc(L('Wynik','Result'))+'</h2>'+tbl(res)+'</div></div>'+
+  (photos.length?'<div class="ph p'+photos.length+'" style="margin-top:12px">'+photos.map(function(s){return '<img src="'+s+'">';}).join('')+'</div>':'')+
   '<p class="small">'+esc(L('Wynik jest szacunkiem na podstawie uproszczonego modelu fizycznego (opór powietrza i toczenia, nachylenie, straty napędu '+f(r.eta*100,0)+'% sprawności, średnio 90% mocy szczytowej na odcinku). Nie zastępuje pomiaru na hamowni.','The result is an estimate from a simplified physical model (air and rolling resistance, gradient, drivetrain efficiency '+f(r.eta*100,0)+'%, on average 90% of peak power over the run). It does not replace a dyno measurement.'))+'</p>'+
-  '<div class="ft"><span>ECU-Perfect · '+esc(L('chiptuning','chip tuning'))+' · Wrocław</span><span>ecu-perfect.pl · v1.0</span></div>'+
-  '<div class="ft" style="border:0;margin-top:2px"><span>'+esc(L('Kontakt','Contact'))+': contact@ecu-perfect.pl</span><span>facebook.com/EcuPerfect</span></div></body></html>';
+  '<div class="ft"><span>ECU-Perfect · '+esc(L('chiptuning','chip tuning'))+' · Wrocław · '+esc(L('Kontakt','Contact'))+': contact@ecu-perfect.pl · facebook.com/EcuPerfect</span><span>ecu-perfect.pl · v1.0</span></div></body></html>';
   var w=window.open('','_blank');
   if(!w){alert(L('Przeglądarka zablokowała nowe okno – zezwól na wyskakujące okna dla tej strony.','The browser blocked the new window – allow pop-ups for this site.'));return;}
   w.document.open(); w.document.write(html); w.document.close();
