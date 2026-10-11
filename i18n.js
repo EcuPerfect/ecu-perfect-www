@@ -408,7 +408,21 @@
 "Jak działa silnik diesla: powietrze, paliwo, turbo, EGR, AFR, wtrysk common rail, DPF i AdBlue oraz odczyt parametrów w logach.": "How a diesel engine works: air, fuel, turbo, EGR, AFR, common rail injection, DPF and AdBlue, and reading parameters in logs.",
 "Poradnik": "Guide",
 "Powietrze, paliwo, turbo, EGR, AFR, wtrysk common rail, DPF i AdBlue oraz odczyt parametrów w logach. Z dwoma kalkulatorami (kg/h na mg/suw oraz AFR i lambda).": "Air, fuel, turbo, EGR, AFR, common rail injection, DPF and AdBlue, and reading parameters in logs. With two calculators (kg/h to mg/stroke, and AFR and lambda).",
-"Czytaj": "Read"
+"Czytaj": "Read",
+"Kalkulator: czas wtrysku na stopnie obrotu wału": "Calculator: injection time to degrees of crankshaft rotation",
+"Wpisz czas trwania wtrysku, ciśnienie paliwa i obroty. Czas w stopniach obrotu wału przelicza się automatycznie.": "Enter the injection duration, fuel pressure and engine speed. The time in degrees of crankshaft rotation updates automatically.",
+"Czas trwania wtrysku [µs]": "Injection duration [µs]",
+"np. 1000": "e.g. 1000",
+"Ciśnienie paliwa [bar]": "Fuel pressure [bar]",
+"w listwie, np. 1600": "in the rail, e.g. 1600",
+"Czas wtrysku w stopniach wału": "Injection time in crankshaft degrees",
+"Część jednego obrotu wału": "Share of one crankshaft revolution",
+"Teoretyczna prędkość wypływu paliwa": "Theoretical fuel outflow velocity",
+"Przeliczenie czasu na kąt nie zależy od ciśnienia paliwa. Ciśnienie służy tu tylko do orientacyjnego wyliczenia prędkości wypływu paliwa z wtryskiwacza (wzór Bernoulliego, gęstość paliwa 830 kg/m³, bez strat i bez uwzględniania ciśnienia w cylindrze, więc w rzeczywistości jest niższa).": "The conversion of time to angle does not depend on fuel pressure. Pressure is used here only to give an approximate fuel outflow velocity from the injector (Bernoulli equation, fuel density 830 kg/m³, no losses and ignoring cylinder pressure, so in reality it is lower).",
+"Czas trwania wtrysku [mikrosekundy]": "Injection duration [microseconds]",
+"µs, np. 1000": "µs, e.g. 1000",
+"Przeliczenie czasu na kąt nie zależy od ciśnienia paliwa: ciśnienie wpływa na to, ile paliwa zostanie wtryśnięte w tym czasie, a nie na czas wyrażony w stopniach.": "The conversion of time to angle does not depend on fuel pressure: pressure affects how much fuel is injected in that time, not the time expressed in degrees.",
+"Wpisz czas trwania wtrysku i obroty. Czas w stopniach obrotu wału przelicza się automatycznie.": "Enter the injection duration and engine speed. The time in degrees of crankshaft rotation updates automatically."
 };
   var KEY = 'ecup_lang';
 

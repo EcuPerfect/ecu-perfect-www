@@ -101,6 +101,19 @@
 <p>Wtryskiwacz to w uproszczeniu kran: komputer go otwiera i zamyka. Ten sam kran w łazience, otwarty na ten sam czas, wleje różną ilość wody zależnie od ciśnienia w instalacji. Z paliwem jest tak samo: tę samą ilość można wtrysnąć krócej pod większym ciśnieniem albo dłużej pod mniejszym.</p>
 <p>Ilość paliwa mierzymy w mm³ lub mg (1 m³ oleju napędowego waży ok. 830 kg, więc mm³ przelicza się na mg, choć wynik zależy od temperatury paliwa).</p>
 <p>Czas wtrysku podaje się najczęściej w mikrosekundach (1000 µs to jedna tysięczna sekundy). Skoro znamy obroty, możemy zamienić czas na stopnie obrotu wału, i to jest ciekawe: te same 1000 µs przy 4000 obr/min to aż 24 stopnie obrotu wału, a przy 1000 obr/min tylko 6. Do tego dochodzi czas samego spalania, bo ono też trwa, i w ten sposób dochodzimy do kąta wtrysku, czyli do tego, ile stopni przed górnym martwym punktem (GMP) trzeba zacząć wtrysk. Właściciele starszych VW TDI mogą go zobaczyć w logu 004, a po włączeniu 004 Basic Setting komputer naprzemiennie przestawia kąt wtrysku do skrajnych wartości, więc można obserwować jego wpływ na pracę silnika.</p>
+<div class="calc" id="angcalc">
+  <h3>Kalkulator: czas wtrysku na stopnie obrotu wału</h3>
+  <p class="sub">Wpisz czas trwania wtrysku i obroty. Czas w stopniach obrotu wału przelicza się automatycznie.</p>
+  <div class="grid">
+    <div><label for="e_us">Czas trwania wtrysku [mikrosekundy]<small>µs, np. 1000</small></label><input id="e_us" value="1000" inputmode="decimal"></div>
+        <div><label for="e_rpm">Obroty [obr/min]<small>np. 4000</small></label><input id="e_rpm" value="4000" inputmode="decimal"></div>
+  </div>
+  <div class="stats">
+    <div class="big main"><div class="t">Czas wtrysku w stopniach wału</div><div class="v" id="e_o1">–<span> °</span></div></div>
+    <div class="big"><div class="t">Część jednego obrotu wału</div><div class="v" id="e_o2">–<span> %</span></div></div>
+  </div>
+  <div class="err" id="e_err"></div>
+</div>
 <p>Warto wiedzieć: na wolnych obrotach i przy małym obciążeniu producenci czasem wtryskują paliwo już po GMP.</p>
 <h3>Powietrze, turbo i AFR</h3>
 <p>Stosunek ilości powietrza do paliwa (w mg) nazywa się AFR (air-fuel ratio). W przeciwieństwie do benzyny akceptowalny przedział jest ogromny. Cylinder 0,5 l przy wyłączonym EGR może na wolnych obrotach dostać np. 6 mg paliwa (AFR 500/6, czyli ponad 80!), ale równie dobrze przy tej samej ilości powietrza 30 mg (AFR 500/30 ≈ 16,7).</p>
@@ -236,6 +249,27 @@
     $('d_o4').innerHTML=I18N.f(kgh,0)+'<span> kg/h</span>';
   }
   ['d_cap','d_cyl','d_rpm','d_boost','d_t','d_ve','d_fuel'].forEach(function(id){$(id).addEventListener('input',calc);});
+  calc();
+  I18N.onChange(calc);
+})();
+</script>
+<script>
+(function(){
+  function $(id){return document.getElementById(id);}
+  function num(id){var s=$(id).value.trim().replace(',','.');return s===''?NaN:parseFloat(s);}
+  function calc(){
+    var us=num('e_us'),rpm=num('e_rpm');
+    $('e_err').textContent='';
+    if(!(us>0)||!(rpm>0)){
+      $('e_o1').innerHTML='–<span> °</span>';$('e_o2').innerHTML='–<span> %</span>';
+      $('e_err').textContent=I18N.t('Uzupełnij poprawnie wszystkie pola.','Fill in all the fields correctly.');
+      return;
+    }
+    var deg=us*1e-6*rpm*6;
+    $('e_o1').innerHTML=I18N.f(deg,1)+'<span> °</span>';
+    $('e_o2').innerHTML=I18N.f(deg/3.6,1)+'<span> %</span>';
+  }
+  ['e_us','e_rpm'].forEach(function(id){$(id).addEventListener('input',calc);});
   calc();
   I18N.onChange(calc);
 })();
