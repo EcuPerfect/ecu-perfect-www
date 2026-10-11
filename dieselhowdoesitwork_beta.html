@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Silnik diesla – jak działa – ECU-Perfect</title>
+<meta name="description" content="Jak działa silnik diesla: powietrze, paliwo, turbo, EGR, AFR, wtrysk common rail, DPF i AdBlue oraz odczyt parametrów w logach.">
+<meta name="robots" content="noindex">
+<style>
+  :root { --red:#e5202e; --red2:#ff4b57; --bg:#0b0b10; --card:#15151d; --line:#262633; --txt:#f2f2f6; --muted:#9a9aab; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Segoe UI",system-ui,Arial,sans-serif; background:var(--bg); color:var(--txt); line-height:1.5; }
+  a { color:inherit; }
+  nav { position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center; padding:12px 24px; background:rgba(11,11,16,.9); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+  .logo { font-weight:800; letter-spacing:2px; text-decoration:none; } .logo b { color:inherit; }
+  nav .links a { margin-left:20px; text-decoration:none; color:var(--muted); font-size:.95rem; } nav .links a:hover { color:var(--txt); }
+  main { max-width:1000px; margin:0 auto; padding:30px 20px 50px; }
+  h1 { margin:0 0 6px; font-size:clamp(1.6rem,4.5vw,2.4rem); }
+  h1::after { content:""; display:block; width:56px; height:3px; background:var(--red); margin-top:10px; border-radius:2px; }
+  .lead { color:var(--muted); margin:14px 0 26px; max-width:760px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; margin-bottom:18px; }
+  .card h2 { margin:0 0 14px; font-size:1.05rem; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; }
+  label { display:block; font-size:.8rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
+  label small { text-transform:none; letter-spacing:0; display:block; opacity:.8; }
+  select, input, textarea { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:#0f0f16; color:var(--txt); font-size:1.05rem; font-family:inherit; }
+  select:focus, input:focus, textarea:focus { outline:2px solid var(--red); border-color:var(--red); }
+  button { padding:11px 22px; border-radius:10px; border:2px solid var(--red); background:var(--red); color:#fff; font-weight:700; font-size:1rem; cursor:pointer; margin-top:14px; }
+  button:hover { background:var(--red2); border-color:var(--red2); }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-top:6px; }
+  .big { background:#0f0f16; border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .big .v { font-size:1.7rem; font-weight:800; line-height:1.1; } .big .v span { font-size:.9rem; color:var(--muted); font-weight:600; }
+  .big .t { color:var(--muted); font-size:.75rem; text-transform:uppercase; letter-spacing:1.2px; }
+  .scroll { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:.95rem; min-width:520px; }
+  th, td { padding:8px 10px; text-align:center; border-bottom:1px solid var(--line); white-space:nowrap; }
+  th { color:var(--muted); font-weight:600; font-size:.75rem; text-transform:uppercase; }
+  .small { color:var(--muted); font-size:.82rem; margin-top:14px; }
+  .error { color:var(--red2); margin-top:10px; min-height:1em; }
+  footer { text-align:center; color:var(--muted); font-size:.85rem; padding:30px 20px; border-top:1px solid var(--line); }
+  .links-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; }
+  a.lk { display:block; text-decoration:none; background:#0f0f16; border:1px solid var(--line); border-radius:10px; padding:12px 14px; transition:.15s; }
+  a.lk:hover { border-color:var(--red); transform:translateY(-1px); }
+  a.lk b { display:block; color:var(--txt); }
+  a.lk span { display:block; color:var(--muted); font-size:.88rem; margin-top:2px; }
+  a.lk i { display:block; color:var(--red2); font-style:normal; font-size:.75rem; margin-top:4px; word-break:break-all; }
+  .article { max-width:820px; }
+  .article h2 { margin:34px 0 10px; font-size:1.35rem; }
+  .article h3 { margin:24px 0 8px; font-size:1.1rem; color:var(--red2); }
+  .article p, .article li { color:var(--txt); }
+  .article ul { padding-left:22px; } .article li { margin-bottom:8px; }
+  .article .fig { margin:18px 0; } .article .fig img { width:100%; height:auto; border:1px solid var(--line); border-radius:10px; display:block; }
+  .article .fig .cap { color:var(--muted); font-size:.85rem; margin-top:6px; }
+  .calc { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; margin:22px 0; }
+  .calc h3 { margin:0 0 4px; color:var(--txt); font-size:1.1rem; }
+  .calc .sub { color:var(--muted); font-size:.9rem; margin:0 0 14px; }
+  .calc .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; }
+  .calc label { display:block; font-size:.8rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
+  .calc label small { text-transform:none; letter-spacing:0; display:block; opacity:.8; }
+  .calc input { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:#0f0f16; color:var(--txt); font-size:1.05rem; font-family:inherit; }
+  .calc input:focus { outline:2px solid var(--red); border-color:var(--red); }
+  .calc .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-top:16px; }
+  .calc .big { background:#0f0f16; border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .calc .big.main { border-color:var(--red); }
+  .calc .big .v { font-size:1.7rem; font-weight:800; line-height:1.1; } .calc .big .v span { font-size:.9rem; color:var(--muted); font-weight:600; }
+  .calc .big .t { color:var(--muted); font-size:.75rem; text-transform:uppercase; letter-spacing:1.2px; }
+  .calc .note { color:var(--muted); font-size:.85rem; margin:12px 0 0; }
+  .calc .err { color:var(--red2); font-size:.9rem; margin-top:10px; min-height:1em; }
+</style>
+<script src="i18n.js"></script>
+</head>
+<body>
+<nav>
+  <a class="logo" href="index.html">ECU-<b>Perfect</b></a>
+  <div class="links"><a href="index.html">← Strona główna</a><a href="index.html#tools">Narzędzia</a></div>
+</nav>
+<main class="article">
+<h1>Silnik diesla – jak to naprawdę działa</h1>
+<p>Zacznijmy od stwierdzenia: silnik diesla „jedzie paliwem", a nie „mieszanką".</p>
+<p>W benzynowym wszystko kręci się wokół powietrza: przepustnica decyduje, ile go wpuścić, a paliwo dobierane jest do niego. W dieslu jest odwrotnie. Komputer najpierw decyduje, ile paliwa chce wtrysnąć, a powietrze jest tylko dodatkiem, który musi się znaleźć w cylindrze. Dlatego w dieslu nie znajdziesz przepustnicy (poza klapą gaszącą), a całą moc „odkręca się" paliwem.</p>
+<h2>Jak to było kiedyś</h2>
+<p>Kilkadziesiąt lat temu wolnossący diesel był prostą maszyną: żadnej przepustnicy, przepływomierza, czujnika ciśnienia w kolektorze (MAP) ani turbiny. Silnik zasysał stałą porcję powietrza wynikającą z pojemności cylindra, a pedał gazu był połączony linką z pompą wtryskową. Wciskasz pedał, pompa podaje więcej paliwa. Koniec historii.</p>
+<p>Paliwo trafiało wtedy do komory wstępnej, a nie bezpośrednio do cylindra jak dziś. Ówczesne pompy wytwarzały po prostu dużo niższe ciśnienia.</p>
+<p>A skoro nie ma świecy, to skąd zapłon? Diesel nazywa się silnikiem z zapłonem samoczynnym: powietrze jest tak mocno sprężone i gorące, że wtryśnięte paliwo zapala się „samoczynnie", bez żadnej iskry.</p>
+<h2>Po co więc turbo, skoro diesel „jedzie paliwem"?</h2>
+<p>Bo paliwa nie da się wlewać w nieskończoność. Do danej ilości powietrza można wtrysnąć paliwo w szerokim zakresie, ale jednak nie bez ograniczeń: trzeba mieć czym je spalić. Turbosprężarka zmieniła zasady gry: wciska do cylindra więcej powietrza, niż wynika z jego pojemności, więc można wtrysnąć więcej paliwa i dostać moc większą, niż sugerowałaby pojemność silnika.</p>
+<div class="fig"><img src="diesel_turbo.jpg" alt="Turbosprężarka z siłownikiem geometrii zmiennej" loading="lazy"><div class="cap">Turbosprężarka z geometrią zmienną i siłownikiem sterowanym przez komputer silnika.</div></div>
+<p>Większość turbodiesli ma turbosprężarkę z tzw. zmienną geometrią. To blaszki, których ułożenie decyduje, pod jakim kątem spaliny uderzają w wirnik turbiny. Komputer może więc regulować jej wydajność w zależności od ilości paliwa, i znów widać, że to paliwo jest decydujące, a powietrze dopasowuje się do niego (w silniku benzynowym jest odwrotnie).</p>
+<p>Do tego dochodzi zawór EGR, czyli recyrkulacji spalin: wpuszcza spaliny z powrotem do dolotu i spalinami „zbija" ilość powietrza. Chodzi o ekologię (mniej tlenków azotu), a w niektórych silnikach pomaga też szybciej się nagrzać.</p>
+<h2>Jak komputer steruje dieslem w pigułce</h2>
+<h3>Wolne obroty</h3>
+<p>Na wolnych obrotach (ok. 700 obr/min po rozgrzaniu silnika) komputer pilnuje jednej rzeczy: zadanych obrotów biegu jałowego. Obroty spadają, to dorzuca paliwa, rosną, to obcina. Żadnych silniczków krokowych ani przepustnic, które sterowałyby powietrzem (poza EGR).</p>
+<p>Wtryskiwacze nie są idealnie takie same (nawet nowe – dlatego mamy kody IMA wtryskiwaczy), a cylindry zużywają się inaczej, więc komputer na bieżąco liczy korekcje dla każdego cylindra osobno, żeby silnik chodził równo. Taka ciekawostka: w automatach opory na „luzie" są większe niż w manualach, więc w logach zobaczysz tam zwykle więcej paliwa podczas pracy silnika na wolnych obrotach.</p>
+<p>Teraz małe uproszczenie, które bardzo ułatwi rachunki: przyjmijmy, że 1 m³ powietrza waży 1 kg (w rzeczywistości przy 20°C to ok. 1,2 kg). Wtedy cylinder o pojemności 0,5 l „zasysa" ok. 500 mg powietrza.</p>
+<p>W mapach EGR przy niskim obciążeniu zadana ilość powietrza często wynosi np. 280 mg. Komputer widzi różnicę (280 zamiast 500) i otwiera zawór EGR, który wpuszcza spaliny i zbija ilość powietrza. Właściciele starszych VW TDI mogą to podejrzeć w logu 003 (a w 003 BS EGR naprzemiennie się włącza i wyłącza).</p>
+<h3>Jazda z gazem</h3>
+<p>Inaczej to wygląda, gdy wciskasz pedał: komputer dostaje sygnał „chcę moc" i przelicza to na ilość paliwa, a do tej ilości paliwa potrzebuje określonej ilości powietrza (powietrze jest dodatkiem do paliwa, pamiętasz?). Jeżeli potrzeba <b>więcej</b> powietrza, niż cylinder zassie sam, komputer wysteruje turbosprężarkę tak, żeby dostarczyła brakującą resztę.</p>
+<h3>Wtrysk: czas, ciśnienie, kąt</h3>
+<p>Dzisiejsze pompy common rail budują ciśnienie od ok. 270 bar na wolnych obrotach aż do ok. 2700 bar w nowoczesnych, wysilonych silnikach. Ciśnieniem steruje np. zawór na listwie paliwowej, skąd paliwo idzie do wtryskiwaczy.</p>
+<div class="fig"><img src="diesel_injector.jpg" alt="Wtryskiwacz układu common rail" loading="lazy"><div class="cap">Wtryskiwacz common rail.</div></div>
+<p>Wtryskiwacz to w uproszczeniu kran: komputer go otwiera i zamyka. Ten sam kran w łazience, otwarty na ten sam czas, wleje różną ilość wody zależnie od ciśnienia w instalacji. Z paliwem jest tak samo: tę samą ilość można wtrysnąć krócej pod większym ciśnieniem albo dłużej pod mniejszym.</p>
+<p>Ilość paliwa mierzymy w mm³ lub mg (1 m³ oleju napędowego waży ok. 830 kg, więc mm³ przelicza się na mg, choć wynik zależy od temperatury paliwa).</p>
+<p>Czas wtrysku podaje się najczęściej w mikrosekundach (1000 µs to jedna tysięczna sekundy). Skoro znamy obroty, możemy zamienić czas na stopnie obrotu wału, i to jest ciekawe: te same 1000 µs przy 4000 obr/min to aż 24 stopnie obrotu wału, a przy 1000 obr/min tylko 6. Do tego dochodzi czas samego spalania, bo ono też trwa, i w ten sposób dochodzimy do kąta wtrysku, czyli do tego, ile stopni przed górnym martwym punktem (GMP) trzeba zacząć wtrysk. Właściciele starszych VW TDI mogą go zobaczyć w logu 004, a po włączeniu 004 Basic Setting komputer naprzemiennie przestawia kąt wtrysku do skrajnych wartości, więc można obserwować jego wpływ na pracę silnika.</p>
+<p>Warto wiedzieć: na wolnych obrotach i przy małym obciążeniu producenci czasem wtryskują paliwo już po GMP.</p>
+<h3>Powietrze, turbo i AFR</h3>
+<p>Stosunek ilości powietrza do paliwa (w mg) nazywa się AFR (air-fuel ratio). W przeciwieństwie do benzyny akceptowalny przedział jest ogromny. Cylinder 0,5 l przy wyłączonym EGR może na wolnych obrotach dostać np. 6 mg paliwa (AFR 500/6, czyli ponad 80!), ale równie dobrze przy tej samej ilości powietrza 30 mg (AFR 500/30 ≈ 16,7).</p>
+<p>Przyjmijmy, że na niskich obrotach skrajną wartością w aucie seryjnym jest AFR ok. 15 (stechiometria diesla to ok. 14,5, więc to już granica silnego dymienia). Dla 500 mg powietrza daje to maksymalnie ok. 33 mg paliwa, i tu wchodzi turbo. Na wysokich obrotach AFR 15 byłby już „ostry", dlatego w aucie seryjnym realne są tam wartości 17–19. Na niskich obrotach ok. 15–16 jest akceptowane fabrycznie, bo więcej paliwa to więcej energii w spalinach i szybsze pobudzenie turbiny.</p>
+<p>Ile potrafi turbo? Seryjne turbodiesle budują ciśnienie względne od ok. 1 bara w starszych, niewysilonych silnikach do ok. 3 barów (czyli ok. 4 barów bezwzględnych) w tych najbardziej wysilonych.</p>
+<p>Policzmy na prostym przykładzie. Załóżmy 1,5 bara doładowania względnego. Razem z atmosferycznym (ok. 1 bar) daje to 2,5 bara ciśnienia bezwzględnego. Potraktujmy to jako mnożnik pojemności: nasz cylinder 0,5 l ma teraz „wirtualnie" 1,25 l, więc zamiast 500 mg powietrza mamy 1250 mg. Przy AFR 15 można wtrysnąć już nie 33, a <b>83 mg paliwa</b>, i to przekłada się na większą moc.</p>
+<p>Oczywiście świat nie jest idealny. Cylinder nie napełnia się w 100% (w mocnych dieslach bywa to 80–90%, bo przeciwciśnienie w wydechu i DPF też mają swój udział), a sprężarka podgrzewa powietrze (wystarczy popompować koło roweru ręczną pompką, żeby poczuć, jak się grzeje). Gorące powietrze jest rzadsze, więc w tej samej objętości mieści się go mniej. Żeby je schłodzić, stosuje się chłodnicę powietrza, czyli intercooler.</p>
+<div class="fig"><img src="diesel_intercooler.jpg" alt="Intercooler (chłodnica powietrza doładowanego)" loading="lazy"><div class="cap">Chłodnica powietrza doładowanego (intercooler).</div></div>
+<h3>Przepływomierz: od kg/h do mg na suw</h3>
+<p>W dieslu najczęściej stosuje się przepływomierze podające powietrze w kg/h. Komputer przelicza je wewnętrznie na mg na suw, czyli właśnie na to, o czym mówiliśmy do tej pory.</p>
+<p>Przykład: silnik 3 l, 6 cylindrów, 4000 obr/min, 675 kg/h powietrza. Daje to dokładnie <b>937,5 mg</b> powietrza na cylinder na cykl (675 000 000 mg ÷ 60 min ÷ (6 cylindrów × 2000 cykli na minutę)). Tu policzmy już dokładniej: przy 50°C za intercoolerem gęstość powietrza to ok. 1,08 kg/m³, więc cylinder 0,5 l mieści przy 1 barze ok. 540 mg, a przy napełnianiu na poziomie 90% ok. 485 mg. Żeby upchnąć 937,5 mg, potrzebne jest ciśnienie ok. 1,9 bara bezwzględnego, czyli ok. 0,9 bara nadciśnienia. Przy AFR 18 (bardziej realnym w aucie seryjnym) mamy 937,5/18, czyli ok. <b>52 mg</b> paliwa.</p>
+<p>Chcesz sprawdzić własny silnik? Wpisz dane do kalkulatorów poniżej.</p>
+<div class="calc" id="aircalc">
+  <h3>Kalkulator: przepływ powietrza na mg na cylinder</h3>
+  <p class="sub">Wpisz dane silnika i przepływ z przepływomierza (kg/h). Wynik przelicza się automatycznie.</p>
+  <div class="grid">
+    <div><label for="c_cap">Pojemność silnika [l]<small>np. 3,0</small></label><input id="c_cap" value="3,0" inputmode="decimal"></div>
+    <div><label for="c_cyl">Liczba cylindrów<small>np. 6</small></label><input id="c_cyl" value="6" inputmode="decimal"></div>
+    <div><label for="c_rpm">Obroty [obr/min]<small>np. 4000</small></label><input id="c_rpm" value="4000" inputmode="decimal"></div>
+    <div><label for="c_flow">Przepływ powietrza [kg/h]<small>z przepływomierza, np. 675</small></label><input id="c_flow" value="675" inputmode="decimal"></div>
+    <div><label for="c_t">Temperatura powietrza w dolocie [°C]<small>za intercoolerem, np. 50</small></label><input id="c_t" value="50" inputmode="decimal"></div>
+    <div><label for="c_ve">Napełnianie cylindra [%]<small>np. 90</small></label><input id="c_ve" value="90" inputmode="decimal"></div>
+    <div><label for="c_afr">AFR (stosunek powietrza do paliwa)<small>np. 18</small></label><input id="c_afr" value="18" inputmode="decimal"></div>
+  </div>
+  <div class="stats">
+    <div class="big main"><div class="t">Powietrze na cylinder</div><div class="v" id="c_o1">–<span> mg/suw</span></div></div>
+    <div class="big"><div class="t">Ciśnienie bezwzględne</div><div class="v" id="c_o2">–<span> bar</span></div></div>
+    <div class="big"><div class="t">Doładowanie (względne)</div><div class="v" id="c_o3">–<span> bar</span></div></div>
+    <div class="big"><div class="t">Paliwo przy zadanym AFR</div><div class="v" id="c_o4">–<span> mg/suw</span></div></div>
+  </div>
+  <div class="err" id="c_err"></div>
+  <p class="note">Przyjęto ciśnienie otoczenia 1 bar. Ciśnienie i doładowanie to wartości orientacyjne, zależne od założonej temperatury i napełniania cylindra.</p>
+</div>
+<div class="calc" id="aircalc2">
+  <h3>Kalkulator: AFR i lambda z doładowania i dawki paliwa</h3>
+  <p class="sub">Wpisz dane silnika, doładowanie i dawkę paliwa. Ilość powietrza, AFR i lambda przeliczają się automatycznie.</p>
+  <div class="grid">
+    <div><label for="d_cap">Pojemność silnika [l]<small>np. 3,0</small></label><input id="d_cap" value="3,0" inputmode="decimal"></div>
+    <div><label for="d_cyl">Liczba cylindrów<small>np. 6</small></label><input id="d_cyl" value="6" inputmode="decimal"></div>
+    <div><label for="d_rpm">Obroty [obr/min]<small>np. 4000</small></label><input id="d_rpm" value="4000" inputmode="decimal"></div>
+    <div><label for="d_boost">Doładowanie względne [bar]<small>ponad ciśnienie otoczenia, np. 0,9</small></label><input id="d_boost" value="0,93" inputmode="decimal"></div>
+    <div><label for="d_t">Temperatura powietrza w dolocie [°C]<small>za intercoolerem, np. 50</small></label><input id="d_t" value="50" inputmode="decimal"></div>
+    <div><label for="d_ve">Napełnianie cylindra [%]<small>np. 90</small></label><input id="d_ve" value="90" inputmode="decimal"></div>
+    <div><label for="d_fuel">Dawka paliwa [mg/suw]<small>na cylinder, np. 52</small></label><input id="d_fuel" value="52" inputmode="decimal"></div>
+  </div>
+  <div class="stats">
+    <div class="big main"><div class="t">Powietrze na cylinder</div><div class="v" id="d_o1">–<span> mg/suw</span></div></div>
+    <div class="big"><div class="t">AFR (spodziewany)</div><div class="v" id="d_o2">–<span> :1</span></div></div>
+    <div class="big"><div class="t">Lambda (spodziewana)</div><div class="v" id="d_o3">–</div></div>
+    <div class="big"><div class="t">Przepływ powietrza</div><div class="v" id="d_o4">–<span> kg/h</span></div></div>
+  </div>
+  <div class="err" id="d_err"></div>
+  <p class="note">Przyjęto ciśnienie otoczenia 1 bar oraz stechiometrię diesla 14,5:1 (lambda 1 = AFR 14,5). Wartości są orientacyjne i zależą od założonej temperatury i napełniania cylindra.</p>
+</div>
+
+<h2>Logika komputera w jednym akapicie</h2>
+<p>Sterowanie dieslem to wtryśnięcie właściwej ilości paliwa we właściwy sposób i dostarczenie właściwej ilości powietrza do jego spalenia. Komputer ustala, ile paliwa podać i jak, wylicza, ile do tego potrzeba powietrza, a potem tak steruje turbosprężarką, żeby je dostarczyć (o ile potrzebuje go więcej, niż cylinder zassie sam).</p>
+<h3>Kto Ci ogranicza moc przy pełnym gazie?</h3>
+<ul>
+  <li><b>Marketingowiec:</b> uznał, że nie zapłaciłeś za BMW E87 118d 143 KM, a jedynie za 116d 116 KM, albo obciął moc, bo ubezpieczenie byłoby za drogie.</li>
+  <li><b>Inżynier:</b> stwierdził, że sprzęgło się rozleci przy pełnej mocy.</li>
+  <li><b>Czujnik temperatury:</b> wykrył przegrzanie silnika albo zbyt gorące spaliny lub dolot.</li>
+  <li><b>Przepływomierz:</b> poinformował, że powietrza jest za mało (np. turbo jeszcze nie zbudowało ciśnienia).</li>
+  <li><b>Skrzynia biegów:</b> wysłała do silnika wiadomość: „za dużo, bo się rozlecę".</li>
+  <li><b>Systemy bezpieczeństwa:</b> tną moc, bo auto już „leci bokiem".</li>
+</ul>
+<h2>DPF, EGR i AdBlue: dlaczego wszyscy o nich mówią</h2>
+<p>Niestety diesle z natury dymią (stare auta bez filtra cząstek stałych miały rury wydechowe skierowane w dół) i może dlatego ekolodzy ich nie lubią. Żeby zmieścić się w normach, od ok. 20 lat mają DPF. Dobre dla środowiska, gorsze dla kieszeni i osiągów: filtr jest przeszkodą dla spalin, powoduje grzanie się silnika i ogranicza potencjał turbosprężarki.</p>
+<p>Wcześniej producenci walczyli z tlenkami azotu zaworem EGR. A od ponad 10 lat dochodzi AdBlue, czyli roztwór mocznika, który te tlenki dodatkowo redukuje.</p>
+<div class="fig"><img src="diesel_dirty_intake.jpg" alt="Kolektor dolotowy zanieczyszczony nagarem" loading="lazy"><div class="cap">Kolektor dolotowy zanieczyszczony nagarem, typowy skutek pracy zaworu EGR.</div></div>
+<p>Niestety wszystkie te systemy w autach z dużymi przebiegami lubią się psuć, a naprawa bywa droga. Dlatego część właścicieli decyduje się je usunąć. Powody są dwa: finanse (często po nieudanej wcześniejszej naprawie) i tuning (duża „tuningowa" turbosprężarka może z DPF pracować gorzej niż seryjna). Warto wiedzieć, że naprawa EGR to często po prostu wyczyszczenie dolotu i ewentualnie wymiana chłodnicy spalin.</p>
+<p>Co na to prawo? Usunięcie DPF lub AdBlue jest modyfikacją niedozwoloną, a takie auto nie ma prawa przejść przeglądu technicznego. Obecnie, poza obejrzeniem układu wydechowego, diagnosta sprawdza (powinien ;) zadymienie przy pełnym wciśnięciu gazu, zwykle w trzech pomiarach, z których liczy średnią (usunięcie AdBlue tego nie zmienia). Auto podczas testu stoi w miejscu. Norma zadymienia jest wpisana w ramce na tabliczce znamionowej, bez jednostki (np. 0,53; to współczynnik absorpcji światła w m⁻¹, a wartość zależy od auta i normy, jaką ma spełniać).</p>
+<p>Gdy procedura przeglądu się zmieni (np. będą weryfikować oryginalność oprogramowania, odczyt ciśnienia wstecznego spalin), żadne „trikowe" przeglądy już nie przejdą, a do tunerów zaczną się zgłaszać właściciele diesli z prośbą o ponowne włączenie DPF i AdBlue. W Polsce średni wiek auta to obecnie ok. 16 lat, a nowy DPF z czujnikiem różnicowym i wymianą może kosztować ok. 10 tys. zł (zależnie od auta), więc jest, jak jest…</p>
+<h2>Logi i diagnostyka: zajrzyj do komputera silnika</h2>
+<p>Komputer silnika to nie blackbox. Zwykle można odczytać nie tylko kody usterek, ale i bieżące parametry pracy. Właściciele starszych VW TDI (1.9 TDI, 2.0 TDI, 2.5 TDI) mogą dzięki VAGCOM/VCDS (lub innemu oprogramowaniu diagnostycznemu o podobnych możliwościach) zobaczyć obroty, doładowanie zadane i uzyskane, wysterowanie geometrii turbiny, zadaną i aktualną ilość powietrza, dawkę paliwa i wiele innych. W starszych autach grupy VW robi się to przez „Measuring Blocks", w nowszych przez „Advanced Measuring Values".</p>
+<div class="fig"><img src="diesel_log_vw.jpg" alt="Log z VW z doładowaniem zadanym i uzyskanym" loading="lazy"><div class="cap">Log z VW (grupy pomiarowe 008 i 011): obroty, moment kierowcy, ograniczenie zadymienia oraz doładowanie zadane i uzyskane.</div></div>
+<p>W autach BMW do dyspozycji są INPA, ISTA (z ograniczoną liczbą parametrów), a także TestO i BimmerTool.</p>
+<div class="fig"><img src="diesel_log_bmw.jpg" alt="Log z BMW z obrotami, dawką paliwa i ciśnieniem w listwie" loading="lazy"><div class="cap">Log z BMW: m.in. obroty, ilość wtryskiwanego paliwa i zadane ciśnienie w listwie paliwowej.</div></div>
+<p>Pamiętaj tylko, że tanie, uniwersalne interfejsy diagnostyczne obsługują zwykle jedynie standard ELM327, który ma sporo ograniczeń (np. ciśnienie doładowania zatrzymuje się na 2550 hPa, czyli 1,55 bara względnego).</p>
+</main>
+<footer>&copy; ECU-Perfect · chiptuning · Wrocław<small style="display:block;margin-top:6px;opacity:.8">Kopiowanie, przerabianie i wykorzystywanie treści, narzędzi oraz logo tej strony wymaga zgody. Udostępnianie linków jest dozwolone.</small></footer>
+<script>
+(function(){
+  function $(id){return document.getElementById(id);}
+  function num(id){var s=$(id).value.trim().replace(',','.');return s===''?NaN:parseFloat(s);}
+  function calc(){
+    var cap=num('c_cap'),cyl=num('c_cyl'),rpm=num('c_rpm'),flow=num('c_flow'),t=num('c_t'),ve=num('c_ve'),afr=num('c_afr');
+    var ids=['c_o1','c_o2','c_o3','c_o4'],units=[' mg/suw',' bar',' bar',' mg/suw'];
+    function clear(){ids.forEach(function(id,i){$(id).innerHTML='–<span>'+units[i]+'</span>';});}
+    $('c_err').textContent='';
+    if(!(cap>0)||!(cyl>=1)||!(rpm>0)||!(flow>0)||!(ve>0&&ve<=100)||!(afr>0)||isNaN(t)){
+      clear();
+      $('c_err').textContent=I18N.t('Uzupełnij poprawnie pola (napełnianie od 1 do 100%).','Fill in the fields correctly (filling between 1 and 100%).');
+      return;
+    }
+    var mg=flow*1e6/60/(cyl*rpm/2);
+    var perBar=100000/(287.05*(t+273.15))*(cap/cyl/1000)*(ve/100)*1e6;
+    var pabs=mg/perBar;
+    $('c_o1').innerHTML=I18N.f(mg,1)+'<span> mg/'+I18N.t('suw','stroke')+'</span>';
+    $('c_o2').innerHTML=I18N.f(pabs,2)+'<span> bar</span>';
+    $('c_o3').innerHTML=I18N.f(pabs-1,2)+'<span> bar</span>';
+    $('c_o4').innerHTML=I18N.f(mg/afr,1)+'<span> mg/'+I18N.t('suw','stroke')+'</span>';
+  }
+  ['c_cap','c_cyl','c_rpm','c_flow','c_t','c_ve','c_afr'].forEach(function(id){$(id).addEventListener('input',calc);});
+  calc();
+  I18N.onChange(calc);
+})();
+</script>
+<script>
+(function(){
+  function $(id){return document.getElementById(id);}
+  function num(id){var s=$(id).value.trim().replace(',','.');return s===''?NaN:parseFloat(s);}
+  function calc(){
+    var cap=num('d_cap'),cyl=num('d_cyl'),rpm=num('d_rpm'),b=num('d_boost'),t=num('d_t'),ve=num('d_ve'),fuel=num('d_fuel');
+    $('d_err').textContent='';
+    if(!(cap>0)||!(cyl>=1)||!(rpm>0)||isNaN(b)||b<-0.9||isNaN(t)||!(ve>0&&ve<=100)||!(fuel>0)){
+      $('d_o1').innerHTML='–<span> mg/'+I18N.t('suw','stroke')+'</span>';
+      $('d_o2').innerHTML='–<span> :1</span>';
+      $('d_o3').innerHTML='–';
+      $('d_o4').innerHTML='–<span> kg/h</span>';
+      $('d_err').textContent=I18N.t('Uzupełnij poprawnie pola (napełnianie od 1 do 100%).','Fill in the fields correctly (filling between 1 and 100%).');
+      return;
+    }
+    var pabs=b+1;
+    var rho=pabs*100000/(287.05*(t+273.15));
+    var mg=rho*(cap/cyl/1000)*(ve/100)*1e6;
+    var afr=mg/fuel;
+    var kgh=mg*cyl*(rpm/2)*60/1e6;
+    $('d_o1').innerHTML=I18N.f(mg,1)+'<span> mg/'+I18N.t('suw','stroke')+'</span>';
+    $('d_o2').innerHTML=I18N.f(afr,1)+'<span> :1</span>';
+    $('d_o3').innerHTML=I18N.f(afr/14.5,2);
+    $('d_o4').innerHTML=I18N.f(kgh,0)+'<span> kg/h</span>';
+  }
+  ['d_cap','d_cyl','d_rpm','d_boost','d_t','d_ve','d_fuel'].forEach(function(id){$(id).addEventListener('input',calc);});
+  calc();
+  I18N.onChange(calc);
+})();
+</script>
+</body>
+</html>
