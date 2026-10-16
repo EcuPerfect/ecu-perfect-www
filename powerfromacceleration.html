@@ -3,8 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Moc silnika na podstawie przyspieszenia 100–200 km/h – ECU-Perfect</title>
-<meta name="description" content="Oszacuj moc silnika na podstawie czasu przyspieszenia 100–200 km/h i masy auta.">
+<title>Moc silnika na podstawie przyspieszenia 100–200 / 100–150 km/h – ECU-Perfect</title>
+<meta name="description" content="Oszacuj moc silnika na podstawie czasu przyspieszenia 100–200 lub 100–150 km/h i masy auta.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ECU-Perfect">
+<meta property="og:url" content="https://ecu-perfect.pl/powerfromacceleration.html">
+<meta property="og:title" content="Moc silnika na podstawie przyspieszenia 100–200 / 100–150 km/h – ECU-Perfect">
+<meta property="og:description" content="Bezpłatny kalkulator: oszacuj moc silnika z czasu przyspieszenia 100–200 lub 100–150 km/h i masy auta. Wynik na żywo, raport do wydruku, PL/EN.">
+<meta property="og:image" content="https://ecu-perfect.pl/og_powerfromacceleration.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <style>
   :root { --red:#e5202e; --red2:#ff4b57; --bg:#0b0b10; --card:#15151d; --line:#262633; --txt:#f2f2f6; --muted:#9a9aab; }
   * { box-sizing:border-box; }
@@ -57,22 +66,23 @@
   <div class="links"><a href="index.html">← Strona główna</a><a href="index.html#tools">Narzędzia</a></div>
 </nav>
 <main>
-  <h1>Moc silnika na podstawie przyspieszenia 100–200 km/h</h1>
-  <p class="lead">Podaj masę auta i zmierzony czas przyspieszenia od 100 do 200 km/h – kalkulator oszacuje moc silnika.</p>
+  <h1 id="h1rng">Moc silnika na podstawie przyspieszenia 100–200 km/h</h1>
+  <p class="lead" id="leadRng">Podaj masę auta i zmierzony czas przyspieszenia od 100 do 200 km/h – kalkulator oszacuje moc silnika.</p>
 
   <div class="card">
     <div class="stats">
       <div class="big"><div class="t">Moc silnika</div><div class="v" id="r1">–<span> KM</span></div></div>
       <div class="big"><div class="t">Moc silnika</div><div class="v" id="r2">–<span> kW</span></div></div>
       <div class="big"><div class="t">Moc na kołach</div><div class="v" id="r3">–<span> KM</span></div></div>
-      <div class="big"><div class="t">Czas 100–200 po korekcie na 0%</div><div class="v" id="r5">–<span> s</span></div></div>
+      <div class="big"><div class="t" id="r5t">Czas 100–200 po korekcie na 0%</div><div class="v" id="r5">–<span> s</span></div></div>
       <div class="big"><div class="t">Moc / masa</div><div class="v" id="r4">–<span> KM/t</span></div></div>
     </div>
 
     <div class="grid" style="margin-top:18px">
+      <div><label for="rng" id="rngLab"></label><select id="rng"><option value="100-200" selected>100–200 km/h</option><option value="100-150">100–150 km/h</option></select></div>
       <div><label for="m">Masa auta [kg]<small>np. 1600</small></label><input id="m" value="1600" inputmode="decimal"></div>
       <div><label for="d">Kierowca + ładunek [kg]<small>np. 120</small></label><input id="d" value="120" inputmode="decimal"></div>
-      <div><label for="t">Czas 100–200 km/h [s]<small>np. 14,5</small></label><input id="t" value="14,5" inputmode="decimal"></div>
+      <div><label for="t"><span id="tLab">Czas 100–200 km/h [s]</span><small>np. 14,5</small></label><input id="t" value="14,5" inputmode="decimal"></div>
       <div><label for="sl">Nachylenie drogi [%]<small>np. 1 (pod górę), -1 (z górki), 0 = płasko</small></label><input id="sl" value="0" inputmode="decimal"></div>
       <div><label for="drv">Napęd<small>wpływa na straty w układzie napędowym</small></label><select id="drv"><option value="0.90">Przedni (FWD) – straty ok. 10%</option><option value="0.88">Tylny (RWD) – straty ok. 12%</option><option value="0.84" selected>4x4 (xDrive/quattro) – straty ok. 16%</option></select></div>
       <div><label for="cda">Cd × pow.czołowa [m²]<small>np. 0,65 (typowo 0,6–0,75)</small></label><input id="cda" value="0,65" inputmode="decimal"></div>
@@ -96,8 +106,19 @@ function $(id){return document.getElementById(id);}
 function num(id){var s=$(id).value.trim().replace(',','.');return s===''?NaN:parseFloat(s);}
 function f(x,d){return I18N.f(x,d);}
 var G=9.81,RHO=1.2,CRR=0.012,ETA=0.84,UTIL=0.9;
-function time100200(psEngine,mass,cda,slope){
-  var pw=psEngine*735.499*ETA*UTIL, v=100/3.6, vEnd=200/3.6, t=0, dt=0.005;
+function rangeKmh(){var p=$('rng').value.split('-');return [parseFloat(p[0]),parseFloat(p[1])];}
+function rangeTxt(){var r=rangeKmh();return r[0]+'–'+r[1];}
+function updateLabels(){
+  var R=rangeTxt(), T=I18N.t;
+  $('h1rng').textContent=T('Moc silnika na podstawie przyspieszenia '+R+' km/h','Engine power based on '+R+' km/h acceleration');
+  $('leadRng').textContent=T('Wybierz zakres przyspieszenia, podaj masę auta i zmierzony czas – kalkulator oszacuje moc silnika.','Select the acceleration range, enter the car mass and the measured time – the calculator will estimate the engine power.');
+  $('r5t').textContent=T('Czas '+R+' po korekcie na 0%',R+' time corrected to 0%');
+  $('tLab').textContent=T('Czas '+R+' km/h [s]',R+' km/h time [s]');
+  $('rngLab').textContent=T('Zakres przyspieszenia [km/h]','Acceleration range [km/h]');
+}
+function timeRange(psEngine,mass,cda,slope){
+  var rg=rangeKmh();
+  var pw=psEngine*735.499*ETA*UTIL, v=rg[0]/3.6, vEnd=rg[1]/3.6, t=0, dt=0.005;
   while(t<300){
     var a=(pw/v-0.5*RHO*cda*v*v-CRR*mass*G-mass*G*Math.sin(Math.atan(slope)))/mass;
     if(a<=0)return Infinity;
@@ -117,11 +138,11 @@ function calc(){
   var m=num('m'),d=num('d'),T=num('t'),cda=num('cda');
   if(!(m>300)||!(d>=0)||!(T>0)||!(cda>0)){$('err').textContent=I18N.t('Sprawdź pola (masa, czas, Cd×A).','Check the fields (mass, time, Cd×A).');return;}
   var mass=m+d, lo=20, hi=3000;
-  for(var i=0;i<50;i++){var mid=(lo+hi)/2; if(time100200(mid,mass,cda,sl)>T)lo=mid;else hi=mid;}
+  for(var i=0;i<50;i++){var mid=(lo+hi)/2; if(timeRange(mid,mass,cda,sl)>T)lo=mid;else hi=mid;}
   var ps=(lo+hi)/2;
   if(ps>2900||ps<25)$('err').textContent=I18N.t('Wynik poza sensownym zakresem – sprawdź dane.','Result outside a sensible range – check the data.');
-  var t0=time100200(ps,mass,cda,0);
-  lastRes={m:m,d:d,mass:mass,T:T,sl:sl,drv:$('drv').options[$('drv').selectedIndex].text,cda:cda,ps:ps,eta:ETA,util:UTIL,t0:t0};
+  var t0=timeRange(ps,mass,cda,0);
+  lastRes={rng:rangeTxt(),m:m,d:d,mass:mass,T:T,sl:sl,drv:$('drv').options[$('drv').selectedIndex].text,cda:cda,ps:ps,eta:ETA,util:UTIL,t0:t0};
   $('r5').innerHTML=(isFinite(t0)?f(t0,2):'–')+'<span> s</span>';
   $('r1').innerHTML=f(ps,0)+'<span> KM</span>';
   $('r2').innerHTML=f(ps*0.735499,0)+'<span> kW</span>';
@@ -181,13 +202,13 @@ function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 function openReport(){
   calc(); if(!lastRes)return;
   var r=lastRes, L=I18N.t, en=I18N.lang()==='en';
-  var title=L('Raport: moc silnika na podstawie przyspieszenia 100–200 km/h','Report: engine power based on 100–200 km/h acceleration');
+  var title=L('Raport: moc silnika na podstawie przyspieszenia '+r.rng+' km/h','Report: engine power based on '+r.rng+' km/h acceleration');
   var d=new Date(), when=d.toLocaleString(en?'en-GB':'pl-PL');
   var rows=[
     [L('Masa auta','Car mass'), f(r.m,0)+' kg'],
     [L('Kierowca + ładunek','Driver + load'), f(r.d,0)+' kg'],
     [L('Masa całkowita','Total mass'), f(r.mass,0)+' kg'],
-    [L('Czas 100–200 km/h','100–200 km/h time'), f(r.T,2)+' s'],
+    [L('Czas '+r.rng+' km/h',r.rng+' km/h time'), f(r.T,2)+' s'],
     [L('Nachylenie drogi','Road gradient'), f(r.sl*100,1)+' %'],
     [L('Napęd','Drivetrain'), r.drv.split(' – ')[0]],
     [L('Cd × pow. czołowa','Cd × frontal area'), f(r.cda,2)+' m²'],
@@ -196,7 +217,7 @@ function openReport(){
   var res=[
     [L('Moc silnika','Engine power'), f(r.ps,0)+' '+L('KM','hp')+' / '+f(r.ps*0.735499,0)+' kW'],
     [L('Moc na kołach','Wheel power'), f(r.ps*r.eta,0)+' '+L('KM','hp')],
-    [L('Czas 100–200 po korekcie na 0%','100–200 time corrected to 0%'), isFinite(r.t0)?f(r.t0,2)+' s':'–'],
+    [L('Czas '+r.rng+' po korekcie na 0%',r.rng+' time corrected to 0%'), isFinite(r.t0)?f(r.t0,2)+' s':'–'],
     [L('Moc / masa','Power / mass'), f(r.ps/(r.mass/1000),0)+' '+L('KM/t','hp/t')]
   ];
   function tbl(a){return '<table>'+a.map(function(x){return '<tr><td>'+esc(x[0])+'</td><td><b>'+esc(x[1])+'</b></td></tr>';}).join('')+'</table>';}
@@ -226,8 +247,10 @@ function openReport(){
 $('rep').addEventListener('click',openReport);
 ['m','d','t','cda','sl','util'].forEach(function(id){$(id).addEventListener('input',calc);});
 $('drv').addEventListener('change',calc);
+$('rng').addEventListener('change',function(){updateLabels();calc();});
+I18N.onChange(updateLabels);
 
-var NUMS=['m','d','t','sl','cda','util'], SELS=['drv'], TXTS=['note'], SKEY='ecup_acc';
+var NUMS=['m','d','t','sl','cda','util'], SELS=['drv','rng'], TXTS=['note'], SKEY='ecup_acc';
 function collect(){
   var o={v:1};
   NUMS.forEach(function(id){var n=num(id); o[id]=isNaN(n)?null:n;});
@@ -262,12 +285,13 @@ $('ldf').addEventListener('change',function(){
   var file=this.files[0], inp=this; if(!file)return;
   var r=new FileReader();
   r.onload=function(){
-    try{ apply(JSON.parse(r.result)); persist(); calc(); }
+    try{ apply(JSON.parse(r.result)); persist(); updateLabels(); calc(); }
     catch(e){ $('err').textContent=I18N.t('Nie udało się wczytać pliku.','Could not read the file.'); }
     inp.value='';
   };
   r.readAsText(file);
 });
+updateLabels();
 calc();
 I18N.onChange(calc);
 </script>

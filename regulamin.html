@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Regulamin – ECU-Perfect</title>
+<style>
+  :root { --red:#e5202e; --red2:#ff4b57; --bg:#0b0b10; --card:#15151d; --line:#262633; --txt:#f2f2f6; --muted:#9a9aab; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Segoe UI",system-ui,Arial,sans-serif; background:var(--bg); color:var(--txt); line-height:1.6; }
+  a { color:var(--red2); }
+  nav { position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center; padding:12px 24px; background:rgba(11,11,16,.9); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+  .logo { font-weight:800; letter-spacing:2px; text-decoration:none; color:var(--txt); }
+  nav .links a { margin-left:20px; text-decoration:none; color:var(--muted); font-size:.95rem; } nav .links a:hover { color:var(--txt); }
+  main { max-width:860px; margin:0 auto; padding:30px 20px 50px; }
+  h1 { margin:0 0 6px; font-size:clamp(1.6rem,4.5vw,2.3rem); }
+  h1::after { content:""; display:block; width:56px; height:3px; background:var(--red); margin-top:10px; border-radius:2px; }
+  h2 { font-size:1.15rem; margin:28px 0 8px; }
+  p, li { color:#d6d6e0; }
+  li { margin:4px 0; }
+  .muted { color:var(--muted); font-size:.9rem; }
+  mark { background:#5a4a00; color:#ffe9a0; padding:0 4px; border-radius:3px; }
+  footer { text-align:center; color:var(--muted); font-size:.85rem; padding:30px 20px; border-top:1px solid var(--line); }
+  [hidden] { display:none !important; }
+</style>
+<script src="i18n.js"></script>
+</head>
+<body>
+<nav>
+  <a class="logo" href="index.html">ECU-<b>Perfect</b></a>
+  <div class="links"><a href="polityka-prywatnosci.html" id="lnkPriv"></a><a href="index.html" id="lnkHome"></a></div>
+</nav>
+<main>
+
+<div id="pl">
+<h1>Regulamin serwisu i panelu klienta</h1>
+<p class="muted">Wersja 1 · obowiązuje od 16.10.2026</p>
+
+<h2>1. Postanowienia ogólne</h2>
+<p>Regulamin określa zasady korzystania z serwisu internetowego ecu-perfect.pl oraz panelu klienta („Serwis”), prowadzonych przez <mark>[UZUPEŁNIJ: pełna nazwa firmy lub imię i nazwisko]</mark>, <mark>[UZUPEŁNIJ: adres]</mark>, NIP <mark>[UZUPEŁNIJ]</mark> („ECU-Perfect”). Kontakt: <a href="mailto:contact@ecu-perfect.pl">contact@ecu-perfect.pl</a>, tel. +48 603 601 786. Użytkownikiem jest osoba korzystająca z Serwisu, w szczególności posiadająca konto w panelu klienta.</p>
+
+<h2>2. Wymagania techniczne</h2>
+<p>Do korzystania z panelu potrzebne są: urządzenie z dostępem do internetu, aktualna przeglądarka z włączoną obsługą JavaScript oraz adres e-mail.</p>
+
+<h2>3. Konto</h2>
+<ul>
+  <li>Założenie konta jest bezpłatne i wymaga akceptacji Regulaminu oraz Polityki prywatności.</li>
+  <li>Użytkownik chroni dane logowania i nie udostępnia ich innym osobom. Konto jest przypisane do jednej osoby.</li>
+  <li>Użytkownik może w każdej chwili usunąć konto w panelu. Usunięcie konta powoduje trwałe usunięcie jego plików, a dostęp do nich nie będzie już możliwy.</li>
+</ul>
+
+<h2>4. Usługi</h2>
+<ul>
+  <li><b>Usługi automatyczne</b> (np. adaptacja czujnika wysokiego ciśnienia paliwa, adaptacja czujnika doładowania, wyłączanie błędów DTC) wykonywane są automatycznie na pliku wgranym przez Użytkownika. Opis każdej usługi jest dostępny w panelu.</li>
+  <li><b>Usługi indywidualne</b> (np. modyfikacja pod wymagania klienta) realizowane są na zamówienie: ECU-Perfect przedstawia wycenę, a po jej akceptacji przez Użytkownika – wykonuje usługę i udostępnia plik wynikowy w panelu. Komunikacja odbywa się w wątku przy zamówieniu.</li>
+  <li>ECU-Perfect może odmówić wykonania usługi lub zamówienia, w szczególności gdy plik nie jest obsługiwany albo usługa miałaby naruszać prawo.</li>
+</ul>
+
+<h2>5. Pliki Użytkownika</h2>
+<ul>
+  <li>Użytkownik oświadcza, że ma prawo dysponować wgrywanym plikiem. Maksymalny rozmiar pliku to 10 MB, a maksymalna liczba plików na koncie – 20.</li>
+  <li>Pliki są prywatne. Dostęp do nich mają Użytkownik oraz administrator Serwisu (w celu świadczenia usług i bezpieczeństwa).</li>
+  <li>Serwis nie służy do archiwizacji. Użytkownik powinien zachować własne kopie swoich plików.</li>
+  <li>Zabronione jest wgrywanie treści bezprawnych lub szkodliwych (np. złośliwego oprogramowania).</li>
+</ul>
+
+<h2>6. Charakter wyniku i ryzyko</h2>
+<ul>
+  <li>Usługi są świadczone na własne ryzyko Użytkownika. ECU-Perfect nie gwarantuje, że wynik będzie odpowiadał konkretnemu pojazdowi lub oczekiwaniom Użytkownika.</li>
+  <li>Plik wynikowy nie ma przeliczonej sumy kontrolnej. Użytkownik zapewnia jej przeliczenie (urządzenie, którym wgrywa plik do sterownika, albo własne narzędzie) przed zapisem do sterownika.</li>
+  <li>Przed zapisem do sterownika Użytkownik wykonuje kopię oryginalnego pliku i sprawdza wynik.</li>
+  <li>Wyłączenie błędu ukrywa objawy, a nie usuwa przyczyny usterki.</li>
+</ul>
+
+<h2>7. Zgodność z prawem</h2>
+<p>Użytkownik odpowiada za to, że modyfikacja oraz sposób użytkowania pojazdu są zgodne z obowiązującymi przepisami (w tym dotyczącymi homologacji, emisji spalin i dopuszczenia pojazdu do ruchu). Usługi dotyczące układów związanych z ochroną środowiska (np. EGR, DPF, AdBlue) nie mogą służyć do użytkowania pojazdu w ruchu drogowym niezgodnie z prawem.</p>
+
+<h2>8. Płatności i coinsy</h2>
+<p>Obecnie usługi w Serwisie są świadczone bezpłatnie. W przyszłości usługi mogą być płatne (w coinsach lub w złotych); cena będzie widoczna przed zleceniem usługi, a zmiana nie dotyczy zleceń złożonych wcześniej. Wycena usług indywidualnych podawana jest w coinsach.</p>
+
+<h2>9. Zasady korzystania, limity i blokada konta</h2>
+<p>Zabronione są działania zakłócające pracę Serwisu, w tym automatyczne lub masowe wgrywanie, usuwanie plików i wysyłanie wiadomości. Serwis stosuje limity (liczby plików, operacji w czasie oraz otwartych zamówień). Konto, które narusza zasady lub przekracza limity, może zostać zablokowane (także automatycznie). W sprawie odblokowania napisz na <a href="mailto:contact@ecu-perfect.pl">contact@ecu-perfect.pl</a>.</p>
+
+<h2>10. Odpowiedzialność</h2>
+<p>ECU-Perfect odpowiada na zasadach określonych przepisami prawa. W granicach dozwolonych prawem nie odpowiada za szkody wynikłe z użycia wyniku niezgodnie z Regulaminem lub przepisami, z braku przeliczenia sumy kontrolnej oraz z przerw technicznych w działaniu Serwisu. Postanowienia Regulaminu nie wyłączają uprawnień konsumenta wynikających z bezwzględnie obowiązujących przepisów.</p>
+
+<h2>11. Reklamacje</h2>
+<p>Reklamacje dotyczące Serwisu lub usług można zgłaszać na <a href="mailto:contact@ecu-perfect.pl">contact@ecu-perfect.pl</a>, opisując problem i podając adres e-mail konta. ECU-Perfect rozpatruje reklamację w terminie 14 dni od jej otrzymania.</p>
+
+<h2>12. Odstąpienie od umowy (konsumenci)</h2>
+<p>Konsument, który zawarł umowę na odległość, może od niej odstąpić w terminie 14 dni bez podania przyczyny, z wyjątkami przewidzianymi w przepisach. Prawo odstąpienia wygasa m.in. po pełnym wykonaniu usługi, jeżeli konsument został o tym poinformowany i wyraźnie zażądał rozpoczęcia jej wykonania przed upływem terminu. Przy usługach płatnych informacja i zgoda będą przedstawiane przed zleceniem. <mark>[UZUPEŁNIJ po konsultacji prawnej]</mark></p>
+
+<h2>13. Dane osobowe</h2>
+<p>Zasady przetwarzania danych osobowych opisuje <a href="polityka-prywatnosci.html">Polityka prywatności</a>.</p>
+
+<h2>14. Zmiany Regulaminu</h2>
+<p>ECU-Perfect może zmienić Regulamin z ważnych przyczyn (np. zmiany prawa, zakresu usług lub bezpieczeństwa). O zmianie poinformuje w Serwisie z wyprzedzeniem <mark>[UZUPEŁNIJ: np. 7]</mark> dni. Dla usług zleconych przed zmianą obowiązuje wersja z dnia zlecenia.</p>
+
+<h2>15. Postanowienia końcowe</h2>
+<p>Do umów zawieranych w Serwisie stosuje się prawo polskie, z zachowaniem ochrony przysługującej konsumentom na mocy bezwzględnie obowiązujących przepisów ich kraju zamieszkania. Konsument może skorzystać z pozasądowych metod rozwiązywania sporów.</p>
+</div>
+
+<div id="en" hidden>
+<h1>Terms of service for the website and client panel</h1>
+<p class="muted">Version 1 · effective from 16 October 2026</p>
+
+<h2>1. General</h2>
+<p>These terms govern the use of the website ecu-perfect.pl and the client panel (the "Service") operated by <mark>[FILL IN: full company name or your name]</mark>, <mark>[FILL IN: address]</mark>, tax ID (NIP) <mark>[FILL IN]</mark> ("ECU-Perfect"). Contact: <a href="mailto:contact@ecu-perfect.pl">contact@ecu-perfect.pl</a>, tel. +48 603 601 786. A User is a person using the Service, in particular a person with an account in the client panel.</p>
+
+<h2>2. Technical requirements</h2>
+<p>To use the panel you need: a device with internet access, an up-to-date browser with JavaScript enabled, and an e-mail address.</p>
+
+<h2>3. Account</h2>
+<ul>
+  <li>Creating an account is free and requires acceptance of these Terms and the Privacy Policy.</li>
+  <li>The User protects their login data and does not share it. An account belongs to one person.</li>
+  <li>The User can delete the account at any time in the panel. Deleting the account permanently deletes the User's files, and access to them will no longer be possible.</li>
+</ul>
+
+<h2>4. Services</h2>
+<ul>
+  <li><b>Automatic services</b> (e.g. high-pressure fuel sensor adaptation, boost sensor adaptation, DTC error disabling) are performed automatically on a file uploaded by the User. A description of each service is available in the panel.</li>
+  <li><b>Individual services</b> (e.g. a modification tailored to the customer's requirements) are provided on order: ECU-Perfect gives a quote and, once the User accepts it, performs the service and provides the result file in the panel. Communication takes place in the thread attached to the order.</li>
+  <li>ECU-Perfect may refuse to perform a service or order, in particular when the file is not supported or the service would violate the law.</li>
+</ul>
+
+<h2>5. User files</h2>
+<ul>
+  <li>The User declares that they have the right to use the uploaded file. The maximum file size is 10 MB and the maximum number of files per account is 20.</li>
+  <li>Files are private. They are accessible to the User and to the Service administrator (to provide services and for security).</li>
+  <li>The Service is not meant for archiving. The User should keep their own copies of their files.</li>
+  <li>Uploading unlawful or harmful content (e.g. malware) is prohibited.</li>
+</ul>
+
+<h2>6. Nature of the result and risk</h2>
+<ul>
+  <li>Services are provided at the User's own risk. ECU-Perfect does not guarantee that the result will suit a specific vehicle or the User's expectations.</li>
+  <li>The result file does not have a recalculated checksum. The User ensures it is recalculated (by the device used to write the file to the ECU, or with their own tool) before writing to the ECU.</li>
+  <li>Before writing to the ECU the User makes a copy of the original file and checks the result.</li>
+  <li>Disabling an error hides the symptom; it does not remove the cause of the fault.</li>
+</ul>
+
+<h2>7. Compliance with the law</h2>
+<p>The User is responsible for ensuring that the modification and the way the vehicle is used comply with applicable regulations (including those on type approval, exhaust emissions and road-worthiness). Services concerning environmental protection systems (e.g. EGR, DPF, AdBlue) must not be used to operate a vehicle on public roads in breach of the law.</p>
+
+<h2>8. Payments and coins</h2>
+<p>Currently the services in the Service are provided free of charge. In the future services may be paid (in coins or in zloty); the price will be shown before a service is ordered, and a change does not apply to orders placed earlier. Quotes for individual services are given in coins.</p>
+
+<h2>9. Rules of use, limits and account blocking</h2>
+<p>Actions disrupting the Service are prohibited, including automated or mass uploading, deleting files and sending messages. The Service applies limits (number of files, operations over time and open orders). An account that violates the rules or exceeds the limits may be blocked (also automatically). To have an account unblocked write to <a href="mailto:contact@ecu-perfect.pl">contact@ecu-perfect.pl</a>.</p>
+
+<h2>10. Liability</h2>
+<p>ECU-Perfect is liable on the terms set out by law. To the extent permitted by law, it is not liable for damage resulting from using the result contrary to these Terms or regulations, from the lack of a recalculated checksum, or from technical interruptions in the Service. These Terms do not exclude consumer rights arising from mandatory provisions of law.</p>
+
+<h2>11. Complaints</h2>
+<p>Complaints about the Service or services can be sent to <a href="mailto:contact@ecu-perfect.pl">contact@ecu-perfect.pl</a>, describing the problem and giving the account e-mail address. ECU-Perfect handles a complaint within 14 days of receiving it.</p>
+
+<h2>12. Withdrawal from the contract (consumers)</h2>
+<p>A consumer who concluded a distance contract may withdraw from it within 14 days without giving a reason, subject to exceptions provided by law. The right of withdrawal expires, among others, after the service has been fully performed if the consumer was informed of this and expressly requested that performance begin before the end of the withdrawal period. For paid services this information and consent will be presented before ordering. <mark>[FILL IN after legal consultation]</mark></p>
+
+<h2>13. Personal data</h2>
+<p>The processing of personal data is described in the <a href="polityka-prywatnosci.html">Privacy Policy</a>.</p>
+
+<h2>14. Changes to the Terms</h2>
+<p>ECU-Perfect may change the Terms for important reasons (e.g. changes in law, scope of services or security). It will announce the change in the Service <mark>[FILL IN: e.g. 7]</mark> days in advance. For services ordered before the change the version in force on the date of the order applies.</p>
+
+<h2>15. Final provisions</h2>
+<p>Polish law applies to contracts concluded in the Service, subject to the protection granted to consumers by mandatory provisions of the law of their country of residence. A consumer may use out-of-court dispute resolution methods.</p>
+</div>
+
+</main>
+<footer>&copy; ECU-Perfect · chiptuning · Wrocław</footer>
+<script>
+(function () {
+  function tr(pl, en) { return window.I18N ? I18N.t(pl, en) : pl; }
+  function sync() {
+    var en = window.I18N && I18N.lang && I18N.lang() === 'en';
+    document.getElementById('pl').hidden = en;
+    document.getElementById('en').hidden = !en;
+    document.documentElement.lang = en ? 'en' : 'pl';
+    document.title = en ? 'Terms of service – ECU-Perfect' : 'Regulamin – ECU-Perfect';
+    document.getElementById('lnkPriv').textContent = tr('Polityka prywatności', 'Privacy policy');
+    document.getElementById('lnkHome').textContent = tr('Strona główna', 'Home');
+  }
+  sync();
+  if (window.I18N && I18N.onChange) I18N.onChange(sync);
+})();
+</script>
+</body>
+</html>

@@ -105,9 +105,9 @@
     <div class="card dl">
       <div>
         <span class="tag">Online · v1.0</span>
-        <h3>Moc silnika na podstawie przyspieszenia 100–200 km/h</h3>
+        <h3>Moc silnika na podstawie przyspieszenia</h3>
         <p>Szacuje moc silnika na podstawie masy auta i zmierzonego czasu przyspieszenia
-           od 100 do 200 km/h.</p>
+           100–200 lub 100–150 km/h.</p>
       </div>
       <div class="btnrow">
         <a class="btn" href="powerfromacceleration.html">Otwórz kalkulator</a>
@@ -203,6 +203,72 @@
 </section>
 
 <footer>&copy; ECU-Perfect · chiptuning · Wrocław · <a href="https://www.ecu-perfect.pl">www.ecu-perfect.pl</a><small style="display:block;margin-top:6px;opacity:.8">Kopiowanie, przerabianie i wykorzystywanie treści, narzędzi oraz logo tej strony wymaga zgody. Udostępnianie linków jest dozwolone.</small></footer>
+
+<script>
+(function () {
+  function tr(pl, en) { return window.I18N ? I18N.t(pl, en) : pl; }
+
+  var SERVICES = [
+    { n: ['Adaptacja czujnika wysokiego ciśnienia paliwa', 'High-pressure fuel sensor adaptation'],
+      d: ['Zmiana linearyzacji czujnika ciśnienia w listwie (rail) na czujnik o innym zakresie, np. 1800 ↔ 2700 bar.', 'Changing the linearization of the rail pressure sensor to a sensor with a different range, e.g. 1800 ↔ 2700 bar.'] },
+    { n: ['Adaptacja czujnika doładowania', 'Boost sensor adaptation'],
+      d: ['Zmiana linearyzacji czujnika ciśnienia doładowania (MAP) na czujnik o innym zakresie pomiarowym.', 'Changing the linearization of the boost pressure (MAP) sensor to a sensor with a different measuring range.'] },
+    { n: ['Wyłączanie błędów (DTC off)', 'Error disabling (DTC off)'],
+      d: ['Program sam znajduje listę błędów w pliku, a Ty wybierasz, które wyłączyć.', 'The program finds the error list in the file by itself and you choose which errors to disable.'] },
+    { n: ['Modyfikacja indywidualna', 'Individual modification'],
+      d: ['Modyfikacja na zamówienie: EGR, DPF, AdBlue, DTC, chiptuning. Otrzymasz wycenę i porozmawiasz z nami w panelu.', 'Made-to-order modification: EGR, DPF, AdBlue, DTC, chip tuning. You get a quote and can talk to us in the panel.'] }
+  ];
+
+  var link = document.createElement('a');
+  link.href = 'panel.html';
+  document.querySelector('nav .links').appendChild(link);
+
+  var btn = document.createElement('a');
+  btn.className = 'btn ghost'; btn.href = 'panel.html';
+  var btns = document.querySelector('.invite .btns');
+  if (btns) btns.appendChild(btn);
+
+  var sec = document.createElement('section');
+  sec.id = 'online';
+  document.getElementById('uslugi').parentNode.insertBefore(sec, document.getElementById('tools'));
+
+  function buildFooter() {
+    var f = document.querySelector('footer');
+    if (!f) return;
+    var old = document.getElementById('legalFooter'); if (old) old.remove();
+    var d = document.createElement('div'); d.id = 'legalFooter'; d.style.marginTop = '6px';
+    var a = document.createElement('a'); a.href = 'regulamin.html'; a.textContent = tr('Regulamin', 'Terms of service');
+    var b = document.createElement('a'); b.href = 'polityka-prywatnosci.html'; b.textContent = tr('Polityka prywatności', 'Privacy policy');
+    d.appendChild(a); d.appendChild(document.createTextNode(' · ')); d.appendChild(b);
+    f.appendChild(d);
+  }
+
+  function build() {
+    buildFooter();
+    link.textContent = tr('Panel klienta', 'Client panel');
+    btn.textContent = tr('Panel klienta', 'Client panel');
+    sec.innerHTML = '';
+    var h = document.createElement('h2'); h.textContent = tr('Usługi online', 'Online services'); sec.appendChild(h);
+    var p = document.createElement('p'); p.className = 'lead';
+    p.textContent = tr('Wgraj plik, wybierz usługę i pobierz wynik. Załóż konto w panelu klienta.', 'Upload a file, choose a service and download the result. Create an account in the client panel.');
+    sec.appendChild(p);
+    var g = document.createElement('div'); g.className = 'grid';
+    SERVICES.forEach(function (s) {
+      var c = document.createElement('div'); c.className = 'card';
+      var t = document.createElement('h3'); t.textContent = tr(s.n[0], s.n[1]);
+      var d = document.createElement('p'); d.textContent = tr(s.d[0], s.d[1]);
+      c.appendChild(t); c.appendChild(d); g.appendChild(c);
+    });
+    sec.appendChild(g);
+    var row = document.createElement('div'); row.className = 'btnrow';
+    var go = document.createElement('a'); go.className = 'btn'; go.href = 'panel.html'; go.textContent = tr('Zaloguj się / załóż konto', 'Log in / create an account');
+    row.appendChild(go); sec.appendChild(row);
+  }
+
+  build();
+  if (window.I18N && I18N.onChange) I18N.onChange(build);
+})();
+</script>
 
 </body>
 </html>

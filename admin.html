@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel administratora – ECU-Perfect</title>
+<meta name="robots" content="noindex">
+<style>
+  :root { --red:#e5202e; --red2:#ff4b57; --bg:#0b0b10; --card:#15151d; --line:#262633; --txt:#f2f2f6; --muted:#9a9aab; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Segoe UI",system-ui,Arial,sans-serif; background:var(--bg); color:var(--txt); line-height:1.5; }
+  a { color:inherit; }
+  nav { position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center; padding:12px 24px; background:rgba(11,11,16,.9); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+  .logo { font-weight:800; letter-spacing:2px; text-decoration:none; }
+  nav .links a { margin-left:20px; text-decoration:none; color:var(--muted); font-size:.95rem; } nav .links a:hover { color:var(--txt); }
+  main { max-width:1200px; margin:0 auto; padding:30px 20px 50px; }
+  h1 { margin:0 0 6px; font-size:clamp(1.6rem,4.5vw,2.4rem); }
+  h1::after { content:""; display:block; width:56px; height:3px; background:var(--red); margin-top:10px; border-radius:2px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; margin:18px 0; }
+  .tabs { display:flex; gap:8px; margin:20px 0 0; flex-wrap:wrap; }
+  button { padding:10px 20px; border-radius:10px; border:2px solid var(--red); background:var(--red); color:#fff; font-weight:700; font-size:.95rem; cursor:pointer; font-family:inherit; }
+  button:hover { background:var(--red2); border-color:var(--red2); }
+  button.ghost { background:transparent; color:var(--txt); border-color:var(--line); }
+  button.ghost:hover { border-color:var(--red); }
+  button.sm { padding:5px 11px; font-size:.82rem; }
+  .filters { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+  select, input { padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:#0f0f16; color:var(--txt); font-size:.95rem; font-family:inherit; }
+  .scroll { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:.88rem; min-width:760px; }
+  th, td { padding:7px 10px; text-align:left; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; font-size:.72rem; text-transform:uppercase; }
+  td.det { color:var(--muted); word-break:break-word; max-width:460px; }
+  .msg { color:var(--muted); margin-top:10px; min-height:1.2em; } .msg.err { color:var(--red2); }
+  .hidden { display:none; }
+  .tag { display:inline-block; padding:1px 8px; border-radius:20px; border:1px solid var(--line); font-size:.78rem; white-space:nowrap; }
+  .tag.bad { border-color:var(--red); color:var(--red2); }
+  .addbox { margin:0 0 14px; padding:10px 14px; border:1px solid var(--line); border-radius:8px; background:#0f0f16; }
+  .addbox summary { cursor:pointer; font-weight:600; }
+  .small { color:var(--muted); font-size:.8rem; }
+  .modal { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:50; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .modal.hidden { display:none; }
+  .mbox { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:24px; max-width:760px; width:100%; max-height:90vh; overflow:auto; }
+  .mbox p { margin:4px 0; }
+  .thread { max-height:240px; overflow:auto; border:1px solid var(--line); border-radius:8px; padding:10px; margin:12px 0; background:#0f0f16; }
+  .thread .who { color:var(--muted); font-size:.78rem; }
+  .thread .txt { white-space:pre-wrap; margin-bottom:10px; }
+  textarea { width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:#0f0f16; color:var(--txt); font-size:.95rem; font-family:inherit; }
+</style>
+</head>
+<body>
+<nav>
+  <a class="logo" href="index.html">ECU-<b>Perfect</b></a>
+  <div class="links"><a href="panel.html">Panel użytkownika</a><a href="index.html">Strona główna</a></div>
+</nav>
+<main>
+<h1>Panel administratora</h1>
+<div id="gate" class="card"><span id="gateMsg">Sprawdzanie dostępu…</span> <a href="panel.html" id="gateLink" class="hidden">Zaloguj się w panelu użytkownika</a></div>
+
+<section id="adm" class="hidden">
+  <datalist id="userList"></datalist>
+  <div class="tabs">
+    <button type="button" class="tabBtn" data-tab="act">Aktywność</button>
+    <button type="button" class="tabBtn ghost" data-tab="usr">Użytkownicy</button>
+    <button type="button" class="tabBtn ghost" data-tab="fil">Pliki</button>
+    <button type="button" class="tabBtn ghost" data-tab="ord" id="tabOrd">Zamówienia</button>
+  </div>
+  <div class="filters" style="margin-top:14px">
+    <button type="button" class="sm ghost" id="xAll">Eksport wszystkich tabel (ZIP)</button>
+    <span id="xMsg" class="small"></span>
+  </div>
+
+  <div id="tab_ord" class="card hidden">
+    <div class="filters">
+      <select id="foStatus">
+        <option value="open">Otwarte</option>
+        <option value="">Wszystkie</option>
+        <option value="new">Nowe</option>
+        <option value="quoted">Wycenione</option>
+        <option value="accepted">Zaakceptowane</option>
+        <option value="in_progress">W realizacji</option>
+        <option value="done">Gotowe</option>
+        <option value="canceled">Anulowane</option>
+      </select>
+      <input id="foUser" list="userList" placeholder="Filtr: użytkownik" autocomplete="off">
+      <button type="button" class="sm" id="foGo">Odśwież</button>
+      <button type="button" class="sm ghost" id="xOrd">Eksport CSV</button>
+    </div>
+    <div class="scroll"><table>
+      <thead><tr><th>Data</th><th>Użytkownik</th><th>Plik</th><th>Zakres</th><th>Status</th><th>Cena (coins)</th><th></th></tr></thead>
+      <tbody id="ordBody"></tbody>
+    </table></div>
+    <div id="ordMsg" class="msg"></div>
+  </div>
+
+  <div id="omodal" class="modal hidden"><div class="mbox">
+    <h2 id="oTitle" style="margin:0 0 10px;font-size:1.15rem"></h2>
+    <div id="oInfo"></div>
+    <div id="oMsgs" class="thread"></div>
+    <textarea id="oText" maxlength="2000" rows="3" placeholder="Napisz wiadomość…"></textarea>
+    <div class="filters" style="margin:10px 0 0">
+      <button type="button" class="sm" id="oSend">Wyślij</button>
+      <input id="oPrice" type="number" min="0" step="1" placeholder="Cena (coins)" style="width:130px">
+      <button type="button" class="sm" id="oQuote">Wyceń (wyślij z wiadomością)</button>
+      <button type="button" class="sm ghost" id="oSrc">Pobierz plik klienta</button>
+    </div>
+    <div class="filters" style="margin:6px 0 0">
+      <button type="button" class="sm ghost" id="oProg">Oznacz „w realizacji”</button>
+      <input type="file" id="oResFile">
+      <button type="button" class="sm" id="oDone">Dodaj wynik i zakończ</button>
+    </div>
+    <div class="filters" style="margin:6px 0 0">
+      <button type="button" class="sm ghost" id="oCancel">Anuluj zamówienie</button>
+      <button type="button" class="sm ghost" id="oClose">Zamknij</button>
+    </div>
+    <div id="oMsg" class="msg"></div>
+  </div></div>
+
+  <div id="tab_act" class="card">
+    <div class="filters">
+      <select id="fEvent"><option value="">Wszystkie zdarzenia</option></select>
+      <input id="fEmail" list="userList" placeholder="Filtr: użytkownik" autocomplete="off">
+      <button type="button" class="sm" id="fGo">Odśwież</button>
+      <button type="button" class="sm ghost" id="xAct">Eksport CSV</button>
+    </div>
+    <div class="scroll"><table>
+      <thead><tr><th>Czas</th><th>Użytkownik</th><th>Zdarzenie</th><th>Szczegóły</th></tr></thead>
+      <tbody id="actBody"></tbody>
+    </table></div>
+    <div id="actMsg" class="msg"></div>
+  </div>
+
+  <div id="tab_usr" class="card hidden">
+    <div class="filters">
+      <input id="fuUser" list="userList" placeholder="Filtr: użytkownik" autocomplete="off">
+      <select id="fuStatus"><option value="">Wszystkie konta</option><option value="active">Aktywne</option><option value="blocked">Zablokowane</option></select>
+      <button type="button" class="sm ghost" id="fuClear">Wyczyść</button>
+      <button type="button" class="sm ghost" id="xUsr">Eksport CSV</button>
+    </div>
+    <div class="scroll"><table>
+      <thead><tr><th>Użytkownik</th><th>Rola</th><th>Stan konta</th><th>Założone</th><th>Ostatnia aktywność</th><th>Auto-usunięcie konta po <button type="button" class="sm ghost" id="retInfo" title="Co to znaczy?">i</button></th><th>Pliki wgrane</th><th>Pliki wynikowe</th><th></th></tr></thead>
+      <tbody id="usrBody"></tbody>
+    </table></div>
+    <div id="usrMsg" class="msg"></div>
+  </div>
+
+  <div id="tab_fil" class="card hidden">
+    <div class="filters">
+      <input id="ffUser" list="userList" placeholder="Filtr: użytkownik" autocomplete="off">
+      <input id="ffName" placeholder="Filtr: nazwa pliku lub opis">
+      <input id="ffCar" placeholder="Filtr: pojazd (marka, model, sterownik)">
+      <select id="ffType"><option value="">Wszystkie typy</option><option value="upload">wgrany</option><option value="result">wynik</option><option value="admin">od administratora</option></select>
+      <button type="button" class="sm ghost" id="ffClear">Wyczyść</button>
+      <button type="button" class="sm ghost" id="xFil">Eksport CSV</button>
+    </div>
+    <details class="addbox">
+      <summary>Dodaj plik użytkownikowi</summary>
+      <div class="filters" style="margin-top:12px">
+        <input id="addUser" list="userList" placeholder="Użytkownik (wpisz fragment e-mail)" autocomplete="off" style="min-width:260px">
+        <input type="file" id="addFile">
+        <input id="addLabel" placeholder="Opis (opcjonalnie)" maxlength="120">
+        <button type="button" class="sm" id="addBtn">Dodaj plik</button>
+      </div>
+      <div id="addMsg" class="msg"></div>
+    </details>
+    <div class="scroll"><table>
+      <thead><tr><th>Data</th><th>Użytkownik</th><th>Plik</th><th>Pojazd</th><th>Typ</th><th>Rozmiar</th><th></th></tr></thead>
+      <tbody id="filBody"></tbody>
+    </table></div>
+    <div id="filMsg" class="msg"></div>
+  </div>
+</section>
+</main>
+
+<script src="vendor/supabase.js"></script>
+<script>window.supabase || document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>');</script>
+<script src="vendor/jszip.min.js"></script>
+<script>window.JSZip || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"><\/script>');</script>
+<script src="supabase-config.js"></script>
+<script>
+(function () {
+  var cfg = window.ECUP_SUPABASE;
+  var sb = window.supabase.createClient(cfg.url, cfg.key);
+  var emails = {};
+  var EVENTS = {
+    signup: 'Rejestracja', login: 'Logowanie', upload: 'Wgranie pliku', result_created: 'Utworzono plik wynikowy',
+    file_deleted: 'Usunięcie pliku', analyze_requested: 'Analiza – zlecona', analyze_done: 'Analiza – gotowa',
+    process_requested: 'Przetwarzanie – zlecone', process_done: 'Przetwarzanie – gotowe', job_error: 'Błąd zadania',
+    download: 'Pobranie pliku', admin_file_added: 'Plik dodany przez administratora',
+    account_deletion_requested: 'Zlecono usunięcie konta', account_deleted: 'Konto usunięte', retention_warned: 'Ostrzeżenie o nieaktywności', retention_account_delete: 'Auto-usunięcie nieaktywnego konta', retention_file_delete: 'Auto-usunięcie starego pliku',
+    order_created: 'Zamówienie złożone', order_message: 'Wiadomość w zamówieniu', order_quoted: 'Zamówienie wycenione',
+    order_accepted: 'Wycena zaakceptowana', order_in_progress: 'Zamówienie w realizacji', order_done: 'Zamówienie zrealizowane',
+    order_canceled: 'Zamówienie anulowane', account_blocked: 'Konto zablokowane', account_unblocked: 'Konto odblokowane',
+    account_auto_blocked: 'Konto zablokowane automatycznie', admin_export: 'Eksport danych'
+  };
+  var ORD_ST = { new: 'Nowe', quoted: 'Wycenione', accepted: 'Zaakceptowane', in_progress: 'W realizacji', done: 'Gotowe', canceled: 'Anulowane' };
+  var ORD_ERR = {
+    bad_status: 'Status zamówienia nie pozwala na tę operację (odśwież).', order_closed: 'Zamówienie jest zamknięte.',
+    bad_price: 'Podaj poprawną cenę (liczba całkowita, 0 lub więcej).', file_not_found: 'Nie znaleziono pliku.'
+  };
+  var curOrder = null, curOrderRow = null, ordTimer = null;
+  var allUsers = [];
+  var lastAct = [], shownUsers = [], shownFiles = [], lastOrders = [];
+  var MAX_ADMIN_FILE = 10 * 1024 * 1024;
+  var allFiles = [];
+
+  function $(id) { return document.getElementById(id); }
+  function td(row, text, cls) { var c = document.createElement('td'); c.textContent = text == null ? '' : text; if (cls) c.className = cls; row.appendChild(c); return c; }
+  function fmtDate(s) { return s ? new Date(s).toLocaleString() : ''; }
+  function fmtSize(n) { return n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : (n / 1048576).toFixed(2) + ' MB'; }
+  function say(id, t, err) { var e = $(id); e.textContent = t || ''; e.className = 'msg' + (err ? ' err' : ''); }
+
+  function summarize(e) {
+    var d = e.details || {}, p = [];
+    if (d.name) p.push(d.name);
+    if (d.label) p.push(d.label);
+    if (d.service) p.push('usługa: ' + d.service);
+    if (d.op) p.push('operacja: ' + d.op);
+    if (d.analysis && d.analysis.found === true) p.push('wykryto: ' + d.analysis.current);
+    if (d.analysis && d.analysis.found === false) p.push('nie znaleziono kalibracji');
+    if (d.params && d.params.target) p.push('cel: ' + d.params.target);
+    if (d.by_admin) p.push(e.event === 'download' ? 'pobrał administrator' : e.event === 'file_deleted' ? 'usunął administrator' : 'przez administratora');
+    if (d.files != null && e.event === 'account_deleted') p.push('usunięte pliki: ' + d.files);
+    if (d.error) p.push('błąd: ' + d.error);
+    return p.join(' · ');
+  }
+
+  async function loadEmails() {
+    var r = await sb.from('profiles').select('id,email');
+    if (!r.error) r.data.forEach(function (p) { emails[p.id] = p.email; });
+  }
+
+  async function loadActivity() {
+    say('actMsg', 'Ładowanie…');
+    var q = sb.from('activity_log').select('*').order('created_at', { ascending: false }).limit(300);
+    if ($('fEvent').value) q = q.eq('event', $('fEvent').value);
+    var em = $('fEmail').value.trim();
+    if (em) q = q.ilike('user_email', '%' + em + '%');
+    var r = await q;
+    var b = $('actBody'); b.innerHTML = '';
+    if (r.error) { say('actMsg', r.error.message, true); return; }
+    lastAct = r.data || [];
+    r.data.forEach(function (e) {
+      var row = document.createElement('tr');
+      td(row, fmtDate(e.created_at));
+      td(row, e.user_email || emails[e.user_id] || (e.user_id || ''));
+      var c = td(row, '');
+      var t = document.createElement('span'); t.className = 'tag' + (e.event === 'job_error' ? ' bad' : ''); t.textContent = EVENTS[e.event] || e.event; c.appendChild(t);
+      td(row, summarize(e), 'det');
+      b.appendChild(row);
+    });
+    say('actMsg', r.data.length ? 'Pokazano ostatnie ' + r.data.length + ' zdarzeń.' : 'Brak zdarzeń.');
+  }
+
+  async function loadUsers() {
+    say('usrMsg', 'Ładowanie…');
+    var p = await sb.from('profiles').select('id,email,role,created_at,account_status,blocked_reason').order('created_at', { ascending: false });
+    var f = await sb.from('files').select('user_id,kind').limit(10000);
+    var a = await sb.from('activity_log').select('user_id,created_at').order('created_at', { ascending: false }).limit(5000);
+    var rt = await sb.rpc('admin_retention');
+    var exp = {};
+    (rt.data || []).forEach(function (x) { exp[x.user_id] = x.account_expires; });
+    $('usrBody').innerHTML = '';
+    if (p.error) { say('usrMsg', p.error.message, true); return; }
+    var up = {}, rs = {}, last = {};
+    (f.data || []).forEach(function (x) { if (x.kind === 'result') rs[x.user_id] = (rs[x.user_id] || 0) + 1; else up[x.user_id] = (up[x.user_id] || 0) + 1; });
+    (a.data || []).forEach(function (x) { if (x.user_id && !last[x.user_id]) last[x.user_id] = x.created_at; });
+    allUsers = p.data.map(function (u) { return { u: u, up: up[u.id] || 0, rs: rs[u.id] || 0, last: last[u.id], exp: exp[u.id] }; });
+    renderUsers();
+  }
+
+  function renderUsers() {
+    var q = $('fuUser').value.trim().toLowerCase(), st = $('fuStatus').value, b = $('usrBody'), shown = 0;
+    b.innerHTML = '';
+    shownUsers = [];
+    allUsers.forEach(function (x) {
+      var u = x.u, blocked = u.account_status === 'blocked';
+      if (q && (u.email || '').toLowerCase().indexOf(q) < 0) return;
+      if (st === 'blocked' && !blocked) return;
+      if (st === 'active' && blocked) return;
+      shown++;
+      shownUsers.push(x);
+      var row = document.createElement('tr');
+      td(row, u.email); td(row, u.role);
+      td(row, blocked ? 'zablokowane' + (u.blocked_reason ? ' (' + u.blocked_reason + ')' : '') : 'aktywne');
+      td(row, fmtDate(u.created_at)); td(row, fmtDate(x.last));
+      td(row, x.exp ? new Date(x.exp).toLocaleDateString() : '—');
+      td(row, x.up); td(row, x.rs);
+      var act = document.createElement('td');
+      if (u.role !== 'admin') {
+        var bt = document.createElement('button'); bt.type = 'button'; bt.className = 'sm ghost'; bt.textContent = blocked ? 'Odblokuj' : 'Zablokuj';
+        bt.onclick = function () { setAccountStatus(u, blocked ? 'active' : 'blocked'); };
+        act.appendChild(bt);
+      }
+      row.appendChild(act);
+      b.appendChild(row);
+    });
+    var nb = allUsers.filter(function (x) { return x.u.account_status === 'blocked'; }).length;
+    say('usrMsg', 'Pokazano ' + shown + ' z ' + allUsers.length + ' użytkowników. Zablokowanych: ' + nb + '.');
+  }
+
+  async function setAccountStatus(u, status) {
+    var reason = '';
+    if (status === 'blocked') {
+      reason = prompt('Zablokować konto ' + u.email + '? Podaj powód (opcjonalnie):', '');
+      if (reason === null) return;
+    } else if (!confirm('Odblokować konto ' + u.email + '?')) return;
+    var r = await sb.rpc('admin_set_account_status', { p_user: u.id, p_status: status, p_reason: reason });
+    if (r.error) { say('usrMsg', r.error.message, true); return; }
+    loadUsers();
+  }
+
+  async function downloadFile(f) {
+    var r = await sb.storage.from('uploads').createSignedUrl(f.storage_path, 60, { download: f.original_name });
+    if (r.error) { say('filMsg', r.error.message, true); return; }
+    await sb.rpc('log_download', { p_file_id: f.id });
+    window.location.href = r.data.signedUrl;
+  }
+
+  var KIND = { upload: 'wgrany', result: 'wynik', admin: 'od administratora' };
+
+  function carText(f) {
+    if (!f.vehicle_model && !f.ecu_type) return '';
+    var b = f.vehicle_brand === 'other' ? (f.vehicle_brand_other || '') : (f.vehicle_brand || '');
+    var p = [(b + ' ' + (f.vehicle_model || '')).trim()];
+    if (f.vehicle_power_hp) p.push(f.vehicle_power_hp + ' KM');
+    var e = f.ecu_type === 'other' ? f.ecu_other : f.ecu_type;
+    if (e) p.push(e);
+    return p.filter(Boolean).join(' · ');
+  }
+
+  async function deleteFile(f) {
+    if (!confirm('Usunąć plik „' + f.original_name + '” użytkownika ' + (emails[f.user_id] || '') + '? Tej operacji nie można cofnąć.')) return;
+    var d = await sb.from('files').delete().eq('id', f.id);
+    if (d.error) { say('filMsg', d.error.message.indexOf('file_in_open_order') >= 0 ? 'Plik jest w otwartym zamówieniu i nie można go usunąć.' : d.error.message, true); return; }
+    var s = await sb.storage.from('uploads').remove([f.storage_path]);
+    if (s.error) { say('filMsg', s.error.message, true); return; }
+    loadFiles();
+  }
+
+  function renderFiles() {
+    var u = $('ffUser').value.trim().toLowerCase(), n = $('ffName').value.trim().toLowerCase(), c = $('ffCar').value.trim().toLowerCase(), t = $('ffType').value;
+    var b = $('filBody'); b.innerHTML = '';
+    var shown = 0;
+    shownFiles = [];
+    allFiles.forEach(function (f) {
+      var em = (emails[f.user_id] || f.user_id || '').toLowerCase();
+      var car = carText(f);
+      if (u && em.indexOf(u) < 0) return;
+      if (n && ((f.original_name || '') + ' ' + (f.label || '')).toLowerCase().indexOf(n) < 0) return;
+      if (c && car.toLowerCase().indexOf(c) < 0) return;
+      if (t && f.kind !== t) return;
+      shown++;
+      shownFiles.push(f);
+      var row = document.createElement('tr');
+      td(row, fmtDate(f.created_at)); td(row, emails[f.user_id] || f.user_id);
+      td(row, f.original_name + (f.label ? ' — ' + f.label : ''));
+      td(row, car, 'small');
+      td(row, KIND[f.kind] || f.kind); td(row, fmtSize(f.size_bytes));
+      var cell = document.createElement('td'); cell.style.whiteSpace = 'nowrap';
+      var bt = document.createElement('button'); bt.type = 'button'; bt.className = 'sm'; bt.textContent = 'Pobierz';
+      bt.onclick = function () { downloadFile(f); };
+      var dl = document.createElement('button'); dl.type = 'button'; dl.className = 'sm ghost'; dl.style.marginLeft = '6px'; dl.textContent = 'Usuń';
+      dl.onclick = function () { deleteFile(f); };
+      cell.appendChild(bt); cell.appendChild(dl); row.appendChild(cell);
+      b.appendChild(row);
+    });
+    say('filMsg', allFiles.length ? 'Pokazano ' + shown + ' z ' + allFiles.length + ' plików.' : 'Brak plików.');
+  }
+
+  async function loadFiles() {
+    say('filMsg', 'Ładowanie…');
+    var r = await sb.from('files').select('id,user_id,original_name,storage_path,size_bytes,created_at,kind,label,vehicle_brand,vehicle_brand_other,vehicle_model,vehicle_power_hp,ecu_type,ecu_other').order('created_at', { ascending: false }).limit(1000);
+    if (r.error) { say('filMsg', r.error.message, true); return; }
+    allFiles = r.data;
+    fillAddUsers();
+    renderFiles();
+  }
+
+  function fillAddUsers() {
+    var dl = $('userList');
+    dl.innerHTML = '';
+    Object.keys(emails).map(function (id) { return emails[id]; }).filter(Boolean).sort(function (a, b) { return a.localeCompare(b); }).forEach(function (em) {
+      var o = document.createElement('option'); o.value = em; dl.appendChild(o);
+    });
+  }
+
+  function findUserId(text) {
+    var t = (text || '').trim().toLowerCase();
+    if (!t) return null;
+    var ids = Object.keys(emails);
+    var exact = ids.filter(function (id) { return (emails[id] || '').toLowerCase() === t; });
+    if (exact.length === 1) return exact[0];
+    var part = ids.filter(function (id) { return (emails[id] || '').toLowerCase().indexOf(t) >= 0; });
+    return part.length === 1 ? part[0] : null;
+  }
+
+  async function addFileToUser() {
+    var uid = findUserId($('addUser').value), file = $('addFile').files[0];
+    if (!uid) { say('addMsg', 'Wybierz użytkownika z podpowiedzi (wpisz fragment e-maila i kliknij pozycję na liście).', true); return; }
+    if (!file) { say('addMsg', 'Wybierz plik.', true); return; }
+    if (file.size === 0 || file.size > MAX_ADMIN_FILE) { say('addMsg', 'Plik musi mieć od 1 bajta do 10 MB.', true); return; }
+    if (!confirm('Dodać plik „' + file.name + '” użytkownikowi ' + (emails[uid] || '') + '?')) return;
+    $('addBtn').disabled = true;
+    say('addMsg', 'Wgrywanie…');
+    var path = uid + '/' + crypto.randomUUID();
+    var s = await sb.storage.from('uploads').upload(path, file, { contentType: 'application/octet-stream' });
+    if (s.error) { $('addBtn').disabled = false; say('addMsg', s.error.message, true); return; }
+    var label = $('addLabel').value.trim() || 'Plik od administratora';
+    var i = await sb.from('files').insert({ user_id: uid, original_name: file.name, storage_path: path, size_bytes: file.size, kind: 'admin', label: label });
+    $('addBtn').disabled = false;
+    if (i.error) { await sb.storage.from('uploads').remove([path]); say('addMsg', i.error.message, true); return; }
+    $('addFile').value = ''; $('addLabel').value = '';
+    say('addMsg', 'Plik dodany. Użytkownik zobaczy go na liście swoich plików.');
+    loadFiles();
+  }
+
+  function ordErr(e) {
+    var m = e && e.message ? e.message : '';
+    for (var k in ORD_ERR) { if (m.indexOf(k) >= 0) return ORD_ERR[k]; }
+    return m || 'Błąd';
+  }
+
+  function optText(o) {
+    o = o || {};
+    var p = [];
+    if (o.egr) p.push('EGR off');
+    if (o.dpf) p.push('DPF off');
+    if (o.adblue) p.push('AdBlue off');
+    if (o.chip) p.push('chiptuning');
+    if (o.dtc) p.push('DTC: ' + o.dtc);
+    return p.join(', ');
+  }
+
+  async function updateOrdBadge() {
+    var r = await sb.from('orders').select('id', { count: 'exact', head: true }).eq('unread_admin', true);
+    var n = r.error ? 0 : (r.count || 0);
+    $('tabOrd').textContent = 'Zamówienia' + (n ? ' (' + n + ')' : '');
+  }
+
+  async function loadOrders() {
+    say('ordMsg', 'Ładowanie…');
+    var q = sb.from('orders').select('id,user_id,file_id,file_name,options,description,status,price_coins,unread_admin,created_at').order('created_at', { ascending: false }).limit(300);
+    var st = $('foStatus').value;
+    if (st === 'open') q = q.in('status', ['new', 'quoted', 'accepted', 'in_progress']);
+    else if (st) q = q.eq('status', st);
+    var r = await q;
+    var b = $('ordBody'); b.innerHTML = '';
+    if (r.error) { say('ordMsg', r.error.message, true); return; }
+    var u = $('foUser').value.trim().toLowerCase(), shown = 0;
+    lastOrders = [];
+    r.data.forEach(function (o) {
+      if (u && (emails[o.user_id] || '').toLowerCase().indexOf(u) < 0) return;
+      shown++;
+      lastOrders.push(o);
+      var row = document.createElement('tr');
+      td(row, fmtDate(o.created_at)); td(row, emails[o.user_id] || o.user_id); td(row, o.file_name || '');
+      td(row, optText(o.options) || (o.description || '').slice(0, 50), 'det');
+      td(row, (ORD_ST[o.status] || o.status) + (o.unread_admin ? ' ●' : ''));
+      td(row, o.price_coins != null ? o.price_coins : '');
+      var c = document.createElement('td');
+      var bt = document.createElement('button'); bt.type = 'button'; bt.className = 'sm'; bt.textContent = 'Otwórz';
+      bt.onclick = function () { openOrder(o.id); };
+      c.appendChild(bt); row.appendChild(c); b.appendChild(row);
+    });
+    say('ordMsg', shown ? 'Zamówień: ' + shown + '. ● oznacza nową wiadomość lub zmianę.' : 'Brak zamówień.');
+    updateOrdBadge();
+  }
+
+  async function renderOrder() {
+    if (!curOrder) return;
+    var r = await sb.from('orders').select('id,user_id,file_id,file_name,options,description,status,price_coins,result_file_id,src:files!orders_file_id_fkey(id,original_name,storage_path,vehicle_brand,vehicle_brand_other,vehicle_model,vehicle_power_hp,ecu_type,ecu_other)').eq('id', curOrder).single();
+    var m = await sb.from('order_messages').select('id,author_role,body,created_at').eq('order_id', curOrder).order('created_at', { ascending: true });
+    if (r.error) { say('oMsg', r.error.message, true); return; }
+    var o = r.data; curOrderRow = o;
+    $('oTitle').textContent = 'Zamówienie — ' + (ORD_ST[o.status] || o.status) + ' — ' + (emails[o.user_id] || '');
+    var info = $('oInfo'); info.innerHTML = '';
+    var car = o.src ? carText(o.src) : '';
+    ['Plik: ' + (o.file_name || '') + (o.src ? '' : ' (plik usunięty)'), car ? 'Pojazd: ' + car : null, 'Zakres: ' + (optText(o.options) || '—'),
+     o.description ? 'Opis: ' + o.description : null, o.price_coins != null ? 'Cena: ' + o.price_coins + ' coins' : null].forEach(function (t) {
+      if (!t) return; var p = document.createElement('p'); p.textContent = t; info.appendChild(p);
+    });
+    var box = $('oMsgs'); var atBottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 30;
+    box.innerHTML = '';
+    (m.data || []).forEach(function (x) {
+      var w = document.createElement('div'); w.className = 'who';
+      w.textContent = (x.author_role === 'admin' ? 'Administrator' : x.author_role === 'user' ? 'Użytkownik' : 'System') + ' · ' + fmtDate(x.created_at);
+      var t = document.createElement('div'); t.className = 'txt'; t.textContent = x.body;
+      box.appendChild(w); box.appendChild(t);
+    });
+    if (atBottom) box.scrollTop = box.scrollHeight;
+    var open = ['new', 'quoted', 'accepted', 'in_progress'].indexOf(o.status) >= 0;
+    var canceled = o.status === 'canceled';
+    $('oText').style.display = canceled ? 'none' : ''; $('oSend').style.display = canceled ? 'none' : '';
+    $('oQuote').style.display = (o.status === 'new' || o.status === 'quoted') ? '' : 'none';
+    $('oPrice').style.display = (o.status === 'new' || o.status === 'quoted') ? '' : 'none';
+    if (o.price_coins != null && !$('oPrice').value) $('oPrice').value = o.price_coins;
+    $('oProg').style.display = o.status === 'accepted' ? '' : 'none';
+    var fin = o.status === 'accepted' || o.status === 'in_progress';
+    $('oResFile').style.display = fin ? '' : 'none'; $('oDone').style.display = fin ? '' : 'none';
+    $('oCancel').style.display = open ? '' : 'none';
+    $('oSrc').style.display = o.src ? '' : 'none';
+    sb.rpc('order_mark_read', { p_order: curOrder });
+  }
+
+  async function openOrder(id) {
+    curOrder = id; say('oMsg', ''); $('oText').value = ''; $('oPrice').value = ''; $('oResFile').value = '';
+    $('omodal').className = 'modal';
+    await renderOrder();
+    $('oMsgs').scrollTop = $('oMsgs').scrollHeight;
+    clearInterval(ordTimer); ordTimer = setInterval(renderOrder, 6000);
+  }
+
+  function closeOrder() {
+    clearInterval(ordTimer); curOrder = null; curOrderRow = null;
+    $('omodal').className = 'modal hidden';
+    loadOrders();
+  }
+
+  async function orderRpc(name, args, okMsg) {
+    var r = await sb.rpc(name, args);
+    if (r.error) { say('oMsg', ordErr(r.error), true); return false; }
+    say('oMsg', okMsg || '');
+    await renderOrder();
+    $('oMsgs').scrollTop = $('oMsgs').scrollHeight;
+    return true;
+  }
+
+  async function sendMsg() {
+    var t = $('oText').value.trim(); if (!t) return;
+    if (await orderRpc('order_post_message', { p_order: curOrder, p_body: t })) $('oText').value = '';
+  }
+
+  async function quoteOrder() {
+    var p = parseInt($('oPrice').value, 10);
+    if (!(p >= 0)) { say('oMsg', ORD_ERR.bad_price, true); return; }
+    if (await orderRpc('admin_quote_order', { p_order: curOrder, p_price: p, p_message: $('oText').value.trim() || null }, 'Wycena wysłana.')) $('oText').value = '';
+  }
+
+  async function finishOrder() {
+    var o = curOrderRow, file = $('oResFile').files[0];
+    if (!o) return;
+    if (!file) { say('oMsg', 'Wybierz plik wynikowy.', true); return; }
+    if (file.size === 0 || file.size > MAX_ADMIN_FILE) { say('oMsg', 'Plik musi mieć od 1 bajta do 10 MB.', true); return; }
+    if (!confirm('Dodać plik „' + file.name + '” użytkownikowi ' + (emails[o.user_id] || '') + ' i zakończyć zamówienie?')) return;
+    $('oDone').disabled = true; say('oMsg', 'Wgrywanie…');
+    var path = o.user_id + '/' + crypto.randomUUID();
+    var s = await sb.storage.from('uploads').upload(path, file, { contentType: 'application/octet-stream' });
+    if (s.error) { $('oDone').disabled = false; say('oMsg', s.error.message, true); return; }
+    var ins = await sb.from('files').insert({ user_id: o.user_id, original_name: file.name, storage_path: path, size_bytes: file.size, kind: 'admin', label: 'Wynik zamówienia indywidualnego' }).select('id').single();
+    if (ins.error) { $('oDone').disabled = false; await sb.storage.from('uploads').remove([path]); say('oMsg', ins.error.message, true); return; }
+    var ok = await orderRpc('admin_complete_order', { p_order: curOrder, p_file: ins.data.id }, 'Zamówienie zakończone, plik dodany użytkownikowi.');
+    $('oDone').disabled = false;
+    if (ok) $('oResFile').value = '';
+  }
+
+  async function cancelAdminOrder() {
+    if (!confirm('Anulować to zamówienie?')) return;
+    await orderRpc('cancel_order', { p_order: curOrder }, 'Zamówienie anulowane.');
+  }
+
+  // ---- exports (CSV: ';' separator, UTF-8 with BOM so Excel opens Polish characters correctly) ----
+  function csvCell(v) {
+    if (v == null) return '';
+    if (typeof v === 'object') v = JSON.stringify(v);
+    v = String(v);
+    if (/^[=+@]/.test(v) || /^-(?!\d)/.test(v)) v = "'" + v;
+    if (/[";\r\n]/.test(v)) v = '"' + v.replace(/"/g, '""') + '"';
+    return v;
+  }
+  function toCsv(headers, rows) {
+    var out = [headers.map(csvCell).join(';')];
+    rows.forEach(function (r) { out.push(r.map(csvCell).join(';')); });
+    return out.join('\r\n');
+  }
+  function stamp() {
+    var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + '_' + p(d.getHours()) + p(d.getMinutes());
+  }
+  function saveBlob(name, blob) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }
+  function saveCsv(name, headers, rows, msgId) {
+    saveBlob(name + '_' + stamp() + '.csv', new Blob(['﻿' + toCsv(headers, rows)], { type: 'text/csv;charset=utf-8' }));
+    sb.rpc('admin_log_export', { p_what: name, p_rows: rows.length });
+    say(msgId, 'Wyeksportowano ' + rows.length + ' wierszy do pliku CSV.');
+  }
+  function iso(s) { return s ? new Date(s).toISOString() : ''; }
+
+  function exportActivity() {
+    saveCsv('aktywnosc', ['Czas', 'Użytkownik', 'Zdarzenie (kod)', 'Zdarzenie', 'Szczegóły'], lastAct.map(function (e) {
+      return [iso(e.created_at), e.user_email || emails[e.user_id] || e.user_id || '', e.event, EVENTS[e.event] || e.event, summarize(e)];
+    }), 'actMsg');
+  }
+  function exportUsers() {
+    saveCsv('uzytkownicy', ['Użytkownik', 'Rola', 'Stan konta', 'Powód blokady', 'Założone', 'Ostatnia aktywność', 'Pliki wgrane', 'Pliki wynikowe'], shownUsers.map(function (x) {
+      return [x.u.email, x.u.role, x.u.account_status === 'blocked' ? 'zablokowane' : 'aktywne', x.u.blocked_reason || '', iso(x.u.created_at), iso(x.last), x.up, x.rs];
+    }), 'usrMsg');
+  }
+  function exportFiles() {
+    saveCsv('pliki', ['Data', 'Użytkownik', 'Nazwa pliku', 'Opis', 'Typ', 'Rozmiar (B)', 'Marka', 'Model', 'Moc (KM)', 'Sterownik'], shownFiles.map(function (f) {
+      return [iso(f.created_at), emails[f.user_id] || f.user_id, f.original_name, f.label || '', KIND[f.kind] || f.kind, f.size_bytes,
+        f.vehicle_brand === 'other' ? (f.vehicle_brand_other || '') : (f.vehicle_brand || ''), f.vehicle_model || '', f.vehicle_power_hp || '',
+        f.ecu_type === 'other' ? (f.ecu_other || '') : (f.ecu_type || '')];
+    }), 'filMsg');
+  }
+  function exportOrders() {
+    saveCsv('zamowienia', ['Data', 'Użytkownik', 'Plik', 'Zakres', 'Opis', 'Status', 'Cena (coins)'], lastOrders.map(function (o) {
+      return [iso(o.created_at), emails[o.user_id] || o.user_id, o.file_name || '', optText(o.options), o.description || '', ORD_ST[o.status] || o.status, o.price_coins == null ? '' : o.price_coins];
+    }), 'ordMsg');
+  }
+
+  var EXPORT_TABLES = [
+    ['profiles', 'id'], ['files', 'id'], ['jobs', 'id'], ['orders', 'id'], ['order_messages', 'id'], ['activity_log', 'id'],
+    ['coin_ledger', 'id'], ['consents', 'id'], ['billing_profiles', 'user_id'], ['services', 'id'], ['account_deletions', 'user_id']
+  ];
+
+  async function fetchAllRows(table, orderCol) {
+    var rows = [], from = 0, step = 1000;
+    for (;;) {
+      var r = await sb.from(table).select('*').order(orderCol, { ascending: true }).range(from, from + step - 1);
+      if (r.error) throw new Error(table + ': ' + r.error.message);
+      rows = rows.concat(r.data);
+      if (r.data.length < step) break;
+      from += step;
+    }
+    return rows;
+  }
+
+  async function exportAll() {
+    if (!window.JSZip) { say('xMsg', 'Biblioteka ZIP nie została załadowana (sprawdź połączenie z internetem).', true); return; }
+    $('xAll').disabled = true;
+    try {
+      var zip = new window.JSZip(), info = ['Eksport danych ECU-Perfect', 'Data: ' + new Date().toISOString(), ''], total = 0;
+      for (var i = 0; i < EXPORT_TABLES.length; i++) {
+        var t = EXPORT_TABLES[i];
+        $('xMsg').textContent = 'Pobieranie: ' + t[0] + ' (' + (i + 1) + '/' + EXPORT_TABLES.length + ')…';
+        var rows = await fetchAllRows(t[0], t[1]);
+        var keys = [];
+        rows.forEach(function (r) { Object.keys(r).forEach(function (k) { if (keys.indexOf(k) < 0) keys.push(k); }); });
+        var withEmail = keys.indexOf('user_id') >= 0 && keys.indexOf('user_email') < 0;
+        var headers = withEmail ? keys.concat(['user_email']) : keys;
+        var data = rows.map(function (r) {
+          var line = keys.map(function (k) { return r[k]; });
+          if (withEmail) line.push(emails[r.user_id] || '');
+          return line;
+        });
+        zip.file(t[0] + '.csv', '﻿' + toCsv(headers, data));
+        info.push(t[0] + ': ' + rows.length + ' wierszy');
+        total += rows.length;
+      }
+      info.push('', 'Uwaga: eksport zawiera dane osobowe (e-maile, dane do faktur). Przechowuj go w bezpiecznym miejscu.', 'Eksport nie zawiera zawartości plików ECU, tylko informacje o nich.');
+      zip.file('_info.txt', info.join('\r\n'));
+      $('xMsg').textContent = 'Pakowanie…';
+      var blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+      saveBlob('ecuperfect_eksport_' + stamp() + '.zip', blob);
+      sb.rpc('admin_log_export', { p_what: 'all_tables_zip', p_rows: total });
+      $('xMsg').textContent = 'Gotowe: ' + EXPORT_TABLES.length + ' tabel, ' + total + ' wierszy.';
+    } catch (e) {
+      $('xMsg').textContent = 'Błąd eksportu: ' + e.message;
+    }
+    $('xAll').disabled = false;
+  }
+
+  var loaders = { act: loadActivity, usr: loadUsers, fil: loadFiles, ord: loadOrders };
+  function showTab(name) {
+    ['act', 'usr', 'fil', 'ord'].forEach(function (t) { $('tab_' + t).className = 'card' + (t === name ? '' : ' hidden'); });
+    Array.prototype.forEach.call(document.querySelectorAll('.tabBtn'), function (b) { b.className = 'tabBtn' + (b.getAttribute('data-tab') === name ? '' : ' ghost'); });
+    loaders[name]();
+  }
+
+  async function init() {
+    var s = (await sb.auth.getSession()).data.session;
+    if (!s) { $('gateMsg').textContent = 'Nie jesteś zalogowany.'; $('gateLink').className = ''; return; }
+    var me = await sb.from('profiles').select('role').eq('id', s.user.id).single();
+    if (me.error || !me.data || me.data.role !== 'admin') { $('gateMsg').textContent = 'Brak dostępu.'; return; }
+    $('gate').className = 'hidden';
+    $('adm').className = '';
+    await loadEmails();
+    fillAddUsers();
+    Object.keys(EVENTS).forEach(function (k) { var o = document.createElement('option'); o.value = k; o.textContent = EVENTS[k]; $('fEvent').appendChild(o); });
+    Array.prototype.forEach.call(document.querySelectorAll('.tabBtn'), function (b) { b.onclick = function () { showTab(b.getAttribute('data-tab')); }; });
+    ['ffUser', 'ffName', 'ffCar'].forEach(function (id) { $(id).oninput = renderFiles; });
+    $('ffType').onchange = renderFiles;
+    $('ffClear').onclick = function () { $('ffUser').value = ''; $('ffName').value = ''; $('ffCar').value = ''; $('ffType').value = ''; renderFiles(); };
+    $('addBtn').onclick = addFileToUser;
+    $('xAct').onclick = exportActivity; $('xUsr').onclick = exportUsers; $('xFil').onclick = exportFiles; $('xOrd').onclick = exportOrders;
+    $('xAll').onclick = exportAll;
+    $('retInfo').onclick = function () {
+      alert('Konto aktywne do = ostatnia aktywność (logowanie lub zdarzenie w logu) + 24 miesiące. Na 30 dni przed tą datą worker wysyła ostrzeżenie e-mail, a po upływie terminu (jeśli konto dalej nieaktywne) usuwa konto razem z plikami. Pliki są usuwane po 12 miesiącach od dodania, wpisy logu po 12 miesiącach. Administratorzy są pomijani (—). Usuwanie działa tylko gdy worker ma RETENTION_ENABLED=1 i skonfigurowany SMTP.');
+    };
+    $('fuUser').oninput = renderUsers; $('fuStatus').onchange = renderUsers;
+    $('fuClear').onclick = function () { $('fuUser').value = ''; $('fuStatus').value = ''; renderUsers(); };
+    $('foGo').onclick = loadOrders; $('foStatus').onchange = loadOrders; $('foUser').oninput = loadOrders;
+    $('oSend').onclick = sendMsg; $('oQuote').onclick = quoteOrder; $('oClose').onclick = closeOrder;
+    $('oProg').onclick = function () { orderRpc('admin_set_in_progress', { p_order: curOrder }, 'Oznaczono jako w realizacji.'); };
+    $('oDone').onclick = finishOrder; $('oCancel').onclick = cancelAdminOrder;
+    $('oSrc').onclick = function () { if (curOrderRow && curOrderRow.src) downloadFile({ id: curOrderRow.src.id, storage_path: curOrderRow.src.storage_path, original_name: curOrderRow.src.original_name }); };
+    updateOrdBadge();
+    $('fGo').onclick = loadActivity;
+    $('fEvent').onchange = loadActivity;
+    showTab('act');
+  }
+  init();
+})();
+</script>
+</body>
+</html>

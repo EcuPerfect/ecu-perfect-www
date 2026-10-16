@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel użytkownika – test przetwarzania plików – ECU-Perfect</title>
+<meta name="robots" content="noindex">
+<style>
+  :root { --red:#e5202e; --red2:#ff4b57; --bg:#0b0b10; --card:#15151d; --line:#262633; --txt:#f2f2f6; --muted:#9a9aab; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Segoe UI",system-ui,Arial,sans-serif; background:var(--bg); color:var(--txt); line-height:1.5; }
+  a { color:inherit; }
+  nav { position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center; padding:12px 24px; background:rgba(11,11,16,.9); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+  .logo { font-weight:800; letter-spacing:2px; text-decoration:none; } .logo b { color:inherit; }
+  nav .links a { margin-left:20px; text-decoration:none; color:var(--muted); font-size:.95rem; } nav .links a:hover { color:var(--txt); }
+  main { max-width:900px; margin:0 auto; padding:30px 20px 50px; }
+  h1 { margin:0 0 6px; font-size:clamp(1.6rem,4.5vw,2.4rem); }
+  h1::after { content:""; display:block; width:56px; height:3px; background:var(--red); margin-top:10px; border-radius:2px; }
+  .lead { color:var(--muted); margin:14px 0 26px; max-width:760px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; margin-bottom:18px; }
+  .card h2 { margin:0 0 14px; font-size:1.05rem; }
+  label { display:block; font-size:.8rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin:12px 0 4px; }
+  input[type=email], input[type=password] { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:#0f0f16; color:var(--txt); font-size:1.05rem; font-family:inherit; }
+  select { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:#0f0f16; color:var(--txt); font-size:1.05rem; font-family:inherit; }
+  select:focus { outline:2px solid var(--red); border-color:var(--red); }
+  input[type=file] { width:100%; padding:10px 12px; border-radius:8px; border:1px dashed var(--line); background:#0f0f16; color:var(--txt); font-family:inherit; }
+  input:focus { outline:2px solid var(--red); border-color:var(--red); }
+  button { padding:10px 20px; border-radius:10px; border:2px solid var(--red); background:var(--red); color:#fff; font-weight:700; font-size:.95rem; cursor:pointer; margin-top:14px; font-family:inherit; }
+  button:hover { background:var(--red2); border-color:var(--red2); }
+  button.ghost { background:transparent; color:var(--txt); border-color:var(--line); }
+  button.ghost:hover { border-color:var(--red); background:transparent; }
+  button.sm { margin-top:0; padding:6px 12px; font-size:.85rem; }
+  button:disabled { opacity:.5; cursor:default; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .tabs { display:flex; gap:8px; margin-bottom:6px; }
+  .tabs button { margin-top:0; }
+  .tabs button.on { background:var(--red); border-color:var(--red); }
+  .msg { min-height:1.2em; margin-top:12px; font-size:.92rem; color:var(--muted); }
+  .msg.err { color:var(--red2); } .msg.ok { color:#5fd48a; }
+  .scroll { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:.95rem; min-width:520px; }
+  th, td { padding:8px 10px; text-align:left; border-bottom:1px solid var(--line); }
+  th { color:var(--muted); font-weight:600; font-size:.75rem; text-transform:uppercase; }
+  td.act { text-align:right; white-space:nowrap; } td.act button { margin-left:6px; }
+  .small { color:var(--muted); font-size:.82rem; margin-top:14px; }
+  .hidden { display:none; }
+  .chk { display:flex; gap:10px; align-items:flex-start; text-transform:none; letter-spacing:0; font-size:.9rem; color:var(--txt); margin:12px 0 0; }
+  .chk input { width:auto; margin-top:4px; }
+  .notice { margin-top:14px; padding:12px 14px; border:1px solid var(--line); border-left:3px solid var(--red); border-radius:8px; background:#0f0f16; color:var(--muted); font-size:.85rem; }
+  .modal { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:50; display:flex; align-items:center; justify-content:center; padding:20px; }
+  .mbox { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:24px; max-width:560px; width:100%; max-height:85vh; overflow:auto; }
+  .mbox h2 { margin:0 0 12px; font-size:1.15rem; }
+  .mbox p { margin:6px 0; color:var(--txt); }
+  .hidden { display:none !important; }
+  .ctoggle { cursor:pointer; user-select:none; display:flex; justify-content:space-between; align-items:center; }
+  .ctoggle::after { content:'\25BE'; color:var(--muted); margin-left:10px; }
+  .card.collapsed .ctoggle::after { content:'\25B8'; }
+  .card.collapsed .ctoggle { margin-bottom:0; }
+  .card.collapsed .cbody { display:none; }
+  .dtcbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:14px 0 8px; }
+  .dtcbar input[type=text] { flex:1 1 180px; min-width:140px; padding:8px 12px; border-radius:8px; border:1px solid var(--line); background:#0f0f16; color:var(--txt); font-size:1rem; font-family:inherit; }
+  .dtcbar label { display:flex; gap:6px; align-items:center; margin:0; text-transform:none; letter-spacing:0; font-size:.9rem; color:var(--txt); }
+  .dtcbar button { margin-top:0; }
+  .dtcwrap { max-height:420px; overflow:auto; border:1px solid var(--line); border-radius:8px; }
+  .dtcwrap table { min-width:480px; }
+  .dtcwrap thead th { position:sticky; top:0; background:var(--card); }
+  .dtcwrap td.code { font-family:Consolas, monospace; }
+  .dtcwrap tr.chg td { background:rgba(220,60,60,.12); }
+  .dtcwrap a.gq { color:var(--muted); text-decoration:none; border:1px solid var(--line); border-radius:50%; padding:0 7px; font-size:.8rem; }
+  .dtcwrap a.gq:hover { color:var(--txt); border-color:var(--red); }
+  footer { text-align:center; color:var(--muted); font-size:.85rem; padding:30px 20px; border-top:1px solid var(--line); }
+</style>
+<script src="i18n.js"></script>
+</head>
+<body>
+<nav>
+  <a class="logo" href="index.html">ECU-<b>Perfect</b></a>
+  <div class="links"><a href="admin.html" id="adminLink" class="hidden">Administrator</a><a href="index.html">← Strona główna</a></div>
+</nav>
+<main>
+<h1>Panel użytkownika</h1>
+<p class="lead">Zaloguj się, wgraj plik i wybierz usługę. Pliki wynikowe pojawiają się na liście Twoich plików.</p>
+
+<section id="authBox" class="card hidden">
+  <button type="button" id="googleBtn" class="ghost" style="width:100%">Zaloguj przez Google</button>
+  <div id="orLine" class="small" style="text-align:center;margin:12px 0 4px">lub e-mailem</div>
+  <div class="tabs">
+    <button type="button" id="tabIn" class="on">Logowanie</button>
+    <button type="button" id="tabUp" class="ghost">Rejestracja</button>
+  </div>
+  <form id="authForm" autocomplete="on">
+    <label for="em">E-mail</label>
+    <input type="email" id="em" autocomplete="email" required>
+    <label for="pw">Hasło <span style="text-transform:none;letter-spacing:0">(min. 8 znaków)</span></label>
+    <div style="position:relative">
+      <input type="password" id="pw" autocomplete="current-password" minlength="8" style="padding-right:90px">
+      <button type="button" id="pwToggle" class="ghost sm" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);margin:0;background:var(--card);color:var(--txt);border:1px solid var(--line)"></button>
+    </div>
+    <label class="chk hidden" id="termsRow"><input type="checkbox" id="termsChk"><span id="termsText"></span></label>
+    <div class="row" style="margin-top:14px">
+      <button type="submit" id="authBtn" style="margin-top:0">Zaloguj</button>
+      <button type="button" id="linkBtn" class="ghost" style="margin-top:0">Wyślij link logowania (bez hasła)</button>
+    </div>
+  </form>
+  <div id="authMsg" class="msg"></div>
+  <div id="authNote" class="small" style="margin-top:6px"></div>
+</section>
+
+<section id="appBox" class="hidden">
+  <div id="blockBanner" class="notice hidden" style="margin:0 0 18px;border-left-color:var(--red2);color:var(--txt)"></div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <div>Zalogowano jako <b id="who"></b></div>
+      <button type="button" class="ghost sm" id="outBtn">Wyloguj</button>
+    </div>
+    <div id="retLine" class="small"></div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0">Twoje coinsy: <span id="coins" style="color:var(--red2)">–</span></h2>
+      <button type="button" class="ghost sm" id="coinsHist">Historia</button>
+    </div>
+    <div id="coinsBox" class="hidden scroll" style="margin-top:12px">
+      <table>
+        <thead><tr><th>Data</th><th>Zmiana</th><th>Powód</th></tr></thead>
+        <tbody id="coinsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 data-collapse="upload">Wgraj plik</h2>
+    <input type="file" id="fileIn">
+    <div id="vehBox"></div>
+    <label class="chk"><input type="checkbox" id="consent"><span>Wyrażam zgodę na przesłanie pliku na serwer i zapisanie go w bazie danych serwisu w celu jego przetwarzania. Pliki są prywatne i dostępne dla mnie oraz administratora serwisu, a ja mogę je w każdej chwili usunąć. Oświadczam, że mam prawo do dysponowania tym plikiem.</span></label>
+    <button type="button" id="upBtn">Wgraj</button>
+    <div id="upMsg" class="msg"></div>
+    <div class="small">Maksymalny rozmiar pliku: 10 MB. Pliki są prywatne i widoczne tylko dla Ciebie.</div>
+  </div>
+
+  <div class="card">
+    <h2 data-collapse="files">Twoje pliki</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Nazwa</th><th>Rozmiar</th><th>Data</th><th id="thExp"></th><th></th></tr></thead>
+        <tbody id="list"></tbody>
+      </table>
+    </div>
+    <div id="listMsg" class="msg"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-collapse="services">Usługi</h2>
+    <div id="fileRow">
+      <label for="selFile">Plik</label>
+      <select id="selFile"></select>
+    </div>
+    <label for="selSvc">Usługa</label>
+    <select id="selSvc"></select>
+    <div id="svcDesc" class="small" style="margin-top:6px"></div>
+    <button type="button" id="svcInfoBtn" class="sm ghost hidden" style="margin-top:8px"></button>
+    <div id="autoPane">
+      <button type="button" id="anaBtn">Analizuj</button>
+      <div id="anaMsg" class="msg"></div>
+      <div id="procBox" class="hidden">
+        <div id="sensorBox">
+          <label for="selTarget">Nowy czujnik</label>
+          <select id="selTarget"></select>
+        </div>
+        <div id="dtcBox" class="hidden"></div>
+        <button type="button" id="runBtn">Procesuj</button>
+        <div id="runMsg" class="msg"></div>
+        <div id="costLine" class="small"></div>
+      </div>
+      <div class="notice" id="riskNotice"></div>
+    </div>
+    <div id="orderPane" class="hidden">
+      <h2 id="ordTitle" class="hidden"></h2>
+      <div id="ordText" class="small" style="margin-top:10px"></div>
+      <div id="ordBox"></div>
+      <div id="ordMsg" class="msg"></div>
+      <h2 id="ordListTitle" style="margin-top:22px;font-size:1rem"></h2>
+      <div class="scroll">
+        <table>
+          <thead id="ordHead"></thead>
+          <tbody id="ordList"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 data-collapse="history">Historia czynności</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Data</th><th>Czynność</th><th>Plik wejściowy</th><th>Plik wyjściowy</th><th>Status</th><th></th></tr></thead>
+        <tbody id="jobs"></tbody>
+      </table>
+    </div>
+    <div id="jobsMsg" class="msg"></div>
+  </div>
+
+  <div class="card">
+    <h2 id="accTitle" data-collapse="account"></h2>
+    <div id="accText" class="small" style="margin-top:0"></div>
+    <button type="button" id="delAccBtn" class="ghost"></button>
+    <div id="accMsg" class="msg"></div>
+  </div>
+</section>
+</main>
+<div id="omodal" class="modal hidden"><div class="mbox" style="max-width:680px">
+  <h2 id="oTitle"></h2>
+  <div id="oInfo"></div>
+  <div id="oMsgs" style="max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:10px;margin:12px 0;background:#0f0f16"></div>
+  <textarea id="oText" maxlength="2000" rows="3" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:#0f0f16;color:var(--txt);font-family:inherit;font-size:1rem"></textarea>
+  <div class="row" style="margin-top:10px">
+    <button type="button" id="oSend" class="sm"></button>
+    <button type="button" id="oAccept" class="sm hidden"></button>
+    <button type="button" id="oDownload" class="sm hidden"></button>
+    <button type="button" id="oCancel" class="sm ghost hidden"></button>
+    <button type="button" id="oClose" class="sm ghost"></button>
+  </div>
+  <div id="oMsg" class="msg"></div>
+</div></div>
+<div id="modal" class="modal hidden"><div class="mbox">
+  <h2 id="mTitle"></h2>
+  <div id="mBody"></div>
+  <label class="chk" id="mAckRow"><input type="checkbox" id="mAck"><span id="mAckText"></span></label>
+  <div class="row" style="margin-top:16px">
+    <button type="button" id="mOk">Procesuj</button>
+    <button type="button" class="ghost" id="mCancel">Anuluj</button>
+  </div>
+</div></div>
+<footer>&copy; ECU-Perfect · chiptuning · Wrocław</footer>
+
+<script src="vendor/supabase.js"></script>
+<script>window.supabase || document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>');</script>
+<script src="supabase-config.js"></script>
+<script>
+(function () {
+  var MAX = 10 * 1024 * 1024;
+  var cfg = window.ECUP_SUPABASE;
+  var sb = window.supabase.createClient(cfg.url, cfg.key);
+  var mode = 'in';
+
+  function $(id) { return document.getElementById(id); }
+  function tr(pl, en) { return window.I18N ? I18N.t(pl, en) : pl; }
+  function say(id, text, cls) { var e = $(id); e.textContent = text || ''; e.className = 'msg' + (cls ? ' ' + cls : ''); }
+  function fmtSize(n) { return n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : (n / 1048576).toFixed(2) + ' MB'; }
+  function fmtDate(s) { return new Date(s).toLocaleString(); }
+
+  function setMode(m) {
+    mode = m;
+    $('tabIn').className = m === 'in' ? 'on' : 'ghost';
+    $('tabUp').className = m === 'up' ? 'on' : 'ghost';
+    $('authBtn').textContent = m === 'in' ? tr('Zaloguj', 'Log in') : tr('Załóż konto', 'Create account');
+    $('pw').autocomplete = m === 'in' ? 'current-password' : 'new-password';
+    $('termsRow').className = m === 'up' ? 'chk' : 'chk hidden';
+    say('authMsg', '');
+  }
+
+  function legalLinks(parent) {
+    var a = document.createElement('a'); a.href = 'regulamin.html'; a.target = '_blank'; a.rel = 'noopener'; a.textContent = tr('Regulamin', 'Terms of service');
+    var b = document.createElement('a'); b.href = 'polityka-prywatnosci.html'; b.target = '_blank'; b.rel = 'noopener'; b.textContent = tr('Politykę prywatności', 'Privacy policy');
+    return [a, b];
+  }
+
+  function buildTerms() {
+    var t = $('termsText'); t.textContent = '';
+    var l = legalLinks();
+    t.appendChild(document.createTextNode(tr('Akceptuję ', 'I accept the ')));
+    t.appendChild(l[0]);
+    t.appendChild(document.createTextNode(tr(' i ', ' and the ')));
+    t.appendChild(l[1]);
+    t.appendChild(document.createTextNode('.'));
+    var n = $('authNote'); n.textContent = '';
+    var l2 = legalLinks();
+    n.appendChild(document.createTextNode(tr('Korzystając z panelu, akceptujesz ', 'By using the panel you accept the ')));
+    n.appendChild(l2[0]);
+    n.appendChild(document.createTextNode(tr(' i ', ' and the ')));
+    n.appendChild(l2[1]);
+    n.appendChild(document.createTextNode('.'));
+  }
+
+  function rememberTerms(method) {
+    try { localStorage.setItem('ecup_terms', JSON.stringify({ v: 'v1', method: method })); } catch (e) {}
+  }
+
+  function recordTerms(uid) {
+    var raw = null;
+    try { raw = localStorage.getItem('ecup_terms'); localStorage.removeItem('ecup_terms'); } catch (e) {}
+    if (!raw) return;
+    var m = 'unknown';
+    try { m = JSON.parse(raw).method || m; } catch (e) {}
+    sb.from('consents').insert([
+      { user_id: uid, kind: 'terms', version: 'v1', details: { method: m } },
+      { user_id: uid, kind: 'privacy', version: 'v1', details: { method: m } }
+    ]);
+  }
+
+  function needTerms() {
+    if (mode === 'up' && !$('termsChk').checked) {
+      say('authMsg', tr('Aby założyć konto, zaakceptuj Regulamin i Politykę prywatności.', 'To create an account, accept the Terms of service and the Privacy policy.'), 'err');
+      return true;
+    }
+    return false;
+  }
+
+  function buildFooter() {
+    var f = document.querySelector('footer');
+    if (!f) return;
+    var old = document.getElementById('legalFooter'); if (old) old.remove();
+    var d = document.createElement('div'); d.id = 'legalFooter'; d.style.marginTop = '6px';
+    var l = legalLinks();
+    l[0].target = '_self'; l[1].target = '_self';
+    l[1].textContent = tr('Polityka prywatności', 'Privacy policy');
+    d.appendChild(l[0]); d.appendChild(document.createTextNode(' · ')); d.appendChild(l[1]);
+    f.appendChild(d);
+  }
+
+  function show(session) {
+    $('authBox').className = session ? 'card hidden' : 'card';
+    $('appBox').className = session ? '' : 'hidden';
+    loggedIn = !!session;
+    if (session) { recordTerms(session.user.id); syncLang(); $('who').textContent = session.user.email; loadServices(); loadList(); loadJobs(); loadModelHints(); loadOrders(); loadCoins(); checkAdmin(session.user.id); }
+    else { clearTimeout(pollTimer); }
+  }
+
+  var services = [], files = [], pollTimer = null, loggedIn = false;
+
+  var ERR = {
+    calibration_not_found: ['Nie znaleziono kalibracji w pliku.', 'Calibration not found in the file.'],
+    invalid_target: ['Nieprawidłowy wybór lub plik zmienił się od analizy. Wykonaj analizę ponownie.', 'Invalid selection or the file changed since the analysis. Run the analysis again.'],
+    verification_failed: ['Weryfikacja wyniku nie powiodła się.', 'Result verification failed.'],
+    service_not_found: ['Nie znaleziono usługi.', 'Service not found.'],
+    no_handler: ['Usługa jest chwilowo niedostępna.', 'The service is temporarily unavailable.'],
+    file_not_found: ['Nie znaleziono pliku.', 'File not found.'],
+    insufficient_coins: ['Za mało coinsów.', 'Not enough coins.'],
+    file_limit_reached: ['Osiągnięto limit plików.', 'File limit reached.']
+  };
+  function errText(c) { var e = ERR[c]; return e ? tr(e[0], e[1]) : (c || 'Error'); }
+
+  function curLang() { return window.I18N && I18N.lang ? I18N.lang() : 'pl'; }
+  function syncLang() { sb.rpc('update_my_profile', { p_language: curLang() }); }
+  if (window.I18N && I18N.onChange) I18N.onChange(function () { if (loggedIn) syncLang(); });
+
+  async function checkAdmin(uid) {
+    var r = await sb.from('profiles').select('role,account_status,blocked_reason').eq('id', uid).single();
+    isAdminUser = !r.error && !!r.data && r.data.role === 'admin';
+    $('adminLink').className = isAdminUser ? '' : 'hidden';
+    accountBlocked = !r.error && !!r.data && r.data.account_status === 'blocked';
+    blockReason = (!r.error && r.data && r.data.blocked_reason) || '';
+    syncBlockBanner();
+    loadRetention();
+  }
+
+  var retCfg = { account_days: 730, file_days: 365, warn_days: 30 }, retMine = null;
+  function dayOnly(d) { return new Date(d).toLocaleDateString(); }
+  function fileExpiry(f) { return dayOnly(new Date(f.created_at).getTime() + retCfg.file_days * 86400000); }
+  async function loadRetention() {
+    var c = await sb.rpc('retention_config');
+    if (!c.error && c.data && c.data[0]) retCfg = c.data[0];
+    var m = await sb.rpc('my_retention');
+    retMine = (!m.error && m.data && m.data[0]) || null;
+    buildAccount();
+    loadList();
+  }
+  function showRetentionInfo() {
+    return confirmBox({
+      title: tr('Okres przechowywania danych', 'Data retention'),
+      lines: [
+        tr('Konto jest aktywne do podanej daty. Każde zalogowanie lub czynność w panelu przedłuża ten termin o ' + Math.round(retCfg.account_days / 30.4) + ' mies. od tego dnia.', 'The account stays active until the given date. Every sign-in or action in the panel extends this by ' + Math.round(retCfg.account_days / 30.4) + ' months from that day.'),
+        tr('Na ' + retCfg.warn_days + ' dni przed końcem terminu wyślemy ostrzeżenie na adres e-mail konta. Jeśli konto pozostanie nieaktywne, zostanie usunięte razem z plikami.', 'We send a warning to the account e-mail ' + retCfg.warn_days + ' days before the deadline. If the account stays inactive, it is deleted together with its files.'),
+        tr('Pliki (wgrane i wynikowe) są usuwane automatycznie po ' + Math.round(retCfg.file_days / 30.4) + ' mies. od dodania - data przy każdym pliku. Pobierz ważne pliki wcześniej.', 'Files (uploaded and result files) are deleted automatically ' + Math.round(retCfg.file_days / 30.4) + ' months after they were added - see the date next to each file. Download important files beforehand.'),
+        tr('Konto i pliki możesz też usunąć samodzielnie w dowolnym momencie.', 'You can also delete your account and files yourself at any time.')
+      ],
+      cancel: tr('Zamknij', 'Close')
+    });
+  }
+
+  var accountBlocked = false, blockReason = '';
+  function syncBlockBanner() {
+    var b = $('blockBanner');
+    if (!accountBlocked) { b.className = 'notice hidden'; return; }
+    b.className = 'notice';
+    b.textContent = tr('Konto jest zablokowane: nie możesz wgrywać plików, zlecać usług ani wysyłać wiadomości w zamówieniach. Nadal możesz pobrać swoje pliki. W sprawie odblokowania konta prosimy o kontakt: contact@ecu-perfect.pl', 'Your account is blocked: you cannot upload files, run services or send messages in orders. You can still download your files. To have your account unblocked, please contact us: contact@ecu-perfect.pl') + (blockReason && blockReason.indexOf('auto:') !== 0 ? tr(' Powód: ', ' Reason: ') + blockReason : '');
+  }
+
+  async function loadServices() {
+    var r = await sb.from('services').select('id,code,name,description,meta,cost_coins').order('id');
+    if (r.error) { say('runMsg', r.error.message, 'err'); return; }
+    services = r.data;
+    var s = $('selSvc'), keepSvc = s.value;
+    s.innerHTML = '';
+    var ph = document.createElement('option'); ph.value = ''; ph.textContent = tr('— proszę wybrać usługę —', '— please select a service —'); s.appendChild(ph);
+    services.forEach(function (v) {
+      var o = document.createElement('option'); o.value = v.id; o.textContent = v.name; s.appendChild(o);
+    });
+    s.value = keepSvc || '';
+    if (s.value !== (keepSvc || '')) s.value = '';
+    showDesc();
+  }
+
+  function syncSvcUI() {
+    var v = services.filter(function (x) { return String(x.id) === $('selSvc').value; })[0];
+    var isOrder = !!(v && v.meta && v.meta.ui === 'order');
+    $('autoPane').className = isOrder ? 'hidden' : '';
+    $('fileRow').className = isOrder ? 'hidden' : '';
+    $('orderPane').className = isOrder ? '' : 'hidden';
+    var hasInfo = !!(v && v.meta && v.meta.info);
+    $('svcInfoBtn').className = 'sm ghost' + (hasInfo ? '' : ' hidden');
+    $('svcInfoBtn').textContent = tr('Informacje o usłudze', 'Service information');
+  }
+
+  async function showServiceInfo() {
+    var v = curService();
+    if (!v || !v.meta || !v.meta.info) return;
+    var lang = curLang() === 'en' ? 'en' : 'pl';
+    await confirmBox({ title: v.name, lines: v.meta.info[lang] || v.meta.info.pl || [], cancel: tr('Zamknij', 'Close') });
+  }
+
+  function showDesc() {
+    syncSvcUI();
+    var v = services.filter(function (x) { return String(x.id) === $('selSvc').value; })[0];
+    var t = v && v.description ? v.description : '';
+    if (v) t += (t ? ' · ' : '') + (v.cost_coins > 0 ? tr('Koszt: ', 'Cost: ') + v.cost_coins + tr(' coinsów', ' coins') : tr('Usługa darmowa', 'Free service'));
+    $('svcDesc').textContent = t;
+  }
+
+  function fillFiles() {
+    var s = $('selFile'), keep = s.value;
+    s.innerHTML = '';
+    var ph = document.createElement('option'); ph.value = ''; ph.textContent = tr('— proszę wybrać plik —', '— please select a file —'); s.appendChild(ph);
+    files.forEach(function (f) {
+      var o = document.createElement('option'); o.value = f.id; o.textContent = f.original_name + ' (' + fmtSize(f.size_bytes) + ')'; s.appendChild(o);
+    });
+    s.value = keep || '';
+    if (s.value !== (keep || '')) s.value = '';
+  }
+
+  function updatePlaceholders() {
+    var a = $('selFile').options[0], b = $('selSvc').options[0];
+    if (a && a.value === '') a.textContent = tr('— proszę wybrać plik —', '— please select a file —');
+    if (b && b.value === '') b.textContent = tr('— proszę wybrać usługę —', '— please select a service —');
+    var c = $('oFile') && $('oFile').options[0];
+    if (c && c.value === '') c.textContent = tr('— proszę wybrać plik —', '— please select a file —');
+  }
+
+  var STATUS = { queued: ['W kolejce', 'Queued'], processing: ['Przetwarzanie', 'Processing'], done: ['Gotowe', 'Done'], error: ['Błąd', 'Error'] };
+
+  async function loadJobs() {
+    clearTimeout(pollTimer);
+    var r = await sb.from('jobs').select('id,status,error,created_at,files!jobs_file_id_fkey(original_name),out:files!jobs_output_file_id_fkey(id,original_name,label,storage_path),services(name)').eq('kind', 'process').order('created_at', { ascending: false }).limit(50);
+    var body = $('jobs');
+    body.innerHTML = '';
+    if (r.error) { say('jobsMsg', r.error.message, 'err'); return; }
+    say('jobsMsg', r.data.length ? '' : tr('Brak wykonanych czynności.', 'No operations yet.'));
+    var pending = false;
+    r.data.forEach(function (j) {
+      if (j.status === 'queued' || j.status === 'processing') pending = true;
+      var row = document.createElement('tr');
+      var cells = [
+        fmtDate(j.created_at),
+        (j.out && j.out.label) ? j.out.label : (j.services ? j.services.name : ''),
+        j.files ? j.files.original_name : '',
+        j.out ? j.out.original_name : '',
+        (STATUS[j.status] ? tr(STATUS[j.status][0], STATUS[j.status][1]) : j.status) + (j.error ? ': ' + errText(j.error) : '')
+      ];
+      cells.forEach(function (t) { var c = document.createElement('td'); c.textContent = t; row.appendChild(c); });
+      var a = document.createElement('td'); a.className = 'act';
+      if (j.status === 'done' && j.out) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'sm'; b.textContent = tr('Pobierz wynik', 'Download result');
+        b.onclick = function () { download({ id: j.out.id, storage_path: j.out.storage_path, original_name: j.out.original_name }); };
+        a.appendChild(b);
+      }
+      row.appendChild(a);
+      body.appendChild(row);
+    });
+    if (pending) pollTimer = setTimeout(loadJobs, 2000);
+  }
+
+  function curService() {
+    return services.filter(function (x) { return String(x.id) === $('selSvc').value; })[0];
+  }
+  function pick(o) { return o ? tr(o.pl, o.en) : ''; }
+  function sensorLabel(id) {
+    var v = curService();
+    var l = v && v.meta && v.meta.sensors ? v.meta.sensors[id] : null;
+    return l ? pick(l) : id;
+  }
+  function svcText(kind) {
+    var v = curService();
+    return v && v.meta && v.meta.texts ? pick(v.meta.texts[kind]) : '';
+  }
+
+  var balance = 0, analysisCurrent = null;
+
+  var COIN_REASONS = { welcome: ['Bonus powitalny', 'Welcome bonus'], service: ['Usługa', 'Service'], refund: ['Zwrot za nieudaną usługę', 'Refund for a failed service'] };
+  function coinReason(r) {
+    if (COIN_REASONS[r]) return tr(COIN_REASONS[r][0], COIN_REASONS[r][1]);
+    if (r && r.indexOf('admin: ') === 0) return tr('Administrator: ', 'Administrator: ') + r.slice(7);
+    return r || '';
+  }
+
+  async function loadCoins() {
+    var r = await sb.rpc('my_coins');
+    if (!r.error) { balance = Number(r.data) || 0; $('coins').textContent = balance; }
+    var h = await sb.from('coin_ledger').select('delta,reason,created_at').order('created_at', { ascending: false }).limit(20);
+    var b = $('coinsBody'); b.innerHTML = '';
+    if (h.error) return;
+    h.data.forEach(function (e) {
+      var row = document.createElement('tr');
+      [fmtDate(e.created_at), (e.delta > 0 ? '+' : '') + e.delta, coinReason(e.reason)].forEach(function (t) {
+        var c = document.createElement('td'); c.textContent = t; row.appendChild(c);
+      });
+      b.appendChild(row);
+    });
+  }
+
+  function confirmBox(o) {
+    return new Promise(function (resolve) {
+      $('mTitle').textContent = o.title;
+      var b = $('mBody'); b.innerHTML = '';
+      o.lines.forEach(function (l) { var p = document.createElement('p'); p.textContent = l; b.appendChild(p); });
+      $('mAckRow').className = o.ack ? 'chk' : 'chk hidden';
+      $('mAck').checked = false;
+      $('mAckText').textContent = o.ack || '';
+      $('mOk').className = o.ok ? '' : 'hidden';
+      $('mOk').textContent = o.ok || '';
+      $('mOk').disabled = !!o.ack;
+      $('mCancel').textContent = o.cancel;
+      $('modal').className = 'modal';
+      function close(v) { $('modal').className = 'modal hidden'; $('mOk').onclick = $('mCancel').onclick = $('mAck').onchange = null; resolve(v); }
+      $('mAck').onchange = function () { $('mOk').disabled = !$('mAck').checked; };
+      $('mOk').onclick = function () { close(true); };
+      $('mCancel').onclick = function () { close(false); };
+    });
+  }
+
+  var analysisFor = null, analysisSvc = null;
+
+  async function waitJob(id) {
+    for (var i = 0; i < 90; i++) {
+      var r = await sb.from('jobs').select('id,status,error,analysis,output_file_id,result_name').eq('id', id).single();
+      if (r.error) return { status: 'error', error: r.error.message };
+      if (r.data.status === 'done' || r.data.status === 'error') return r.data;
+      await new Promise(function (ok) { setTimeout(ok, 700); });
+    }
+    return { status: 'error', error: tr('Przekroczono czas oczekiwania. Czy worker działa?', 'Timed out. Is the worker running?') };
+  }
+
+  async function createJob(kind, params) {
+    var fid = $('selFile').value, sid = parseInt($('selSvc').value, 10);
+    var u = (await sb.auth.getSession()).data.session.user;
+    var row = { user_id: u.id, file_id: fid, service_id: sid, kind: kind };
+    if (params) row.params = params;
+    return sb.from('jobs').insert(row).select('id').single();
+  }
+
+  var dtcRows = [], dtcState = {}, dtcOrig = {}, dtcTr = {}, dtcCnt = null;
+
+  function isDtcService() {
+    var v = curService();
+    return !!(v && v.meta && v.meta.ui === 'dtc_table');
+  }
+
+  function googleDtc(code) {
+    var c = String(code || '').trim();
+    if (!/^[0-9A-Fa-f]{3,6}$/.test(c)) return;
+    window.open('https://www.google.com/search?q=' + encodeURIComponent('BMW DTC ' + c.toUpperCase()), '_blank', 'noopener,noreferrer');
+  }
+
+  function dtcChanges() {
+    var out = [];
+    dtcRows.forEach(function (r) {
+      if (dtcState[r.i] !== dtcOrig[r.i]) out.push({ i: r.i, code: r.codes[0], to: dtcState[r.i] ? 'on' : 'off' });
+    });
+    return out;
+  }
+
+  function dtcFilter() {
+    var q = $('dtcQ').value.trim().toUpperCase(), onlyOn = $('dtcOn').checked, shown = 0;
+    dtcRows.forEach(function (r) {
+      var ok = (!q || r.codes.some(function (c) { return c.indexOf(q) >= 0; })) && (!onlyOn || dtcState[r.i]);
+      dtcTr[r.i].className = (ok ? '' : 'hidden') + (dtcState[r.i] !== dtcOrig[r.i] ? ' chg' : '');
+      if (ok) shown++;
+    });
+    return shown;
+  }
+
+  function dtcRefresh() {
+    var shown = dtcFilter(), ch = dtcChanges();
+    var off = ch.filter(function (c) { return c.to === 'off'; }).length;
+    dtcCnt.textContent = tr('Widocznych: ', 'Visible: ') + shown + ' / ' + dtcRows.length + ' · ' +
+      tr('do wyłączenia: ', 'to disable: ') + off + ' · ' + tr('do włączenia: ', 'to enable: ') + (ch.length - off);
+  }
+
+  function dtcSetVisible(val) {
+    dtcRows.forEach(function (r) {
+      if (dtcTr[r.i].className.indexOf('hidden') < 0) { dtcState[r.i] = val; dtcTr[r.i].querySelector('input').checked = val; }
+    });
+    dtcRefresh();
+  }
+
+  function renderDtc(a) {
+    var box = $('dtcBox');
+    box.innerHTML = '';
+    dtcRows = a.rows || []; dtcState = {}; dtcOrig = {}; dtcTr = {};
+    var bar = document.createElement('div'); bar.className = 'dtcbar';
+    var q = document.createElement('input'); q.type = 'text'; q.id = 'dtcQ'; q.placeholder = tr('Szukaj kodu błędu (np. 4820)', 'Search error code (e.g. 4820)');
+    q.setAttribute('autocomplete', 'off');
+    var g = document.createElement('button'); g.type = 'button'; g.className = 'sm ghost'; g.textContent = tr('Szukaj w Google', 'Search on Google');
+    g.onclick = function () { googleDtc(q.value); };
+    var lb = document.createElement('label'); var on = document.createElement('input'); on.type = 'checkbox'; on.id = 'dtcOn';
+    lb.appendChild(on); lb.appendChild(document.createTextNode(tr('tylko włączone', 'enabled only')));
+    var b1 = document.createElement('button'); b1.type = 'button'; b1.className = 'sm ghost'; b1.textContent = tr('Wyłącz widoczne', 'Disable visible');
+    b1.onclick = function () { dtcSetVisible(false); };
+    var b2 = document.createElement('button'); b2.type = 'button'; b2.className = 'sm ghost'; b2.textContent = tr('Włącz widoczne', 'Enable visible');
+    b2.onclick = function () { dtcSetVisible(true); };
+    [q, g, lb, b1, b2].forEach(function (x) { bar.appendChild(x); });
+    box.appendChild(bar);
+    var wrap = document.createElement('div'); wrap.className = 'dtcwrap';
+    var tb = document.createElement('table');
+    var th = document.createElement('thead'), hr = document.createElement('tr');
+    [tr('Kod 1', 'Code 1'), tr('Kod 2', 'Code 2'), tr('Kod 3', 'Code 3'), tr('Kod 4', 'Code 4'), tr('Włączony', 'Enabled'), ''].forEach(function (t) {
+      var c = document.createElement('th'); c.textContent = t; hr.appendChild(c);
+    });
+    th.appendChild(hr); tb.appendChild(th);
+    var body = document.createElement('tbody');
+    dtcRows.forEach(function (r) {
+      dtcState[r.i] = !!r.on; dtcOrig[r.i] = !!r.on;
+      var row = document.createElement('tr');
+      r.codes.forEach(function (c) { var td = document.createElement('td'); td.className = 'code'; td.textContent = c; row.appendChild(td); });
+      var t5 = document.createElement('td'); var cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = !!r.on;
+      cb.onchange = function () { dtcState[r.i] = cb.checked; dtcRefresh(); };
+      t5.appendChild(cb); row.appendChild(t5);
+      var t6 = document.createElement('td'); var a1 = document.createElement('a'); a1.className = 'gq'; a1.textContent = '?'; a1.href = '#';
+      a1.title = tr('Szukaj w Google: BMW DTC ', 'Search Google: BMW DTC ') + r.codes[0];
+      a1.onclick = function (e) { e.preventDefault(); googleDtc(r.codes[0]); };
+      t6.appendChild(a1); row.appendChild(t6);
+      dtcTr[r.i] = row; body.appendChild(row);
+    });
+    tb.appendChild(body); wrap.appendChild(tb); box.appendChild(wrap);
+    dtcCnt = document.createElement('div'); dtcCnt.className = 'small'; box.appendChild(dtcCnt);
+    q.oninput = dtcRefresh; on.onchange = dtcRefresh;
+    q.onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); } };
+    dtcRefresh();
+  }
+
+  async function analyze() {
+    if (!$('selSvc').value) { say('anaMsg', tr('Proszę wybrać usługę.', 'Please select a service.'), 'err'); return; }
+    if (!$('selFile').value) { say('anaMsg', files.length ? tr('Proszę wybrać plik.', 'Please select a file.') : tr('Najpierw wgraj plik.', 'Upload a file first.'), 'err'); return; }
+    $('procBox').className = 'hidden';
+    say('runMsg', '');
+    $('anaBtn').disabled = true;
+    say('anaMsg', tr('Analizuję plik...', 'Analysing the file...'));
+    var c = await createJob('analyze');
+    if (c.error) { $('anaBtn').disabled = false; say('anaMsg', c.error.message, 'err'); return; }
+    var j = await waitJob(c.data.id);
+    $('anaBtn').disabled = false;
+    loadJobs();
+    if (j.status === 'error') { say('anaMsg', errText(j.error), 'err'); return; }
+    var a = j.analysis || {};
+    if (!a.found) {
+      say('anaMsg', svcText('none'), 'err');
+      return;
+    }
+    var dtc = isDtcService();
+    $('sensorBox').className = dtc ? 'hidden' : '';
+    $('dtcBox').className = dtc ? '' : 'hidden';
+    if (dtc) {
+      say('anaMsg', svcText('cur') + a.count, 'ok');
+      renderDtc(a);
+    } else {
+      say('anaMsg', svcText('cur') + sensorLabel(a.current), 'ok');
+      var s = $('selTarget');
+      s.innerHTML = '';
+      (a.options || []).forEach(function (id) {
+        var o = document.createElement('option'); o.value = id; o.textContent = sensorLabel(id); s.appendChild(o);
+      });
+      analysisCurrent = a.current;
+    }
+    analysisFor = $('selFile').value;
+    analysisSvc = $('selSvc').value;
+    var sv = curService();
+    $('costLine').textContent = sv && sv.cost_coins > 0
+      ? tr('Koszt usługi: ', 'Service cost: ') + sv.cost_coins + tr(' coinsów. Twoje saldo: ', ' coins. Your balance: ') + balance
+      : tr('Usługa darmowa.', 'This service is free.');
+    $('procBox').className = '';
+  }
+
+  async function runJob() {
+    if (analysisFor !== $('selFile').value) { say('runMsg', tr('Plik się zmienił. Wykonaj analizę ponownie.', 'The file changed. Run the analysis again.'), 'err'); return; }
+    if (atLimit()) { await limitPopup(); return; }
+    if (analysisSvc !== $('selSvc').value) { say('runMsg', tr('Usługa się zmieniła. Wykonaj analizę ponownie.', 'The service changed. Run the analysis again.'), 'err'); return; }
+    var dtc = isDtcService(), target = null, params, summary = null, lines = [];
+    var sv = curService();
+    if (dtc) {
+      var chs = dtcChanges();
+      if (!chs.length) { say('runMsg', tr('Brak zmian do zapisania.', 'No changes to save.'), 'err'); return; }
+      var offs = chs.filter(function (c) { return c.to === 'off'; }).map(function (c) { return c.code; });
+      var onN = chs.length - offs.length;
+      summary = { off: offs.length, on: onN };
+      params = { changes: chs, ack: 'risk_v1' };
+      lines.push(tr('Usługa: ', 'Service: ') + (sv ? sv.name : ''));
+      if (offs.length) lines.push(tr('Błędy do wyłączenia (', 'Errors to disable (') + offs.length + '): ' + offs.slice(0, 30).join(', ') + (offs.length > 30 ? ', …' : ''));
+      if (onN) lines.push(tr('Błędy do ponownego włączenia: ', 'Errors to re-enable: ') + onN);
+      lines.push(tr('Wyłączenie błędów może wpływać na diagnostykę i bezpieczeństwo pojazdu.', 'Disabling errors may affect vehicle diagnostics and safety.'));
+    } else {
+      target = $('selTarget').value;
+      if (!target) { say('runMsg', tr('Wybierz opcję docelową.', 'Choose a target option.'), 'err'); return; }
+      params = { target: target, ack: 'risk_v1' };
+      lines.push(tr('Usługa: ', 'Service: ') + (sv ? sv.name : ''));
+      lines.push(tr('Zmiana: ', 'Change: ') + sensorLabel(analysisCurrent) + ' → ' + sensorLabel(target));
+    }
+    await loadCoins();
+    var cost = sv ? sv.cost_coins : 0;
+    if (cost > balance) {
+      lines.push(tr('Koszt usługi: ', 'Service cost: ') + cost + tr(' coinsów. Twoje saldo: ', ' coins. Your balance: ') + balance);
+      await confirmBox({ title: tr('Za mało coinsów', 'Not enough coins'), lines: lines, cancel: tr('Zamknij', 'Close') });
+      return;
+    }
+    lines.push(cost > 0
+      ? tr('Koszt usługi: ', 'Service cost: ') + cost + tr(' coinsów. Twoje saldo: ', ' coins. Your balance: ') + balance
+      : tr('Usługa darmowa.', 'This service is free.'));
+    lines.push(tr('Plik wynikowy nie będzie miał przeliczonej sumy kontrolnej.', 'The resulting file will not have a recalculated checksum.'));
+    var ok = await confirmBox({
+      title: cost > 0 ? tr('Koszt usługi: ', 'Service cost: ') + cost + tr(' coinsów. Czy procesować?', ' coins. Process?') : tr('Usługa darmowa. Czy procesować?', 'This service is free. Process?'),
+      lines: lines,
+      ack: tr('Rozumiem i akceptuję: korzystam z usługi na własne ryzyko. Plik wynikowy nie ma przeliczonej sumy kontrolnej, więc moje urządzenie musi ją przeliczyć przy zapisie do sterownika albo muszę zrobić to sam przed zapisem.', 'I understand and accept: I use the service at my own risk. The resulting file does not have a recalculated checksum, so my device must recalculate it when writing to the ECU, or I must do it myself before writing.'),
+      ok: tr('Procesuj', 'Process'),
+      cancel: tr('Anuluj', 'Cancel')
+    });
+    if (!ok) return;
+    $('runBtn').disabled = true;
+    say('runMsg', tr('Przetwarzanie...', 'Processing...'));
+    var uid = (await sb.auth.getSession()).data.session.user.id;
+    sb.from('consents').insert({ user_id: uid, kind: 'risk', version: 'risk_v1', details: { service: sv ? sv.code : null, target: target, changes: summary } });
+    var c = await createJob('process', params);
+    if (c.error && c.error.message.indexOf('file_limit_reached') >= 0) {
+      $('runBtn').disabled = false; say('runMsg', '');
+      await limitPopup();
+      return;
+    }
+    if (c.error) {
+      $('runBtn').disabled = false;
+      say('runMsg', c.error.code === '42501' ? tr('Za mało coinsów albo brak akceptacji.', 'Not enough coins or no acceptance.') : ordErr(c.error), 'err');
+      return;
+    }
+    var j = await waitJob(c.data.id);
+    $('runBtn').disabled = false;
+    loadJobs();
+    loadCoins();
+    if (j.status === 'error') {
+      say('runMsg', errText(j.error), 'err');
+      return;
+    }
+    say('runMsg', tr('Gotowe. Nowy plik jest na liście „Twoje pliki”.', 'Done. The new file is in “Your files”.'), 'ok');
+    $('procBox').className = 'hidden';
+    await loadList();
+    var rf = fileById(j.output_file_id);
+    var rname = rf ? rf.original_name : (j.result_name || '');
+    var want = await confirmBox({
+      title: tr('Usługa wykonana', 'Service completed'),
+      lines: [
+        tr('Wynik: plik ', 'Result: file ') + rname,
+        tr('Znajdziesz go na liście „Twoje pliki” (na górze strony) oraz w historii czynności, w kolumnie „Plik wyjściowy”.', 'You can find it in “Your files” (at the top of the page) and in the operation history, in the “Output file” column.')
+      ],
+      ok: tr('Pobierz plik', 'Download file'),
+      cancel: tr('Zamknij', 'Close')
+    });
+    if (want && rf) download(rf);
+  }
+
+  async function loadList() {
+    say('listMsg', '');
+    var r = await sb.from('files').select('id,original_name,storage_path,size_bytes,created_at,kind,label,parent_file_id,vehicle_brand,vehicle_brand_other,vehicle_model,vehicle_power_hp,ecu_type,ecu_other').order('created_at', { ascending: false });
+    var body = $('list');
+    body.innerHTML = '';
+    if (r.error) { say('listMsg', r.error.message, 'err'); return; }
+    files = r.data;
+    applyCollapseDefaults();
+    fillFiles();
+    refreshOrderFiles();
+    if (!r.data.length) { say('listMsg', tr('Brak plików.', 'No files yet.')); return; }
+    r.data.forEach(function (f) {
+      var row = document.createElement('tr');
+      var c1 = document.createElement('td'); c1.textContent = f.original_name + (f.label ? ' — ' + f.label : '');
+      var vs = vehicleSummary(f);
+      if (vs) { var sm = document.createElement('div'); sm.className = 'small'; sm.style.marginTop = '2px'; sm.textContent = vs; c1.appendChild(sm); }
+      var c2 = document.createElement('td'); c2.textContent = fmtSize(f.size_bytes);
+      var c3 = document.createElement('td'); c3.textContent = fmtDate(f.created_at);
+      var c3b = document.createElement('td'); c3b.textContent = fileExpiry(f);
+      var c4 = document.createElement('td'); c4.className = 'act';
+      var d = document.createElement('button'); d.type = 'button'; d.className = 'sm'; d.textContent = tr('Pobierz', 'Download');
+      d.onclick = function () { download(f); };
+      var x = document.createElement('button'); x.type = 'button'; x.className = 'sm ghost'; x.textContent = tr('Usuń', 'Delete');
+      x.onclick = function () { remove(f); };
+      var dt = document.createElement('button'); dt.type = 'button'; dt.className = 'sm ghost'; dt.textContent = tr('Szczegóły', 'Details');
+      dt.onclick = function () { showFileDetails(f); };
+      c4.appendChild(dt); c4.appendChild(d); c4.appendChild(x);
+      row.appendChild(c1); row.appendChild(c2); row.appendChild(c3); row.appendChild(c3b); row.appendChild(c4);
+      body.appendChild(row);
+    });
+    say('listMsg', tr('Pliki: ', 'Files: ') + r.data.length + ' / ' + MAX_FILES + (atLimit() ? tr(' — limit osiągnięty, usuń plik, aby wgrać nowy lub uruchomić usługę.', ' — limit reached, delete a file to upload a new one or run a service.') : ''), atLimit() ? 'err' : '');
+  }
+
+  var MAX_FILES = 20, isAdminUser = false;
+
+  async function limitPopup() {
+    await confirmBox({
+      title: tr('Limit plików', 'File limit'),
+      lines: [
+        tr('Masz już ' + MAX_FILES + ' plików, czyli maksymalną liczbę.', 'You already have ' + MAX_FILES + ' files, which is the maximum.'),
+        tr('Dopóki nie usuniesz któregoś z plików z listy „Twoje pliki”, nie możesz wgrać nowego pliku ani uruchomić usługi (każda usługa tworzy nowy plik wynikowy, który byłby ponad limitem).', 'Until you delete a file from “Your files”, you cannot upload a new file or run a service (every service creates a new result file, which would exceed the limit).')
+      ],
+      cancel: tr('Zamknij', 'Close')
+    });
+  }
+  function atLimit() { return !isAdminUser && files.length >= MAX_FILES; }
+
+  function fileById(id) { return files.filter(function (x) { return x.id === id; })[0] || null; }
+
+  function rootUpload(f) {
+    var cur = f, guard = 0;
+    while (cur && cur.parent_file_id && guard++ < 20) {
+      var p = fileById(cur.parent_file_id);
+      if (!p) return cur;
+      cur = p;
+    }
+    return cur;
+  }
+
+  function changeText(d) {
+    if (!d) return '';
+    if (d.changed && d.changed.length) {
+      var off = d.changed.filter(function (c) { return c.after === 0; }).map(function (c) { return c.code; });
+      var on = d.changed.filter(function (c) { return c.after !== 0; }).map(function (c) { return c.code; });
+      var t = [];
+      if (off.length) t.push(tr('wyłączone błędy: ', 'disabled errors: ') + off.join(', '));
+      if (on.length) t.push(tr('włączone błędy: ', 'enabled errors: ') + on.join(', '));
+      return t.join('; ');
+    }
+    return '';
+  }
+
+  async function showFileDetails(f) {
+    var lines = [];
+    lines.push(tr('Plik: ', 'File: ') + f.original_name + ' (' + fmtSize(f.size_bytes) + ', ' + fmtDate(f.created_at) + ')');
+    lines.push(tr('Plik zostanie automatycznie usunięty: ', 'The file will be deleted automatically: ') + fileExpiry(f));
+    var jr = await sb.from('jobs')
+      .select('id,created_at,details,file_id,output_file_id,services(name),src:files!jobs_file_id_fkey(original_name),out:files!jobs_output_file_id_fkey(original_name)')
+      .eq('kind', 'process').eq('status', 'done')
+      .or('file_id.eq.' + f.id + ',output_file_id.eq.' + f.id)
+      .order('created_at', { ascending: true });
+    var jobs = jr.error ? [] : jr.data;
+    var made = jobs.filter(function (j) { return j.output_file_id === f.id; })[0];
+    if (f.kind === 'result') {
+      lines.push(tr('Rodzaj: plik wynikowy usługi', 'Type: service result file'));
+      if (made) {
+        lines.push(tr('Usługa: ', 'Service: ') + (made.services ? made.services.name : '—'));
+        lines.push(tr('Przetworzony plik źródłowy: ', 'Source file processed: ') + (made.src ? made.src.original_name : tr('(plik został usunięty)', '(file was deleted)')));
+        var ct = changeText(made.details);
+        if (ct) lines.push(tr('Zmiany: ', 'Changes: ') + ct);
+      }
+      if (f.label) lines.push(tr('Opis czynności: ', 'Operation: ') + f.label);
+    } else if (f.kind === 'admin') {
+      lines.push(tr('Rodzaj: plik dodany przez administratora', 'Type: file added by the administrator'));
+      if (f.label) lines.push(tr('Opis: ', 'Description: ') + f.label);
+    } else {
+      lines.push(tr('Rodzaj: plik wgrany przez Ciebie', 'Type: file uploaded by you'));
+    }
+    var root = rootUpload(f);
+    var vs = root ? vehicleSummary(root) : '';
+    if (vs) {
+      lines.push(tr('Dane pojazdu: ', 'Vehicle: ') + vs);
+    } else {
+      lines.push(tr('Dane pojazdu: brak', 'Vehicle: not provided'));
+    }
+    var used = jobs.filter(function (j) { return j.file_id === f.id; });
+    if (used.length) {
+      lines.push(tr('Usługi wykonane na tym pliku:', 'Services run on this file:'));
+      used.forEach(function (j) {
+        lines.push('• ' + fmtDate(j.created_at) + ' — ' + (j.services ? j.services.name : '') + ' → ' + (j.out ? j.out.original_name : tr('(plik usunięty)', '(file deleted)')));
+      });
+    }
+    await confirmBox({ title: tr('Szczegóły pliku', 'File details'), lines: lines, cancel: tr('Zamknij', 'Close') });
+  }
+
+  var ORD_STATUS = {
+    new: ['Nowe', 'New'], quoted: ['Wycena', 'Quoted'], accepted: ['Zaakceptowane', 'Accepted'],
+    in_progress: ['W realizacji', 'In progress'], done: ['Gotowe', 'Done'], canceled: ['Anulowane', 'Canceled']
+  };
+  var ORD_ERR = {
+    bad_status: ['Status zamówienia się zmienił. Odśwież listę.', 'The order status has changed. Refresh the list.'],
+    order_closed: ['Zamówienie jest zamknięte.', 'The order is closed.'],
+    empty_order: ['Zaznacz opcję lub wpisz opis.', 'Select an option or enter a description.'],
+    dtc_too_long: ['Lista kodów DTC jest za długa.', 'The DTC list is too long.'],
+    insufficient_coins: ['Za mało coinsów.', 'Not enough coins.'],
+    file_not_found: ['Nie znaleziono pliku.', 'File not found.'],
+    file_in_open_order: ['Ten plik jest w otwartym zamówieniu i nie można go usunąć.', 'This file is in an open order and cannot be deleted.'],
+    account_blocked: ['Konto jest zablokowane. W sprawie odblokowania prosimy o kontakt: contact@ecu-perfect.pl', 'Your account is blocked. To have it unblocked, please contact us: contact@ecu-perfect.pl'],
+    rate_limited: ['Zbyt wiele operacji w krótkim czasie. Spróbuj za chwilę.', 'Too many operations in a short time. Try again in a moment.'],
+    too_many_open_orders: ['Masz zbyt wiele otwartych zamówień (maksymalnie 5).', 'You have too many open orders (maximum 5).'],
+    file_limit_reached: ['Osiągnięto limit plików.', 'File limit reached.']
+  };
+  function ordErr(e) {
+    var m = e && e.message ? e.message : '';
+    for (var k in ORD_ERR) { if (m.indexOf(k) >= 0) return tr(ORD_ERR[k][0], ORD_ERR[k][1]); }
+    return m || 'Error';
+  }
+  function ordStatus(s) { return ORD_STATUS[s] ? tr(ORD_STATUS[s][0], ORD_STATUS[s][1]) : s; }
+  function optText(o, desc) {
+    o = o || {};
+    var p = [];
+    if (o.egr) p.push('EGR off');
+    if (o.dpf) p.push('DPF off');
+    if (o.adblue) p.push('AdBlue off');
+    if (o.chip) p.push(tr('chiptuning', 'chip tuning'));
+    if (o.dtc) p.push('DTC: ' + o.dtc);
+    return p.join(', ');
+  }
+  var curOrder = null, ordTimer = null;
+
+  function buildOrderForm() {
+    var keep = { f: vget('oFile'), e: $('oEgr') ? $('oEgr').checked : false, d: $('oDpf') ? $('oDpf').checked : false, a: $('oAd') ? $('oAd').checked : false, c: $('oChip') ? $('oChip').checked : false, t: vget('oDtc'), s: vget('oDesc') };
+    $('ordTitle').textContent = tr('Modyfikacja indywidualna', 'Individual modification');
+    $('ordText').textContent = tr('Zamów modyfikację przygotowaną indywidualnie. Zamówienie jest bezpłatne: otrzymasz wycenę (w coinsach) i sam zdecydujesz, czy ją zaakceptować. Z administratorem możesz rozmawiać w wątku przy zamówieniu.', 'Order a modification prepared individually. Placing the order is free: you will receive a quote (in coins) and decide whether to accept it. You can talk to the administrator in the thread attached to the order.');
+    $('ordListTitle').textContent = tr('Twoje zamówienia', 'Your orders');
+    $('ordBox').innerHTML = '<label for="oFile">' + tr('Plik', 'File') + '</label><select id="oFile"></select>' +
+      '<label class="chk"><input type="checkbox" id="oEgr"><span>EGR off</span></label>' +
+      '<label class="chk"><input type="checkbox" id="oDpf"><span>DPF off</span></label>' +
+      '<label class="chk"><input type="checkbox" id="oAd"><span>AdBlue off</span></label>' +
+      '<label class="chk"><input type="checkbox" id="oChip"><span>' + tr('Chiptuning', 'Chip tuning') + '</span></label>' +
+      '<label for="oDtc">' + tr('DTC off: kody błędów (tekst, np. 4820, 40B0)', 'DTC off: error codes (text, e.g. 4820, 40B0)') + '</label>' +
+      '<input type="text" id="oDtc" maxlength="300" autocomplete="off">' +
+      '<label for="oDesc">' + tr('Opis', 'Description') + '</label>' +
+      '<textarea id="oDesc" maxlength="2000" rows="4"></textarea>' +
+      '<button type="button" id="oBtn">' + tr('Zamów usługę', 'Order the service') + '</button>';
+    ['oDtc', 'oDesc'].forEach(function (id) {
+      $(id).style.cssText = 'width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:#0f0f16;color:var(--txt);font-size:1.05rem;font-family:inherit';
+    });
+    $('oEgr').checked = keep.e; $('oDpf').checked = keep.d; $('oAd').checked = keep.a; $('oChip').checked = keep.c;
+    $('oDtc').value = keep.t; $('oDesc').value = keep.s;
+    $('oBtn').onclick = submitOrder;
+    refreshOrderFiles(keep.f);
+    var h = $('ordHead'); h.innerHTML = '';
+    var hr = document.createElement('tr');
+    [tr('Data', 'Date'), tr('Plik', 'File'), tr('Zakres', 'Scope'), tr('Status', 'Status'), tr('Cena', 'Price'), ''].forEach(function (t) {
+      var c = document.createElement('th'); c.textContent = t; hr.appendChild(c);
+    });
+    h.appendChild(hr);
+    $('oSend').textContent = tr('Wyślij', 'Send');
+    $('oClose').textContent = tr('Zamknij', 'Close');
+    $('oCancel').textContent = tr('Anuluj zamówienie', 'Cancel order');
+    $('oDownload').textContent = tr('Pobierz wynik', 'Download result');
+    $('oText').placeholder = tr('Napisz wiadomość…', 'Write a message…');
+  }
+
+  function refreshOrderFiles(keepVal) {
+    var s = $('oFile');
+    if (!s) return;
+    var keep = keepVal != null ? keepVal : s.value;
+    s.innerHTML = '';
+    var ph = document.createElement('option'); ph.value = ''; ph.textContent = tr('— proszę wybrać plik —', '— please select a file —'); s.appendChild(ph);
+    files.forEach(function (f) {
+      var o = document.createElement('option'); o.value = f.id; o.textContent = f.original_name; s.appendChild(o);
+    });
+    s.value = keep || '';
+    if (s.value !== (keep || '')) s.value = '';
+  }
+
+  async function submitOrder() {
+    var fid = vget('oFile');
+    if (!fid) { say('ordMsg', files.length ? tr('Proszę wybrać plik.', 'Please select a file.') : tr('Najpierw wgraj plik.', 'Upload a file first.'), 'err'); return; }
+    var opts = { egr: $('oEgr').checked, dpf: $('oDpf').checked, adblue: $('oAd').checked, chip: $('oChip').checked, dtc: vget('oDtc').trim() };
+    var desc = vget('oDesc').trim();
+    if (!opts.egr && !opts.dpf && !opts.adblue && !opts.chip && !opts.dtc && !desc) { say('ordMsg', tr('Zaznacz opcję lub wpisz opis.', 'Select an option or enter a description.'), 'err'); return; }
+    var f = fileById(fid);
+    var ok = await confirmBox({
+      title: tr('Zamówić usługę?', 'Order the service?'),
+      lines: [
+        tr('Plik: ', 'File: ') + (f ? f.original_name : ''),
+        tr('Zakres: ', 'Scope: ') + (optText(opts) || '—'),
+        tr('Zamówienie jest bezpłatne. Otrzymasz wycenę i sam zdecydujesz, czy ją zaakceptować.', 'Placing the order is free. You will receive a quote and decide whether to accept it.')
+      ],
+      ack: tr('Oświadczam, że ponoszę pełną odpowiedzialność za zgodność modyfikacji z prawem (w tym za to, że pojazd jest użytkowany zgodnie z przepisami mojego kraju) oraz za jej skutki, i rozumiem, że plik wynikowy nie będzie miał przeliczonej sumy kontrolnej, więc moje urządzenie musi ją przeliczyć przy zapisie do sterownika albo muszę zrobić to sam przed zapisem.', 'I declare that I bear full responsibility for the legality of the modification (including that the vehicle is used in accordance with the regulations of my country) and for its consequences, and I understand that the resulting file will not have a recalculated checksum, so my device must recalculate it when writing to the ECU, or I must do it myself before writing.'),
+      ok: tr('Zamów usługę', 'Order the service'),
+      cancel: tr('Anuluj', 'Cancel')
+    });
+    if (!ok) return;
+    $('oBtn').disabled = true;
+    var r = await sb.rpc('create_order', { p_file: fid, p_options: opts, p_description: desc || null });
+    $('oBtn').disabled = false;
+    if (r.error) { say('ordMsg', ordErr(r.error), 'err'); return; }
+    $('oEgr').checked = false; $('oDpf').checked = false; $('oAd').checked = false; $('oChip').checked = false;
+    $('oDtc').value = ''; $('oDesc').value = '';
+    say('ordMsg', tr('Zamówienie zostało złożone. Wycenę zobaczysz na liście poniżej.', 'The order has been placed. You will see the quote in the list below.'), 'ok');
+    loadOrders();
+  }
+
+  async function loadOrders() {
+    var r = await sb.from('orders').select('id,status,price_coins,file_name,options,description,unread_user,created_at,result_file_id').order('created_at', { ascending: false }).limit(50);
+    var b = $('ordList'); if (!b) return;
+    b.innerHTML = '';
+    if (r.error) { say('ordMsg', r.error.message, 'err'); return; }
+    var unread = r.data.filter(function (o) { return o.unread_user; }).length;
+    $('ordListTitle').textContent = tr('Twoje zamówienia', 'Your orders') + (unread ? ' · ' + unread + tr(' z nową wiadomością lub zmianą', ' with a new message or update') : '');
+    r.data.forEach(function (o) {
+      var row = document.createElement('tr');
+      [fmtDate(o.created_at), o.file_name || '', optText(o.options) || (o.description || '').slice(0, 40), ordStatus(o.status) + (o.unread_user ? ' ●' : ''), o.price_coins != null ? o.price_coins + ' ' + tr('coinsów', 'coins') : '—'].forEach(function (t) {
+        var c = document.createElement('td'); c.textContent = t; row.appendChild(c);
+      });
+      var a = document.createElement('td'); a.className = 'act';
+      var bt = document.createElement('button'); bt.type = 'button'; bt.className = 'sm'; bt.textContent = tr('Otwórz', 'Open');
+      bt.onclick = function () { openOrder(o.id); };
+      a.appendChild(bt); row.appendChild(a);
+      b.appendChild(row);
+    });
+  }
+
+  async function renderOrder() {
+    if (!curOrder) return;
+    var r = await sb.from('orders').select('id,status,price_coins,file_name,options,description,result_file_id').eq('id', curOrder).single();
+    var m = await sb.from('order_messages').select('id,author_role,body,created_at').eq('order_id', curOrder).order('created_at', { ascending: true });
+    if (r.error) { say('oMsg', r.error.message, 'err'); return; }
+    var o = r.data;
+    $('oTitle').textContent = tr('Zamówienie', 'Order') + ' — ' + ordStatus(o.status);
+    var info = $('oInfo'); info.innerHTML = '';
+    [tr('Plik: ', 'File: ') + (o.file_name || ''), tr('Zakres: ', 'Scope: ') + (optText(o.options) || '—'),
+     o.description ? tr('Opis: ', 'Description: ') + o.description : null,
+     o.price_coins != null ? tr('Cena: ', 'Price: ') + o.price_coins + ' ' + tr('coinsów', 'coins') : null].forEach(function (t) {
+      if (!t) return; var p = document.createElement('p'); p.textContent = t; info.appendChild(p);
+    });
+    var box = $('oMsgs'); var atBottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 30;
+    box.innerHTML = '';
+    (m.data || []).forEach(function (x) {
+      var d = document.createElement('div'); d.style.cssText = 'margin-bottom:10px';
+      var who = x.author_role === 'admin' ? tr('Administrator', 'Administrator') : x.author_role === 'user' ? tr('Ty', 'You') : tr('System', 'System');
+      var h = document.createElement('div'); h.className = 'small'; h.style.marginTop = '0'; h.textContent = who + ' · ' + fmtDate(x.created_at);
+      var t = document.createElement('div'); t.style.whiteSpace = 'pre-wrap'; t.textContent = x.body;
+      d.appendChild(h); d.appendChild(t); box.appendChild(d);
+    });
+    if (atBottom) box.scrollTop = box.scrollHeight;
+    var closed = o.status === 'canceled';
+    $('oText').className = closed ? 'hidden' : ''; $('oSend').className = closed ? 'sm hidden' : 'sm';
+    $('oAccept').className = o.status === 'quoted' ? 'sm' : 'sm hidden';
+    $('oAccept').textContent = tr('Akceptuję cenę (', 'Accept the price (') + o.price_coins + tr(' coinsów)', ' coins)');
+    $('oCancel').className = (o.status === 'new' || o.status === 'quoted') ? 'sm ghost' : 'sm ghost hidden';
+    var rf = o.result_file_id ? fileById(o.result_file_id) : null;
+    $('oDownload').className = (o.status === 'done' && rf) ? 'sm' : 'sm hidden';
+    $('oDownload').onclick = function () { if (rf) download(rf); };
+    sb.rpc('order_mark_read', { p_order: curOrder });
+  }
+
+  async function openOrder(id) {
+    curOrder = id;
+    say('oMsg', '');
+    $('oText').value = '';
+    $('omodal').className = 'modal';
+    await loadList();
+    await renderOrder();
+    $('oMsgs').scrollTop = $('oMsgs').scrollHeight;
+    clearInterval(ordTimer);
+    ordTimer = setInterval(renderOrder, 6000);
+  }
+
+  function closeOrder() {
+    clearInterval(ordTimer); curOrder = null;
+    $('omodal').className = 'modal hidden';
+    loadOrders();
+  }
+
+  async function sendOrderMsg() {
+    var t = $('oText').value.trim();
+    if (!t || !curOrder) return;
+    $('oSend').disabled = true;
+    var r = await sb.rpc('order_post_message', { p_order: curOrder, p_body: t });
+    $('oSend').disabled = false;
+    if (r.error) { say('oMsg', ordErr(r.error), 'err'); return; }
+    $('oText').value = ''; say('oMsg', '');
+    await renderOrder();
+    $('oMsgs').scrollTop = $('oMsgs').scrollHeight;
+  }
+
+  async function acceptOrder() {
+    var ok = await confirmBox({
+      title: tr('Zaakceptować wycenę?', 'Accept the quote?'),
+      lines: [tr('Po akceptacji administrator rozpocznie realizację zamówienia.', 'After you accept, the administrator will start working on the order.')],
+      ok: tr('Akceptuję', 'Accept'), cancel: tr('Anuluj', 'Cancel')
+    });
+    if (!ok) return;
+    var r = await sb.rpc('accept_order', { p_order: curOrder });
+    if (r.error) { say('oMsg', ordErr(r.error), 'err'); return; }
+    await renderOrder();
+  }
+
+  async function cancelOrder() {
+    var ok = await confirmBox({
+      title: tr('Anulować zamówienie?', 'Cancel the order?'),
+      lines: [tr('Zamówienie zostanie anulowane.', 'The order will be canceled.')],
+      ok: tr('Anuluj zamówienie', 'Cancel order'), cancel: tr('Wróć', 'Back')
+    });
+    if (!ok) return;
+    var r = await sb.rpc('cancel_order', { p_order: curOrder });
+    if (r.error) { say('oMsg', ordErr(r.error), 'err'); return; }
+    await renderOrder();
+  }
+
+  var collapseCards = {}, collapseInit = false;
+
+  function setOpen(name, open) {
+    var c = collapseCards[name];
+    if (c) c.className = c.className.replace(/\s*collapsed/g, '') + (open ? '' : ' collapsed');
+  }
+
+  function setupCollapsibles() {
+    Array.prototype.forEach.call(document.querySelectorAll('h2[data-collapse]'), function (h) {
+      var card = h.parentNode, name = h.getAttribute('data-collapse');
+      var body = document.createElement('div'); body.className = 'cbody';
+      while (h.nextSibling) body.appendChild(h.nextSibling);
+      card.appendChild(body);
+      h.className = (h.className ? h.className + ' ' : '') + 'ctoggle';
+      h.onclick = function () { setOpen(name, card.className.indexOf('collapsed') >= 0); };
+      collapseCards[name] = card;
+    });
+    setOpen('history', false);
+    setOpen('account', false);
+  }
+
+  // defaults after the first file list: upload open only for users without files
+  function applyCollapseDefaults() {
+    if (collapseInit) return;
+    collapseInit = true;
+    setOpen('upload', files.length === 0);
+  }
+
+  function buildNotice() {
+    $('riskNotice').textContent = tr(
+      'Usługi są świadczone na własne ryzyko użytkownika. Plik wynikowy nie ma przeliczonej sumy kontrolnej. Większość programatorów przelicza ją automatycznie podczas zapisu do sterownika, ale jeśli Twoje urządzenie tego nie robi, musisz przeliczyć sumę kontrolną samodzielnie przed zapisem pliku do sterownika. Wykonaj kopię oryginalnego pliku. Użytkownik odpowiada za zgodność modyfikacji z obowiązującymi przepisami.',
+      'Services are provided at the user\'s own risk. The resulting file does not have a recalculated checksum. Most programming tools recalculate it automatically when writing to the ECU, but if your device does not, you must recalculate the checksum yourself before writing the file to the ECU. Make a backup of the original file. The user is responsible for ensuring that the modification complies with applicable regulations.');
+  }
+
+  function buildAccount() {
+    $('accTitle').textContent = tr('Konto', 'Account');
+    $('accText').textContent = tr('Możesz trwale usunąć swoje konto wraz ze wszystkimi plikami.', 'You can permanently delete your account together with all your files.');
+    $('delAccBtn').textContent = tr('Usuń konto', 'Delete account');
+    var th = $('thExp'); th.textContent = tr('Automatyczne usunięcie', 'Automatic deletion') + ' ';
+    var tb = document.createElement('button'); tb.type = 'button'; tb.className = 'ghost'; tb.textContent = 'i';
+    tb.style.cssText = 'padding:0 6px;min-width:0;border-radius:50%;font-weight:bold';
+    tb.onclick = showRetentionInfo; th.appendChild(tb);
+    var rl = $('retLine'); rl.textContent = '';
+    if (retMine && retMine.is_admin) {
+      rl.textContent = tr('Konto administratora nie podlega automatycznemu usuwaniu.', 'An administrator account is not subject to automatic deletion.');
+    } else if (retMine && retMine.account_expires) {
+      rl.appendChild(document.createTextNode(tr('Konto zostanie automatycznie usunięte po: ', 'The account will be deleted automatically after: ') + dayOnly(retMine.account_expires) + tr(' (jeśli do tego czasu nie będzie aktywności - każde zalogowanie przedłuża termin). ', ' (if there is no activity until then - every sign-in extends the deadline). ')));
+      var ib = document.createElement('button'); ib.type = 'button'; ib.className = 'ghost'; ib.textContent = 'i';
+      ib.title = tr('Co to znaczy?', 'What does this mean?');
+      ib.style.cssText = 'padding:0 8px;min-width:0;border-radius:50%;font-weight:bold';
+      ib.onclick = showRetentionInfo;
+      rl.appendChild(ib);
+    }
+  }
+
+  async function deleteAccount() {
+    var ok = await confirmBox({
+      title: tr('Usunąć konto?', 'Delete the account?'),
+      lines: [
+        tr('Czy na pewno chcesz usunąć swoje konto?', 'Are you sure you want to delete your account?'),
+        tr('Po usunięciu konta dostęp do Twoich plików (wgranych i wynikowych), historii czynności oraz coinsów nie będzie już możliwy. Pliki zostaną usunięte z serwera, a tej operacji nie można cofnąć.', 'After the account is deleted, access to your files (uploaded and result files), your history and your coins will no longer be possible. The files are removed from the server and this cannot be undone.')
+      ],
+      ack: tr('Rozumiem i chcę trwale usunąć konto oraz wszystkie moje pliki.', 'I understand and want to permanently delete my account and all my files.'),
+      ok: tr('Usuń konto', 'Delete account'),
+      cancel: tr('Anuluj', 'Cancel')
+    });
+    if (!ok) return;
+    $('delAccBtn').disabled = true;
+    say('accMsg', tr('Usuwanie konta...', 'Deleting the account...'));
+    var r = await sb.rpc('request_account_deletion');
+    if (r.error) {
+      $('delAccBtn').disabled = false;
+      say('accMsg', r.error.message.indexOf('admin_cannot_delete') >= 0 ? tr('Konta administratora nie można usunąć z panelu.', 'An administrator account cannot be deleted from the panel.') : r.error.message, 'err');
+      return;
+    }
+    var uid = (await sb.auth.getSession()).data.session.user.id;
+    for (var i = 0; i < 120; i++) {
+      await new Promise(function (res) { setTimeout(res, 1000); });
+      var q = await sb.from('account_deletions').select('status,error').eq('user_id', uid);
+      if (q.error) break;
+      if (!q.data.length) { await sb.auth.signOut(); return; }
+      if (q.data[0].status === 'error') { $('delAccBtn').disabled = false; say('accMsg', tr('Nie udało się usunąć konta. Spróbuj ponownie lub skontaktuj się z administratorem.', 'The account could not be deleted. Try again or contact the administrator.'), 'err'); return; }
+    }
+    await sb.auth.signOut();
+  }
+
+  async function download(f) {
+    var r = await sb.storage.from('uploads').createSignedUrl(f.storage_path, 60, { download: f.original_name });
+    if (r.error) { say('listMsg', r.error.message, 'err'); return; }
+    if (f.id) sb.rpc('log_download', { p_file_id: f.id });
+    window.location.href = r.data.signedUrl;
+  }
+
+  async function remove(f) {
+    if (!confirm(tr('Usunąć plik „', 'Delete file "') + f.original_name + tr('”?', '"?'))) return;
+    var d = await sb.from('files').delete().eq('id', f.id);
+    if (d.error) { say('listMsg', ordErr(d.error), 'err'); return; }
+    var s = await sb.storage.from('uploads').remove([f.storage_path]);
+    if (s.error) { say('listMsg', s.error.message, 'err'); }
+    loadList();
+  }
+
+  var BMW_MODELS = ['Seria 1 E87', 'Seria 1 E81', 'Seria 3 E46', 'Seria 3 E90', 'Seria 3 E91', 'Seria 3 E92', 'Seria 5 E39', 'Seria 5 E60', 'Seria 5 E61', 'Seria 7 E65', 'X3 E83', 'X5 E53', 'X5 E70', 'X6 E71'];
+  var ECU_FAMILIES = ['EDC15', 'EDC16', 'EDC17', 'MEDC17', 'MED17', 'ME7', 'ME9'];
+
+  function vget(id) { var e = $(id); return e ? e.value : ''; }
+
+  function buildVeh() {
+    var keep = { b: vget('vBrand'), bo: vget('vBrandOther'), m: vget('vModel'), p: vget('vPower'), e: vget('vEcu'), eo: vget('vEcuOther') };
+    var box = $('vehBox');
+    box.innerHTML = '<label for="vBrand">' + tr('Marka', 'Make') + '</label>' +
+      '<select id="vBrand"><option value="BMW">BMW</option><option value="other">' + tr('inna', 'other') + '</option></select>' +
+      '<input type="text" id="vBrandOther" class="hidden" maxlength="60" placeholder="' + tr('Wpisz markę', 'Enter the make') + '">' +
+      '<label for="vModel">' + tr('Model (opis, np. 320d E90 2008)', 'Model (description, e.g. 320d E90 2008)') + '</label>' +
+      '<input type="text" id="vModel" maxlength="80" list="vModelList" autocomplete="off"><datalist id="vModelList"></datalist>' +
+      '<label for="vPower">' + tr('Moc (KM)', 'Power (hp)') + '</label>' +
+      '<input type="number" id="vPower" min="1" max="2000" step="1">' +
+      '<label for="vEcu">' + tr('Sterownik', 'ECU') + '</label>' +
+      '<select id="vEcu"><option value="">' + tr('— nie wiem —', '— unknown —') + '</option><option value="EDC16">EDC16</option><option value="other">' + tr('inny', 'other') + '</option></select>' +
+      '<input type="text" id="vEcuOther" class="hidden" maxlength="60" placeholder="' + tr('Wpisz typ sterownika', 'Enter the ECU type') + '">' +
+      '<div id="vEcuHint" class="small" style="margin-top:6px"></div>';
+    ['vModel', 'vPower', 'vBrandOther', 'vEcuOther'].forEach(function (id) {
+      $(id).style.cssText = 'width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:#0f0f16;color:var(--txt);font-size:1.05rem;font-family:inherit;margin-top:6px';
+    });
+    $('vBrand').value = keep.b || 'BMW'; $('vBrandOther').value = keep.bo; $('vModel').value = keep.m; $('vPower').value = keep.p;
+    $('vEcu').value = keep.e; $('vEcuOther').value = keep.eo;
+    function sync() {
+      $('vBrandOther').className = $('vBrand').value === 'other' ? '' : 'hidden';
+      $('vEcuOther').className = $('vEcu').value === 'other' ? '' : 'hidden';
+      $('vBrandOther').style.display = ''; $('vEcuOther').style.display = '';
+    }
+    $('vBrand').onchange = function () { sync(); loadModelHints(); };
+    $('vEcu').onchange = sync;
+    sync();
+    loadModelHints();
+  }
+
+  async function loadModelHints() {
+    var dl = $('vModelList');
+    if (!dl) return;
+    var brand = $('vBrand').value;
+    var list = brand === 'BMW' ? BMW_MODELS.slice() : [];
+    var r = await sb.rpc('model_suggestions', { p_brand: brand });
+    if (!r.error && r.data) {
+      r.data.forEach(function (x) {
+        if (!list.some(function (y) { return y.toLowerCase() === String(x.model).toLowerCase(); })) list.push(x.model);
+      });
+    }
+    dl.innerHTML = '';
+    list.slice(0, 60).forEach(function (m) { var o = document.createElement('option'); o.value = m; dl.appendChild(o); });
+  }
+
+  function detectEcu(file) {
+    $('vEcuHint').textContent = '';
+    if (!file || file.size > MAX) return;
+    var fr = new FileReader();
+    fr.onload = function () {
+      var txt = new TextDecoder('latin1').decode(new Uint8Array(fr.result));
+      var found = null;
+      for (var i = 0; i < ECU_FAMILIES.length; i++) { if (txt.indexOf(ECU_FAMILIES[i]) >= 0) { found = ECU_FAMILIES[i]; break; } }
+      if (!found) return;
+      if (found === 'EDC16') { $('vEcu').value = 'EDC16'; }
+      else { $('vEcu').value = 'other'; $('vEcuOther').value = found; }
+      $('vEcu').onchange();
+      $('vEcuHint').textContent = tr('Wykryto w pliku: ', 'Detected in the file: ') + found + tr(' (możesz zmienić).', ' (you can change it).');
+    };
+    fr.readAsArrayBuffer(file);
+  }
+
+  function vehicleFields() {
+    var brand = vget('vBrand'), model = vget('vModel').replace(/\s+/g, ' ').trim(), ecu = vget('vEcu');
+    var bo = vget('vBrandOther').replace(/\s+/g, ' ').trim(), eo = vget('vEcuOther').replace(/\s+/g, ' ').trim();
+    var pw = parseInt(vget('vPower'), 10);
+    if (brand === 'other' && !bo) return { error: tr('Wpisz markę pojazdu.', 'Enter the vehicle make.') };
+    if (!model) return { error: tr('Wpisz model pojazdu.', 'Enter the vehicle model.') };
+    if (ecu === 'other' && !eo) return { error: tr('Wpisz typ sterownika.', 'Enter the ECU type.') };
+    if (vget('vPower') && !(pw >= 1 && pw <= 2000)) return { error: tr('Moc musi być liczbą od 1 do 2000.', 'Power must be a number from 1 to 2000.') };
+    return { f: {
+      vehicle_brand: brand, vehicle_brand_other: brand === 'other' ? bo : null, vehicle_model: model,
+      vehicle_power_hp: pw >= 1 ? pw : null, ecu_type: ecu || null, ecu_other: ecu === 'other' ? eo : null
+    } };
+  }
+
+  function vehicleSummary(f) {
+    if (!f.vehicle_model) return '';
+    var b = f.vehicle_brand === 'other' ? (f.vehicle_brand_other || '') : (f.vehicle_brand || '');
+    var parts = [(b + ' ' + f.vehicle_model).trim()];
+    if (f.vehicle_power_hp) parts.push(f.vehicle_power_hp + ' ' + tr('KM', 'hp'));
+    var e = f.ecu_type === 'other' ? f.ecu_other : f.ecu_type;
+    if (e) parts.push(e);
+    return parts.join(' · ');
+  }
+
+  async function upload() {
+    if (atLimit()) { await limitPopup(); return; }
+    var file = $('fileIn').files[0];
+    if (!file) { say('upMsg', tr('Wybierz plik.', 'Choose a file.'), 'err'); return; }
+    if (file.size > MAX) { say('upMsg', tr('Plik jest większy niż 10 MB.', 'The file is larger than 10 MB.'), 'err'); return; }
+    if (file.size === 0) { say('upMsg', tr('Plik jest pusty.', 'The file is empty.'), 'err'); return; }
+    if (!$('consent').checked) { say('upMsg', tr('Zaznacz zgodę na przesłanie pliku.', 'Tick the consent to upload the file.'), 'err'); return; }
+    var veh = vehicleFields();
+    if (veh.error) { say('upMsg', veh.error, 'err'); return; }
+    $('upBtn').disabled = true;
+    say('upMsg', tr('Wgrywanie...', 'Uploading...'));
+    var u = (await sb.auth.getSession()).data.session.user;
+    var path = u.id + '/' + crypto.randomUUID();
+    var s = await sb.storage.from('uploads').upload(path, file, { contentType: 'application/octet-stream' });
+    if (s.error) { say('upMsg', s.error.message, 'err'); $('upBtn').disabled = false; return; }
+    var row = { user_id: u.id, original_name: file.name, storage_path: path, size_bytes: file.size, consent_version: 'v1', consent_at: new Date().toISOString() };
+    Object.keys(veh.f).forEach(function (k) { row[k] = veh.f[k]; });
+    var i = await sb.from('files').insert(row);
+    if (i.error) {
+      await sb.storage.from('uploads').remove([path]);
+      $('upBtn').disabled = false;
+      if (i.error.message.indexOf('file_limit_reached') >= 0) { say('upMsg', ''); await limitPopup(); return; }
+      say('upMsg', ordErr(i.error), 'err'); return;
+    }
+    sb.from('consents').insert({ user_id: u.id, kind: 'upload', version: 'v1', details: { file: file.name } });
+    $('fileIn').value = '';
+    $('consent').checked = false;
+    $('vModel').value = ''; $('vPower').value = ''; $('vEcuHint').textContent = '';
+    loadModelHints();
+    say('upMsg', tr('Plik został wgrany.', 'The file was uploaded.'), 'ok');
+    $('upBtn').disabled = false;
+    loadList();
+  }
+
+  $('tabIn').onclick = function () { setMode('in'); };
+  $('tabUp').onclick = function () { setMode('up'); };
+  $('upBtn').onclick = upload;
+  buildVeh();
+  function syncPwToggle() {
+    var shown = $('pw').type === 'text';
+    $('pwToggle').textContent = shown ? tr('Ukryj', 'Hide') : tr('Pokaż', 'Show');
+    $('pwToggle').setAttribute('aria-label', shown ? tr('Ukryj hasło', 'Hide password') : tr('Pokaż hasło', 'Show password'));
+  }
+  $('pwToggle').onclick = function () { $('pw').type = $('pw').type === 'text' ? 'password' : 'text'; syncPwToggle(); };
+  syncPwToggle();
+  if (window.I18N && I18N.onChange) I18N.onChange(syncPwToggle);
+  setupCollapsibles();
+  buildNotice();
+  buildOrderForm();
+  $('oSend').onclick = sendOrderMsg;
+  $('oClose').onclick = closeOrder;
+  $('oAccept').onclick = acceptOrder;
+  $('oCancel').onclick = cancelOrder;
+  if (window.I18N && I18N.onChange) I18N.onChange(function () { buildOrderForm(); loadOrders(); updatePlaceholders(); buildNotice(); syncBlockBanner(); });
+  buildAccount();
+  $('delAccBtn').onclick = deleteAccount;
+  if (window.I18N && I18N.onChange) I18N.onChange(buildAccount);
+  $('fileIn').onchange = function () { detectEcu($('fileIn').files[0]); };
+  if (window.I18N && I18N.onChange) I18N.onChange(buildVeh);
+  $('coinsHist').onclick = function () { var b = $('coinsBox'); b.className = b.className.indexOf('hidden') >= 0 ? 'scroll' : 'hidden scroll'; };
+  $('runBtn').onclick = runJob;
+  $('svcInfoBtn').onclick = showServiceInfo;
+  $('anaBtn').onclick = analyze;
+  $('selFile').onchange = function () { $('procBox').className = 'hidden'; say('anaMsg', ''); };
+  $('selSvc').onchange = function () { showDesc(); $('procBox').className = 'hidden'; say('anaMsg', ''); say('runMsg', ''); };
+  $('outBtn').onclick = async function () { await sb.auth.signOut(); };
+
+  function redirectUrl() { return location.origin + location.pathname; }
+
+  fetch(cfg.url + '/auth/v1/settings', { headers: { apikey: cfg.key } })
+    .then(function (r) { return r.json(); })
+    .then(function (st) {
+      var on = !!(st && st.external && st.external.google);
+      $('googleBtn').className = on ? 'ghost' : 'ghost hidden';
+      $('orLine').className = on ? 'small' : 'small hidden';
+    })
+    .catch(function () {});
+
+  $('googleBtn').onclick = async function () {
+    if (needTerms()) return;
+    rememberTerms('google');
+    var r = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: redirectUrl() } });
+    if (r.error) say('authMsg', r.error.message, 'err');
+  };
+
+  $('linkBtn').onclick = async function () {
+    var email = $('em').value.trim();
+    if (!email) { say('authMsg', tr('Wpisz adres e-mail.', 'Enter your e-mail address.'), 'err'); return; }
+    if (needTerms()) return;
+    rememberTerms('link');
+    $('linkBtn').disabled = true;
+    var r = await sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: redirectUrl() } });
+    $('linkBtn').disabled = false;
+    if (r.error) { say('authMsg', r.error.message, 'err'); return; }
+    say('authMsg', tr('Wysłaliśmy link logowania. Sprawdź skrzynkę e-mail.', 'We sent you a login link. Check your inbox.'), 'ok');
+  };
+
+  $('authForm').onsubmit = async function (e) {
+    e.preventDefault();
+    var email = $('em').value.trim(), pass = $('pw').value;
+    if (pass.length < 8) { say('authMsg', tr('Hasło musi mieć co najmniej 8 znaków. Możesz też użyć linku logowania lub Google.', 'The password must have at least 8 characters. You can also use the login link or Google.'), 'err'); return; }
+    if (needTerms()) return;
+    if (mode === 'up') rememberTerms('password');
+    $('authBtn').disabled = true;
+    say('authMsg', '');
+    var r = mode === 'in'
+      ? await sb.auth.signInWithPassword({ email: email, password: pass })
+      : await sb.auth.signUp({ email: email, password: pass });
+    $('authBtn').disabled = false;
+    if (r.error) { try { localStorage.removeItem('ecup_terms'); } catch (e) {} say('authMsg', r.error.message, 'err'); return; }
+    if (mode === 'up' && !r.data.session) say('authMsg', tr('Sprawdź skrzynkę e-mail i potwierdź konto.', 'Check your inbox and confirm your account.'), 'ok');
+  };
+
+  sb.auth.onAuthStateChange(function (ev, session) { setTimeout(function () { show(session); }, 0); });
+  sb.auth.getSession().then(async function (r) {
+    if (r.data.session) {
+      var v = await sb.auth.getUser();
+      if (v.error) { await sb.auth.signOut(); return; }
+    }
+    show(r.data.session);
+  });
+  setMode('in');
+  buildTerms();
+  buildFooter();
+  if (window.I18N && I18N.onChange) I18N.onChange(function () { buildTerms(); buildFooter(); });
+})();
+</script>
+</body>
+</html>
