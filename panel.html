@@ -97,6 +97,7 @@
       <button type="button" id="pwToggle" class="ghost sm" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);margin:0;background:var(--card);color:var(--txt);border:1px solid var(--line)"></button>
     </div>
     <label class="chk hidden" id="termsRow"><input type="checkbox" id="termsChk"><span id="termsText"></span></label>
+    <div id="cap" style="margin-top:12px"></div>
     <div class="row" style="margin-top:14px">
       <button type="submit" id="authBtn" style="margin-top:0">Zaloguj</button>
       <button type="button" id="linkBtn" class="ghost" style="margin-top:0">Wyślij link logowania (bez hasła)</button>
@@ -1386,13 +1387,33 @@
     if (r.error) say('authMsg', r.error.message, 'err');
   };
 
+  var capKey = (window.ECUP_SUPABASE || {}).captchaSiteKey || '', capId = null, capTok = '';
+  function initCaptcha() {
+    if (!capKey) return;
+    var s = document.createElement('script');
+    s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    s.async = true;
+    s.onload = function () {
+      capId = window.turnstile.render('#cap', { sitekey: capKey, theme: 'dark', callback: function (t) { capTok = t; }, 'expired-callback': function () { capTok = ''; } });
+    };
+    document.head.appendChild(s);
+  }
+  function needCaptcha() {
+    if (!capKey || capTok) return false;
+    say('authMsg', tr('Potwierdź, że nie jesteś robotem.', 'Please confirm you are not a robot.'), 'err');
+    return true;
+  }
+  function capReset() { capTok = ''; if (capId !== null && window.turnstile) window.turnstile.reset(capId); }
+
   $('linkBtn').onclick = async function () {
     var email = $('em').value.trim();
     if (!email) { say('authMsg', tr('Wpisz adres e-mail.', 'Enter your e-mail address.'), 'err'); return; }
     if (needTerms()) return;
+    if (needCaptcha()) return;
     rememberTerms('link');
     $('linkBtn').disabled = true;
-    var r = await sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: redirectUrl() } });
+    var r = await sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: redirectUrl(), captchaToken: capTok || undefined } });
+    capReset();
     $('linkBtn').disabled = false;
     if (r.error) { say('authMsg', r.error.message, 'err'); return; }
     say('authMsg', tr('Wysłaliśmy link logowania. Sprawdź skrzynkę e-mail.', 'We sent you a login link. Check your inbox.'), 'ok');
@@ -1403,12 +1424,15 @@
     var email = $('em').value.trim(), pass = $('pw').value;
     if (pass.length < 8) { say('authMsg', tr('Hasło musi mieć co najmniej 8 znaków. Możesz też użyć linku logowania lub Google.', 'The password must have at least 8 characters. You can also use the login link or Google.'), 'err'); return; }
     if (needTerms()) return;
+    if (needCaptcha()) return;
     if (mode === 'up') rememberTerms('password');
     $('authBtn').disabled = true;
     say('authMsg', '');
+    var co = { captchaToken: capTok || undefined };
     var r = mode === 'in'
-      ? await sb.auth.signInWithPassword({ email: email, password: pass })
-      : await sb.auth.signUp({ email: email, password: pass });
+      ? await sb.auth.signInWithPassword({ email: email, password: pass, options: co })
+      : await sb.auth.signUp({ email: email, password: pass, options: co });
+    capReset();
     $('authBtn').disabled = false;
     if (r.error) { try { localStorage.removeItem('ecup_terms'); } catch (e) {} say('authMsg', r.error.message, 'err'); return; }
     if (mode === 'up' && !r.data.session) say('authMsg', tr('Sprawdź skrzynkę e-mail i potwierdź konto.', 'Check your inbox and confirm your account.'), 'ok');
@@ -1423,6 +1447,7 @@
     show(r.data.session);
   });
   setMode('in');
+  initCaptcha();
   buildTerms();
   buildFooter();
   if (window.I18N && I18N.onChange) I18N.onChange(function () { buildTerms(); buildFooter(); });
