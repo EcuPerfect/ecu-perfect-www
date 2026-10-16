@@ -144,7 +144,7 @@
     <h2 data-collapse="files">Twoje pliki</h2>
     <div class="scroll">
       <table>
-        <thead><tr><th>Nazwa</th><th>Rozmiar</th><th>Data</th><th id="thExp"></th><th></th></tr></thead>
+        <thead><tr><th>Nazwa</th><th></th><th>Rozmiar</th><th>Data</th><th id="thExp"></th></tr></thead>
         <tbody id="list"></tbody>
       </table>
     </div>
@@ -800,8 +800,8 @@
       x.onclick = function () { remove(f); };
       var dt = document.createElement('button'); dt.type = 'button'; dt.className = 'sm ghost'; dt.textContent = tr('Szczegóły', 'Details');
       dt.onclick = function () { showFileDetails(f); };
-      c4.appendChild(dt); c4.appendChild(d); c4.appendChild(x);
-      row.appendChild(c1); row.appendChild(c2); row.appendChild(c3); row.appendChild(c3b); row.appendChild(c4);
+      c4.appendChild(d); c4.appendChild(dt); c4.appendChild(x);
+      row.appendChild(c1); row.appendChild(c4); row.appendChild(c2); row.appendChild(c3); row.appendChild(c3b);
       body.appendChild(row);
     });
     say('listMsg', tr('Pliki: ', 'Files: ') + r.data.length + ' / ' + MAX_FILES + (atLimit() ? tr(' — limit osiągnięty, usuń plik, aby wgrać nowy lub uruchomić usługę.', ' — limit reached, delete a file to upload a new one or run a service.') : ''), atLimit() ? 'err' : '');
