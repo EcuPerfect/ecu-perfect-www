@@ -101,6 +101,7 @@
     <div class="row" style="margin-top:14px">
       <button type="submit" id="authBtn" style="margin-top:0">Zaloguj</button>
       <button type="button" id="linkBtn" class="ghost" style="margin-top:0">Wyślij link logowania (bez hasła)</button>
+      <button type="button" id="forgotBtn" class="ghost" style="margin-top:0"></button>
     </div>
   </form>
   <div id="authMsg" class="msg"></div>
@@ -205,6 +206,15 @@
   <div class="card">
     <h2 id="accTitle" data-collapse="account"></h2>
     <div id="accText" class="small" style="margin-top:0"></div>
+    <div id="pwBox" style="margin:14px 0 18px;padding-bottom:18px;border-bottom:1px solid var(--line)">
+      <div id="pwTitle" style="font-weight:700;margin-bottom:6px"></div>
+      <label for="newPw" id="newPwLab"></label>
+      <input type="password" id="newPw" minlength="8" autocomplete="new-password">
+      <label for="newPw2" id="newPw2Lab"></label>
+      <input type="password" id="newPw2" minlength="8" autocomplete="new-password">
+      <button type="button" id="pwBtn"></button>
+      <div id="pwMsg" class="msg"></div>
+    </div>
     <button type="button" id="delAccBtn" class="ghost"></button>
     <div id="accMsg" class="msg"></div>
   </div>
@@ -258,8 +268,11 @@
     $('authBtn').textContent = m === 'in' ? tr('Zaloguj', 'Log in') : tr('Załóż konto', 'Create account');
     $('pw').autocomplete = m === 'in' ? 'current-password' : 'new-password';
     $('termsRow').className = m === 'up' ? 'chk' : 'chk hidden';
+    $('forgotBtn').className = m === 'in' ? 'ghost' : 'ghost hidden';
+    buildForgot();
     say('authMsg', '');
   }
+  function buildForgot() { $('forgotBtn').textContent = tr('Nie pamiętam hasła', 'Forgot password'); }
 
   function legalLinks(parent) {
     var a = document.createElement('a'); a.href = 'regulamin.html'; a.target = '_blank'; a.rel = 'noopener'; a.textContent = tr('Regulamin', 'Terms of service');
@@ -1147,7 +1160,11 @@
     $('accTitle').textContent = tr('Konto', 'Account');
     $('accText').textContent = tr('Możesz trwale usunąć swoje konto wraz ze wszystkimi plikami.', 'You can permanently delete your account together with all your files.');
     $('delAccBtn').textContent = tr('Usuń konto', 'Delete account');
-    var th = $('thExp'); th.textContent = tr('Automatyczne usunięcie', 'Automatic deletion') + ' ';
+    $('pwTitle').textContent = tr('Zmiana hasła', 'Change password');
+    $('newPwLab').textContent = tr('Nowe hasło (min. 8 znaków)', 'New password (min. 8 characters)');
+    $('newPw2Lab').textContent = tr('Powtórz nowe hasło', 'Repeat the new password');
+    $('pwBtn').textContent = tr('Zmień hasło', 'Change password');
+    var th =$('thExp'); th.textContent = tr('Automatyczne usunięcie', 'Automatic deletion') + ' ';
     var tb = document.createElement('button'); tb.type = 'button'; tb.className = 'ghost'; tb.textContent = 'i';
     tb.style.cssText = 'padding:0 6px;min-width:0;border-radius:50%;font-weight:bold';
     tb.onclick = showRetentionInfo; th.appendChild(tb);
@@ -1419,6 +1436,33 @@
     say('authMsg', tr('Wysłaliśmy link logowania. Sprawdź skrzynkę e-mail.', 'We sent you a login link. Check your inbox.'), 'ok');
   };
 
+  $('forgotBtn').onclick = async function () {
+    var email = $('em').value.trim();
+    if (!email) { say('authMsg', tr('Wpisz adres e-mail.', 'Enter your e-mail address.'), 'err'); return; }
+    if (needCaptcha()) return;
+    $('forgotBtn').disabled = true;
+    var r = await sb.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl(), captchaToken: capTok || undefined });
+    capReset();
+    $('forgotBtn').disabled = false;
+    if (r.error) { say('authMsg', r.error.message, 'err'); return; }
+    say('authMsg', tr('Jeśli konto o tym adresie istnieje, wysłaliśmy link do ustawienia nowego hasła. Sprawdź skrzynkę (także Spam).', 'If an account with this address exists, we sent a link to set a new password. Check your inbox (and Spam).'), 'ok');
+  };
+
+  $('pwBtn').onclick = async function () {
+    var a = $('newPw').value, b = $('newPw2').value;
+    if (a.length < 8) { say('pwMsg', tr('Hasło musi mieć co najmniej 8 znaków.', 'The password must have at least 8 characters.'), 'err'); return; }
+    if (a !== b) { say('pwMsg', tr('Hasła nie są takie same.', 'The passwords do not match.'), 'err'); return; }
+    $('pwBtn').disabled = true;
+    var r = await sb.auth.updateUser({ password: a });
+    $('pwBtn').disabled = false;
+    if (r.error) {
+      say('pwMsg', r.error.code === 'same_password' ? tr('Nowe hasło musi być inne niż obecne.', 'The new password must be different from the current one.') : r.error.message, 'err');
+      return;
+    }
+    $('newPw').value = ''; $('newPw2').value = '';
+    say('pwMsg', tr('Hasło zostało zmienione.', 'Your password has been changed.'), 'ok');
+  };
+
   $('authForm').onsubmit = async function (e) {
     e.preventDefault();
     var email = $('em').value.trim(), pass = $('pw').value;
@@ -1438,7 +1482,20 @@
     if (mode === 'up' && !r.data.session) say('authMsg', tr('Sprawdź skrzynkę e-mail i potwierdź konto.', 'Check your inbox and confirm your account.'), 'ok');
   };
 
-  sb.auth.onAuthStateChange(function (ev, session) { setTimeout(function () { show(session); }, 0); });
+  var recovering = false;
+  sb.auth.onAuthStateChange(function (ev, session) {
+    if (ev === 'PASSWORD_RECOVERY') recovering = true;
+    setTimeout(function () {
+      show(session);
+      if (recovering && session) {
+        recovering = false;
+        setOpen('account', true);
+        say('pwMsg', tr('Ustaw nowe hasło poniżej.', 'Set your new password below.'), 'ok');
+        $('pwBox').scrollIntoView({ block: 'center' });
+        $('newPw').focus();
+      }
+    }, 0);
+  });
   sb.auth.getSession().then(async function (r) {
     if (r.data.session) {
       var v = await sb.auth.getUser();
@@ -1450,7 +1507,7 @@
   initCaptcha();
   buildTerms();
   buildFooter();
-  if (window.I18N && I18N.onChange) I18N.onChange(function () { buildTerms(); buildFooter(); });
+  if (window.I18N && I18N.onChange) I18N.onChange(function () { buildTerms(); buildFooter(); buildForgot(); });
 })();
 </script>
 </body>
