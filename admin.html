@@ -148,7 +148,7 @@
       <input id="ffUser" list="userList" placeholder="Filtr: użytkownik" autocomplete="off">
       <input id="ffName" placeholder="Filtr: nazwa pliku lub opis">
       <input id="ffCar" placeholder="Filtr: pojazd (marka, model, sterownik)">
-      <select id="ffType"><option value="">Wszystkie typy</option><option value="upload">wgrany</option><option value="result">wynik</option><option value="admin">od administratora</option></select>
+      <select id="ffType"><option value="">Wszystkie typy</option><option value="upload">wgrany</option><option value="result">wynik</option><option value="admin">od administratora</option><option value="attachment">załączniki</option></select>
       <button type="button" class="sm ghost" id="ffClear">Wyczyść</button>
       <button type="button" class="sm ghost" id="xFil">Eksport CSV</button>
     </div>
@@ -186,7 +186,7 @@
     file_deleted: 'Usunięcie pliku', analyze_requested: 'Analiza – zlecona', analyze_done: 'Analiza – gotowa',
     process_requested: 'Przetwarzanie – zlecone', process_done: 'Przetwarzanie – gotowe', job_error: 'Błąd zadania',
     download: 'Pobranie pliku', admin_file_added: 'Plik dodany przez administratora',
-    account_deletion_requested: 'Zlecono usunięcie konta', account_deleted: 'Konto usunięte', retention_warned: 'Ostrzeżenie o nieaktywności', retention_account_delete: 'Auto-usunięcie nieaktywnego konta', retention_file_delete: 'Auto-usunięcie starego pliku',
+    account_deletion_requested: 'Zlecono usunięcie konta', account_deleted: 'Konto usunięte', retention_warned: 'Ostrzeżenie o nieaktywności', password_check_failed: 'Błędne obecne hasło przy zmianie hasła', retention_account_delete: 'Auto-usunięcie nieaktywnego konta', retention_file_delete: 'Auto-usunięcie starego pliku',
     order_created: 'Zamówienie złożone', order_message: 'Wiadomość w zamówieniu', order_quoted: 'Zamówienie wycenione',
     order_accepted: 'Wycena zaakceptowana', order_in_progress: 'Zamówienie w realizacji', order_done: 'Zamówienie zrealizowane',
     order_canceled: 'Zamówienie anulowane', account_blocked: 'Konto zablokowane', account_unblocked: 'Konto odblokowane',
@@ -309,9 +309,9 @@
     loadUsers();
   }
 
-  async function downloadFile(f) {
+  async function downloadFile(f, msgId) {
     var r = await sb.storage.from('uploads').createSignedUrl(f.storage_path, 60, { download: f.original_name });
-    if (r.error) { say('filMsg', r.error.message, true); return; }
+    if (r.error) { say(msgId || 'filMsg', r.error.message, true); return; }
     await sb.rpc('log_download', { p_file_id: f.id });
     window.location.href = r.data.signedUrl;
   }
@@ -348,14 +348,14 @@
       if (u && em.indexOf(u) < 0) return;
       if (n && ((f.original_name || '') + ' ' + (f.label || '')).toLowerCase().indexOf(n) < 0) return;
       if (c && car.toLowerCase().indexOf(c) < 0) return;
-      if (t && f.kind !== t) return;
+      if (t === 'attachment') { if (f.category !== 'attachment') return; } else if (t && f.kind !== t) return;
       shown++;
       shownFiles.push(f);
       var row = document.createElement('tr');
       td(row, fmtDate(f.created_at)); td(row, emails[f.user_id] || f.user_id);
       td(row, f.original_name + (f.label ? ' — ' + f.label : ''));
       td(row, car, 'small');
-      td(row, KIND[f.kind] || f.kind); td(row, fmtSize(f.size_bytes));
+      td(row, (KIND[f.kind] || f.kind) + (f.category === 'attachment' ? ' (załącznik)' : '')); td(row, fmtSize(f.size_bytes));
       var cell = document.createElement('td'); cell.style.whiteSpace = 'nowrap';
       var bt = document.createElement('button'); bt.type = 'button'; bt.className = 'sm'; bt.textContent = 'Pobierz';
       bt.onclick = function () { downloadFile(f); };
@@ -369,7 +369,7 @@
 
   async function loadFiles() {
     say('filMsg', 'Ładowanie…');
-    var r = await sb.from('files').select('id,user_id,original_name,storage_path,size_bytes,created_at,kind,label,vehicle_brand,vehicle_brand_other,vehicle_model,vehicle_power_hp,ecu_type,ecu_other').order('created_at', { ascending: false }).limit(1000);
+    var r = await sb.from('files').select('id,user_id,original_name,storage_path,size_bytes,created_at,kind,category,label,vehicle_brand,vehicle_brand_other,vehicle_model,vehicle_power_hp,ecu_type,ecu_other').order('created_at', { ascending: false }).limit(1000);
     if (r.error) { say('filMsg', r.error.message, true); return; }
     allFiles = r.data;
     fillAddUsers();
@@ -479,6 +479,18 @@
      o.description ? 'Opis: ' + o.description : null, o.price_coins != null ? 'Cena: ' + o.price_coins + ' coins' : null].forEach(function (t) {
       if (!t) return; var p = document.createElement('p'); p.textContent = t; info.appendChild(p);
     });
+    var at = await sb.from('order_attachments').select('files(id,original_name,storage_path,size_bytes,label)').eq('order_id', curOrder);
+    var atts = (at.data || []).map(function (x) { return x.files; }).filter(Boolean);
+    if (atts.length) {
+      var ah = document.createElement('p'); ah.textContent = 'Załączniki (' + atts.length + '):'; info.appendChild(ah);
+      atts.forEach(function (f) {
+        var row = document.createElement('div'); row.style.cssText = 'display:flex;gap:8px;align-items:center;margin:4px 0';
+        var nm = document.createElement('span'); nm.textContent = f.original_name + (f.label ? ' — ' + f.label : '') + ' (' + fmtSize(f.size_bytes) + ')';
+        var bt = document.createElement('button'); bt.type = 'button'; bt.className = 'sm'; bt.textContent = 'Pobierz';
+        bt.onclick = function () { downloadFile(f, 'oMsg'); };
+        row.appendChild(nm); row.appendChild(bt); info.appendChild(row);
+      });
+    }
     var box = $('oMsgs'); var atBottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 30;
     box.innerHTML = '';
     (m.data || []).forEach(function (x) {
@@ -601,7 +613,7 @@
   }
   function exportFiles() {
     saveCsv('pliki', ['Data', 'Użytkownik', 'Nazwa pliku', 'Opis', 'Typ', 'Rozmiar (B)', 'Marka', 'Model', 'Moc (KM)', 'Sterownik'], shownFiles.map(function (f) {
-      return [iso(f.created_at), emails[f.user_id] || f.user_id, f.original_name, f.label || '', KIND[f.kind] || f.kind, f.size_bytes,
+      return [iso(f.created_at), emails[f.user_id] || f.user_id, f.original_name, f.label || '', (KIND[f.kind] || f.kind) + (f.category === 'attachment' ? ' (załącznik)' : ''), f.size_bytes,
         f.vehicle_brand === 'other' ? (f.vehicle_brand_other || '') : (f.vehicle_brand || ''), f.vehicle_model || '', f.vehicle_power_hp || '',
         f.ecu_type === 'other' ? (f.ecu_other || '') : (f.ecu_type || '')];
     }), 'filMsg');

@@ -133,7 +133,9 @@
 
   <div class="card">
     <h2 data-collapse="upload">Wgraj plik</h2>
+    <div id="catBox"></div>
     <input type="file" id="fileIn">
+    <div id="attBox" class="hidden"></div>
     <div id="vehBox"></div>
     <label class="chk"><input type="checkbox" id="consent"><span>Wyrażam zgodę na przesłanie pliku na serwer i zapisanie go w bazie danych serwisu w celu jego przetwarzania. Pliki są prywatne i dostępne dla mnie oraz administratora serwisu, a ja mogę je w każdej chwili usunąć. Oświadczam, że mam prawo do dysponowania tym plikiem.</span></label>
     <button type="button" id="upBtn">Wgraj</button>
@@ -208,10 +210,14 @@
     <div id="accText" class="small" style="margin-top:0"></div>
     <div id="pwBox" style="margin:14px 0 18px;padding-bottom:18px;border-bottom:1px solid var(--line)">
       <div id="pwTitle" style="font-weight:700;margin-bottom:6px"></div>
+      <div id="oldPwRow">
+        <label for="oldPw" id="oldPwLab"></label>
+        <div style="position:relative"><input type="password" id="oldPw" autocomplete="current-password" style="padding-right:90px"><button type="button" class="ghost sm eye" data-for="oldPw" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);margin:0;background:var(--card);color:var(--txt);border:1px solid var(--line)"></button></div>
+      </div>
       <label for="newPw" id="newPwLab"></label>
-      <input type="password" id="newPw" minlength="8" autocomplete="new-password">
+      <div style="position:relative"><input type="password" id="newPw" minlength="8" autocomplete="new-password" style="padding-right:90px"><button type="button" class="ghost sm eye" data-for="newPw" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);margin:0;background:var(--card);color:var(--txt);border:1px solid var(--line)"></button></div>
       <label for="newPw2" id="newPw2Lab"></label>
-      <input type="password" id="newPw2" minlength="8" autocomplete="new-password">
+      <div style="position:relative"><input type="password" id="newPw2" minlength="8" autocomplete="new-password" style="padding-right:90px"><button type="button" class="ghost sm eye" data-for="newPw2" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);margin:0;background:var(--card);color:var(--txt);border:1px solid var(--line)"></button></div>
       <button type="button" id="pwBtn"></button>
       <div id="pwMsg" class="msg"></div>
     </div>
@@ -442,11 +448,13 @@
     $('svcDesc').textContent = t;
   }
 
+  function isEcu(f) { return f.category !== 'attachment'; }
+
   function fillFiles() {
     var s = $('selFile'), keep = s.value;
     s.innerHTML = '';
     var ph = document.createElement('option'); ph.value = ''; ph.textContent = tr('— proszę wybrać plik —', '— please select a file —'); s.appendChild(ph);
-    files.forEach(function (f) {
+    files.filter(isEcu).forEach(function (f) {
       var o = document.createElement('option'); o.value = f.id; o.textContent = f.original_name + ' (' + fmtSize(f.size_bytes) + ')'; s.appendChild(o);
     });
     s.value = keep || '';
@@ -789,7 +797,7 @@
 
   async function loadList() {
     say('listMsg', '');
-    var r = await sb.from('files').select('id,original_name,storage_path,size_bytes,created_at,kind,label,parent_file_id,vehicle_brand,vehicle_brand_other,vehicle_model,vehicle_power_hp,ecu_type,ecu_other').order('created_at', { ascending: false });
+    var r = await sb.from('files').select('id,original_name,storage_path,size_bytes,created_at,kind,category,label,parent_file_id,vehicle_brand,vehicle_brand_other,vehicle_model,vehicle_power_hp,ecu_type,ecu_other').order('created_at', { ascending: false });
     var body = $('list');
     body.innerHTML = '';
     if (r.error) { say('listMsg', r.error.message, 'err'); return; }
@@ -801,7 +809,7 @@
     r.data.forEach(function (f) {
       var row = document.createElement('tr');
       var c1 = document.createElement('td'); c1.textContent = f.original_name + (f.label ? ' — ' + f.label : '');
-      var vs = vehicleSummary(f);
+      var vs = f.category === 'attachment' ? tr('Załącznik', 'Attachment') : vehicleSummary(f);
       if (vs) { var sm = document.createElement('div'); sm.className = 'small'; sm.style.marginTop = '2px'; sm.textContent = vs; c1.appendChild(sm); }
       var c2 = document.createElement('td'); c2.textContent = fmtSize(f.size_bytes);
       var c3 = document.createElement('td'); c3.textContent = fmtDate(f.created_at);
@@ -882,12 +890,17 @@
     } else if (f.kind === 'admin') {
       lines.push(tr('Rodzaj: plik dodany przez administratora', 'Type: file added by the administrator'));
       if (f.label) lines.push(tr('Opis: ', 'Description: ') + f.label);
+    } else if (f.category === 'attachment') {
+      lines.push(tr('Rodzaj: załącznik wgrany przez Ciebie', 'Type: attachment uploaded by you'));
+      if (f.label) lines.push(tr('Opis: ', 'Description: ') + f.label);
     } else {
       lines.push(tr('Rodzaj: plik wgrany przez Ciebie', 'Type: file uploaded by you'));
     }
     var root = rootUpload(f);
     var vs = root ? vehicleSummary(root) : '';
-    if (vs) {
+    if (f.category === 'attachment') {
+      // no vehicle data for attachments
+    } else if (vs) {
       lines.push(tr('Dane pojazdu: ', 'Vehicle: ') + vs);
     } else {
       lines.push(tr('Dane pojazdu: brak', 'Vehicle: not provided'));
@@ -917,7 +930,11 @@
     account_blocked: ['Konto jest zablokowane. W sprawie odblokowania prosimy o kontakt: contact@ecu-perfect.pl', 'Your account is blocked. To have it unblocked, please contact us: contact@ecu-perfect.pl'],
     rate_limited: ['Zbyt wiele operacji w krótkim czasie. Spróbuj za chwilę.', 'Too many operations in a short time. Try again in a moment.'],
     too_many_open_orders: ['Masz zbyt wiele otwartych zamówień (maksymalnie 5).', 'You have too many open orders (maximum 5).'],
-    file_limit_reached: ['Osiągnięto limit plików.', 'File limit reached.']
+    file_limit_reached: ['Osiągnięto limit plików.', 'File limit reached.'],
+    attachment_type_not_allowed: ['Niedozwolony format załącznika. Dozwolone: csv, txt, log, xlsx, pdf, jpg, png, zip.', 'Attachment format not allowed. Allowed: csv, txt, log, xlsx, pdf, jpg, png, zip.'],
+    wrong_file_type: ['Ta czynność wymaga odczytu ze sterownika, a nie załącznika.', 'This action requires an ECU read-out, not an attachment.'],
+    too_many_attachments: ['Do zamówienia można dołączyć maksymalnie 10 załączników.', 'You can attach at most 10 attachments to an order.'],
+    attachment_not_found: ['Nie znaleziono załącznika.', 'Attachment not found.']
   };
   function ordErr(e) {
     var m = e && e.message ? e.message : '';
@@ -951,6 +968,7 @@
       '<input type="text" id="oDtc" maxlength="300" autocomplete="off">' +
       '<label for="oDesc">' + tr('Opis', 'Description') + '</label>' +
       '<textarea id="oDesc" maxlength="2000" rows="4"></textarea>' +
+      '<label>' + tr('Załączniki do zamówienia (np. logi)', 'Order attachments (e.g. logs)') + '</label><div id="oAtt"></div>' +
       '<button type="button" id="oBtn">' + tr('Zamów usługę', 'Order the service') + '</button>';
     ['oDtc', 'oDesc'].forEach(function (id) {
       $(id).style.cssText = 'width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:#0f0f16;color:var(--txt);font-size:1.05rem;font-family:inherit';
@@ -978,11 +996,28 @@
     var keep = keepVal != null ? keepVal : s.value;
     s.innerHTML = '';
     var ph = document.createElement('option'); ph.value = ''; ph.textContent = tr('— proszę wybrać plik —', '— please select a file —'); s.appendChild(ph);
-    files.forEach(function (f) {
+    files.filter(isEcu).forEach(function (f) {
       var o = document.createElement('option'); o.value = f.id; o.textContent = f.original_name; s.appendChild(o);
     });
     s.value = keep || '';
     if (s.value !== (keep || '')) s.value = '';
+    refreshOrderAtts();
+  }
+
+  function refreshOrderAtts() {
+    var box = $('oAtt');
+    if (!box) return;
+    var on = {};
+    Array.prototype.forEach.call(box.querySelectorAll('input:checked'), function (c) { on[c.value] = true; });
+    box.innerHTML = '';
+    var atts = files.filter(function (f) { return f.category === 'attachment'; });
+    if (!atts.length) { var n = document.createElement('div'); n.className = 'small'; n.textContent = tr('Brak załączników. Wgraj je wcześniej w sekcji „Wgraj plik” (rodzaj: Załącznik).', 'No attachments. Upload them first in “Upload file” (type: Attachment).'); box.appendChild(n); return; }
+    atts.forEach(function (f) {
+      var l = document.createElement('label'); l.className = 'chk';
+      var c = document.createElement('input'); c.type = 'checkbox'; c.value = f.id; c.checked = !!on[f.id];
+      var sp = document.createElement('span'); sp.textContent = f.original_name + (f.label ? ' — ' + f.label : '');
+      l.appendChild(c); l.appendChild(sp); box.appendChild(l);
+    });
   }
 
   async function submitOrder() {
@@ -997,19 +1032,22 @@
       lines: [
         tr('Plik: ', 'File: ') + (f ? f.original_name : ''),
         tr('Zakres: ', 'Scope: ') + (optText(opts) || '—'),
+        tr('Załączniki: ', 'Attachments: ') + ($('oAtt').querySelectorAll('input:checked').length || tr('brak', 'none')),
         tr('Zamówienie jest bezpłatne. Otrzymasz wycenę i sam zdecydujesz, czy ją zaakceptować.', 'Placing the order is free. You will receive a quote and decide whether to accept it.')
       ],
-      ack: tr('Oświadczam, że ponoszę pełną odpowiedzialność za zgodność modyfikacji z prawem (w tym za to, że pojazd jest użytkowany zgodnie z przepisami mojego kraju) oraz za jej skutki, i rozumiem, że plik wynikowy nie będzie miał przeliczonej sumy kontrolnej, więc moje urządzenie musi ją przeliczyć przy zapisie do sterownika albo muszę zrobić to sam przed zapisem.', 'I declare that I bear full responsibility for the legality of the modification (including that the vehicle is used in accordance with the regulations of my country) and for its consequences, and I understand that the resulting file will not have a recalculated checksum, so my device must recalculate it when writing to the ECU, or I must do it myself before writing.'),
+      ack: tr('Oświadczam, że ponoszę pełną odpowiedzialność za zgodność modyfikacji z prawem i za jej skutki. Jeżeli zamawiana modyfikacja dotyczy układów ochrony środowiska i oczyszczania spalin (np. DPF, EGR, AdBlue), podnoszenia mocy lub podnoszenia limitu prędkości, oświadczam, że pojazd nie będzie użytkowany w ruchu na drogach publicznych niezgodnie z prawem (wyłącznie sport, tor lub poza drogami publicznymi). Rozumiem też, że plik wynikowy nie będzie miał przeliczonej sumy kontrolnej, więc moje urządzenie musi ją przeliczyć przy zapisie do sterownika albo muszę zrobić to sam przed zapisem.', 'I declare that I bear full responsibility for the legality of the modification and for its consequences. If the ordered modification concerns environmental protection and exhaust after-treatment systems (e.g. DPF, EGR, AdBlue), power increase or raising the speed limit, I declare that the vehicle will not be used on public roads in breach of the law (motorsport, race track or off public roads only). I also understand that the resulting file will not have a recalculated checksum, so my device must recalculate it when writing to the ECU, or I must do it myself before writing.'),
       ok: tr('Zamów usługę', 'Order the service'),
       cancel: tr('Anuluj', 'Cancel')
     });
     if (!ok) return;
     $('oBtn').disabled = true;
-    var r = await sb.rpc('create_order', { p_file: fid, p_options: opts, p_description: desc || null });
+    var attIds = Array.prototype.map.call($('oAtt').querySelectorAll('input:checked'), function (c) { return c.value; });
+    var r = await sb.rpc('create_order', { p_file: fid, p_options: opts, p_description: desc || null, p_attachments: attIds });
     $('oBtn').disabled = false;
     if (r.error) { say('ordMsg', ordErr(r.error), 'err'); return; }
     $('oEgr').checked = false; $('oDpf').checked = false; $('oAd').checked = false; $('oChip').checked = false;
     $('oDtc').value = ''; $('oDesc').value = '';
+    refreshOrderAtts();
     say('ordMsg', tr('Zamówienie zostało złożone. Wycenę zobaczysz na liście poniżej.', 'The order has been placed. You will see the quote in the list below.'), 'ok');
     loadOrders();
   }
@@ -1047,6 +1085,9 @@
      o.price_coins != null ? tr('Cena: ', 'Price: ') + o.price_coins + ' ' + tr('coinsów', 'coins') : null].forEach(function (t) {
       if (!t) return; var p = document.createElement('p'); p.textContent = t; info.appendChild(p);
     });
+    var at = await sb.from('order_attachments').select('files(original_name)').eq('order_id', curOrder);
+    var names = (at.data || []).map(function (x) { return x.files ? x.files.original_name : ''; }).filter(Boolean);
+    if (names.length) { var pa = document.createElement('p'); pa.textContent = tr('Załączniki: ', 'Attachments: ') + names.join(', '); info.appendChild(pa); }
     var box = $('oMsgs'); var atBottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 30;
     box.innerHTML = '';
     (m.data || []).forEach(function (x) {
@@ -1161,6 +1202,7 @@
     $('accText').textContent = tr('Możesz trwale usunąć swoje konto wraz ze wszystkimi plikami.', 'You can permanently delete your account together with all your files.');
     $('delAccBtn').textContent = tr('Usuń konto', 'Delete account');
     $('pwTitle').textContent = tr('Zmiana hasła', 'Change password');
+    $('oldPwLab').textContent = tr('Obecne hasło', 'Current password');
     $('newPwLab').textContent = tr('Nowe hasło (min. 8 znaków)', 'New password (min. 8 characters)');
     $('newPw2Lab').textContent = tr('Powtórz nowe hasło', 'Repeat the new password');
     $('pwBtn').textContent = tr('Zmień hasło', 'Change password');
@@ -1232,6 +1274,31 @@
   var ECU_FAMILIES = ['EDC15', 'EDC16', 'EDC17', 'MEDC17', 'MED17', 'ME7', 'ME9'];
 
   function vget(id) { var e = $(id); return e ? e.value : ''; }
+
+  var ATT_EXT = /\.(csv|txt|log|xlsx|pdf|jpe?g|png|zip)$/i;
+  function buildCat() {
+    var keep = vget('fCat') || 'ecu', note = vget('aNote');
+    $('catBox').innerHTML = '<label for="fCat">' + tr('Rodzaj pliku', 'File type') + '</label>' +
+      '<select id="fCat"><option value="ecu">' + tr('Odczyt ze sterownika (plik ECU)', 'ECU read-out (ECU file)') + '</option>' +
+      '<option value="attachment">' + tr('Załącznik (logi, zdjęcia, dokumenty)', 'Attachment (logs, photos, documents)') + '</option></select>' +
+      '<div id="catHint" class="small" style="margin-top:6px"></div>';
+    $('attBox').innerHTML = '<label for="aNote">' + tr('Opis załącznika (np. log z jazdy)', 'Attachment description (e.g. drive log)') + '</label>' +
+      '<input type="text" id="aNote" maxlength="80" autocomplete="off">';
+    $('aNote').style.cssText = 'width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:#0f0f16;color:var(--txt);font-size:1.05rem;font-family:inherit;margin-top:6px';
+    $('fCat').value = keep; $('aNote').value = note;
+    $('fCat').onchange = syncCat;
+    syncCat();
+  }
+  function syncCat() {
+    var att = $('fCat').value === 'attachment';
+    $('vehBox').className = att ? 'hidden' : '';
+    $('attBox').className = att ? '' : 'hidden';
+    $('fileIn').accept = att ? '.csv,.txt,.log,.xlsx,.pdf,.jpg,.jpeg,.png,.zip' : '';
+    $('catHint').textContent = att
+      ? tr('Dozwolone formaty: csv, txt, log, xlsx, pdf, jpg, png, zip (do 10 MB). Załączników nie używają usługi automatyczne, można je dołączyć do zamówienia modyfikacji indywidualnej.', 'Allowed formats: csv, txt, log, xlsx, pdf, jpg, png, zip (up to 10 MB). Automatic services do not use attachments; you can attach them to an individual modification order.')
+      : tr('Plik .bin odczytany ze sterownika, używany przez usługi.', 'A .bin file read from the control unit, used by the services.');
+    if (att) $('vEcuHint').textContent = '';
+  }
 
   function buildVeh() {
     var keep = { b: vget('vBrand'), bo: vget('vBrandOther'), m: vget('vModel'), p: vget('vPower'), e: vget('vEcu'), eo: vget('vEcuOther') };
@@ -1326,7 +1393,9 @@
     if (file.size > MAX) { say('upMsg', tr('Plik jest większy niż 10 MB.', 'The file is larger than 10 MB.'), 'err'); return; }
     if (file.size === 0) { say('upMsg', tr('Plik jest pusty.', 'The file is empty.'), 'err'); return; }
     if (!$('consent').checked) { say('upMsg', tr('Zaznacz zgodę na przesłanie pliku.', 'Tick the consent to upload the file.'), 'err'); return; }
-    var veh = vehicleFields();
+    var att = $('fCat').value === 'attachment';
+    if (att && !ATT_EXT.test(file.name)) { say('upMsg', tr('Niedozwolony format załącznika. Dozwolone: csv, txt, log, xlsx, pdf, jpg, png, zip.', 'Attachment format not allowed. Allowed: csv, txt, log, xlsx, pdf, jpg, png, zip.'), 'err'); return; }
+    var veh = att ? { f: {} } : vehicleFields();
     if (veh.error) { say('upMsg', veh.error, 'err'); return; }
     $('upBtn').disabled = true;
     say('upMsg', tr('Wgrywanie...', 'Uploading...'));
@@ -1336,6 +1405,7 @@
     if (s.error) { say('upMsg', s.error.message, 'err'); $('upBtn').disabled = false; return; }
     var row = { user_id: u.id, original_name: file.name, storage_path: path, size_bytes: file.size, consent_version: 'v1', consent_at: new Date().toISOString() };
     Object.keys(veh.f).forEach(function (k) { row[k] = veh.f[k]; });
+    if (att) { row.category = 'attachment'; var nt = vget('aNote').replace(/\s+/g, ' ').trim(); if (nt) row.label = nt.slice(0, 80); }
     var i = await sb.from('files').insert(row);
     if (i.error) {
       await sb.storage.from('uploads').remove([path]);
@@ -1346,9 +1416,9 @@
     sb.from('consents').insert({ user_id: u.id, kind: 'upload', version: 'v1', details: { file: file.name } });
     $('fileIn').value = '';
     $('consent').checked = false;
-    $('vModel').value = ''; $('vPower').value = ''; $('vEcuHint').textContent = '';
+    $('vModel').value = ''; $('vPower').value = ''; $('vEcuHint').textContent = ''; $('aNote').value = '';
     loadModelHints();
-    say('upMsg', tr('Plik został wgrany.', 'The file was uploaded.'), 'ok');
+    say('upMsg', att ? tr('Załącznik został wgrany.', 'The attachment was uploaded.') : tr('Plik został wgrany.', 'The file was uploaded.'), 'ok');
     $('upBtn').disabled = false;
     loadList();
   }
@@ -1357,6 +1427,7 @@
   $('tabUp').onclick = function () { setMode('up'); };
   $('upBtn').onclick = upload;
   buildVeh();
+  buildCat();
   function syncPwToggle() {
     var shown = $('pw').type === 'text';
     $('pwToggle').textContent = shown ? tr('Ukryj', 'Hide') : tr('Pokaż', 'Show');
@@ -1364,7 +1435,18 @@
   }
   $('pwToggle').onclick = function () { $('pw').type = $('pw').type === 'text' ? 'password' : 'text'; syncPwToggle(); };
   syncPwToggle();
-  if (window.I18N && I18N.onChange) I18N.onChange(syncPwToggle);
+  function syncEyes() {
+    Array.prototype.forEach.call(document.querySelectorAll('button.eye'), function (b) {
+      var shown = $(b.getAttribute('data-for')).type === 'text';
+      b.textContent = shown ? tr('Ukryj', 'Hide') : tr('Pokaż', 'Show');
+      b.setAttribute('aria-label', shown ? tr('Ukryj hasło', 'Hide password') : tr('Pokaż hasło', 'Show password'));
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('button.eye'), function (b) {
+    b.onclick = function () { var i = $(b.getAttribute('data-for')); i.type = i.type === 'text' ? 'password' : 'text'; syncEyes(); };
+  });
+  syncEyes();
+  if (window.I18N && I18N.onChange) I18N.onChange(function () { syncPwToggle(); syncEyes(); });
   setupCollapsibles();
   buildNotice();
   buildOrderForm();
@@ -1376,8 +1458,8 @@
   buildAccount();
   $('delAccBtn').onclick = deleteAccount;
   if (window.I18N && I18N.onChange) I18N.onChange(buildAccount);
-  $('fileIn').onchange = function () { detectEcu($('fileIn').files[0]); };
-  if (window.I18N && I18N.onChange) I18N.onChange(buildVeh);
+  $('fileIn').onchange = function () { if ($('fCat').value === 'ecu') detectEcu($('fileIn').files[0]); };
+  if (window.I18N && I18N.onChange) I18N.onChange(function () { buildVeh(); buildCat(); });
   $('coinsHist').onclick = function () { var b = $('coinsBox'); b.className = b.className.indexOf('hidden') >= 0 ? 'scroll' : 'hidden scroll'; };
   $('runBtn').onclick = runJob;
   $('svcInfoBtn').onclick = showServiceInfo;
@@ -1453,15 +1535,26 @@
     if (a.length < 8) { say('pwMsg', tr('Hasło musi mieć co najmniej 8 znaków.', 'The password must have at least 8 characters.'), 'err'); return; }
     if (a !== b) { say('pwMsg', tr('Hasła nie są takie same.', 'The passwords do not match.'), 'err'); return; }
     $('pwBtn').disabled = true;
+    if (!pwRecovery) {
+      var v = await sb.rpc('verify_my_password', { p_password: $('oldPw').value });
+      if (v.error || !v.data) {
+        $('pwBtn').disabled = false;
+        var tooMany = v.error && String(v.error.message).indexOf('too_many_attempts') >= 0;
+        say('pwMsg', tooMany ? tr('Zbyt wiele nieudanych prób. Spróbuj ponownie za godzinę albo użyj „Nie pamiętam hasła”.', 'Too many failed attempts. Try again in an hour or use "Forgot password".') : v.error ? v.error.message : tr('Obecne hasło jest nieprawidłowe.', 'The current password is incorrect.'), 'err');
+        return;
+      }
+    }
     var r = await sb.auth.updateUser({ password: a });
     $('pwBtn').disabled = false;
     if (r.error) {
       say('pwMsg', r.error.code === 'same_password' ? tr('Nowe hasło musi być inne niż obecne.', 'The new password must be different from the current one.') : r.error.message, 'err');
       return;
     }
-    $('newPw').value = ''; $('newPw2').value = '';
+    $('oldPw').value = ''; $('newPw').value = ''; $('newPw2').value = '';
+    pwRecovery = false; $('oldPwRow').className = '';
     say('pwMsg', tr('Hasło zostało zmienione.', 'Your password has been changed.'), 'ok');
   };
+  var pwRecovery = false;
 
   $('authForm').onsubmit = async function (e) {
     e.preventDefault();
@@ -1489,6 +1582,7 @@
       show(session);
       if (recovering && session) {
         recovering = false;
+        pwRecovery = true; $('oldPwRow').className = 'hidden';
         setOpen('account', true);
         say('pwMsg', tr('Ustaw nowe hasło poniżej.', 'Set your new password below.'), 'ok');
         $('pwBox').scrollIntoView({ block: 'center' });
