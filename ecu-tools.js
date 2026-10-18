@@ -301,6 +301,9 @@
 
     var style = document.createElement('style'); style.textContent = CSS; document.head.appendChild(style);
 
+    var fileInput = el('input', { type: 'file' });
+    fileInput.onchange = function () { onFile(fileInput.files[0]); };
+
     function setErr(pl, en) { st.err = pl ? T(pl, en) : ''; }
 
     function onFile(file) {
@@ -450,9 +453,7 @@
 
       var c1 = el('div', { cls: 'card' });
       c1.appendChild(el('h2', { text: T('1. Wybierz plik ze sterownika', '1. Choose the ECU file') }));
-      var inp = el('input', { type: 'file' });
-      inp.onchange = function () { onFile(inp.files[0]); };
-      c1.appendChild(inp);
+      c1.appendChild(fileInput);
       if (st.name && st.data) c1.appendChild(el('div', { cls: 'small', text: T('Wczytano: ', 'Loaded: ') + st.name + ' (' + (st.data.length / 1048576).toFixed(2) + ' MB)' }));
       c1.appendChild(el('div', { cls: 'small', text: T('Plik jest przetwarzany wyłącznie w Twojej przeglądarce i nie jest nigdzie wysyłany. Narzędzie działa wyłącznie dla plików ze sterowników Bosch EDC16 z samochodów BMW (diesel).', 'The file is processed entirely in your browser and is not uploaded anywhere. The tool works only for files from Bosch EDC16 control units of BMW cars (diesel).') }));
       if (st.err) c1.appendChild(el('div', { cls: 'msg err', text: st.err }));
