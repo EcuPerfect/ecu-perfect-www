@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ECU-Perfect – chiptuning Wrocław</title>
+<meta name="description" content="ECU-Perfect – chiptuning, hamownia, diagnostyka komputerowa. Wrocław. Zajrzyj na nasz profil na Facebooku.">
+<meta property="og:title" content="ECU-Perfect – chiptuning Wrocław">
+<meta property="og:image" content="fb_tlo.jpg">
+<style>
+  :root { --red:#e5202e; --red2:#ff4b57; --bg:#0b0b10; --card:#15151d; --line:#262633; --txt:#f2f2f6; --muted:#9a9aab; }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { margin:0; font-family:"Segoe UI",system-ui,Arial,sans-serif; background:var(--bg); color:var(--txt); line-height:1.55; }
+  a { color:inherit; }
+
+  nav { position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center;
+        padding:12px 24px; background:rgba(11,11,16,.88); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+  .logo { font-weight:800; letter-spacing:2px; text-decoration:none; }
+  .logo b { color:inherit; }
+  nav .links a { margin-left:20px; text-decoration:none; color:var(--muted); font-size:.95rem; }
+  nav .links a:hover { color:var(--txt); }
+
+  .hero { position:relative; }
+  .hero img { display:block; width:100%; max-height:520px; object-fit:cover; object-position:left center; }
+  .hero::after { content:""; position:absolute; inset:auto 0 0 0; height:12%; background:linear-gradient(180deg,transparent,var(--bg)); }
+
+  .invite { text-align:center; padding:36px 20px 60px; max-width:820px; margin:0 auto; position:relative; z-index:2; }
+  .invite h1 { font-size:clamp(1.8rem,5vw,3rem); margin:0 0 10px; line-height:1.15; }
+  .invite h1 span { color:var(--red); }
+  .invite p { color:var(--muted); font-size:1.1rem; margin:0 auto 28px; max-width:620px; }
+  .btn { display:inline-flex; align-items:center; gap:10px; padding:14px 26px; border-radius:10px; font-weight:700;
+         text-decoration:none; background:var(--red); color:#fff; transition:.15s; border:2px solid var(--red); }
+  .btn:hover { background:var(--red2); border-color:var(--red2); transform:translateY(-1px); }
+  .btn.ghost { background:transparent; color:var(--txt); border-color:var(--line); }
+  .btn.ghost:hover { border-color:var(--red); background:transparent; }
+  .btn svg { width:22px; height:22px; fill:currentColor; }
+  .btns { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+
+  section { max-width:980px; margin:0 auto; padding:30px 20px 40px; }
+  h2 { font-size:1.6rem; margin:0 0 6px; }
+  h2::after { content:""; display:block; width:48px; height:3px; background:var(--red); margin-top:8px; border-radius:2px; }
+  .lead { color:var(--muted); margin:14px 0 24px; }
+  .lead.big { font-size:1.25rem; color:var(--txt); max-width:720px; }
+  .grid.one { grid-template-columns:minmax(260px,560px); }
+
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:22px; }
+  .card .n { color:var(--red); font-weight:800; font-size:.9rem; letter-spacing:2px; }
+  .card h3 { margin:6px 0 6px; font-size:1.15rem; }
+  .card p { margin:0; color:var(--muted); font-size:.95rem; }
+
+  .dl { display:flex; flex-direction:column; justify-content:space-between; }
+  .dl .btn { padding:11px 20px; }
+  .btnrow { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+  .tag { display:inline-block; font-size:.75rem; color:var(--red2); border:1px solid var(--red); border-radius:20px; padding:2px 10px; margin-bottom:8px; }
+  .small { color:var(--muted); font-size:.85rem; margin-top:16px; }
+
+  .contact { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }
+  .contact .card a { text-decoration:none; font-size:1.15rem; font-weight:600; }
+  .contact .card a:hover { color:var(--red2); }
+  .label { color:var(--muted); font-size:.8rem; text-transform:uppercase; letter-spacing:1.5px; }
+
+  footer { text-align:center; color:var(--muted); font-size:.85rem; padding:34px 20px; border-top:1px solid var(--line); margin-top:30px; }
+  @media (max-width:560px){ nav .links a:not(:last-child){ display:none; } }
+</style>
+<script src="i18n.js"></script>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="#">ECU-<b>Perfect</b></a>
+  <div class="links">
+    <a href="#uslugi">Usługi</a>
+    <a href="#tools">Narzędzia</a>
+    <a href="#kontakt">Kontakt</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <img src="fb_tlo.jpg" alt="ECU-Perfect – chiptuning Wrocław">
+</div>
+
+<div class="invite">
+  <h1>Zapraszamy na nasz <span>profil na Facebooku</span></h1>
+  <p>Realizacje, wyniki z hamowni, ciekawe projekty. Napisz, jeśli masz pytanie o swoje auto.</p>
+  <div class="btns">
+    <a class="btn" href="https://www.facebook.com/EcuPerfect/" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.78-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99A10 10 0 0 0 22 12z"/></svg>
+      Odwiedź nas na Facebooku
+    </a>
+    <a class="btn ghost" href="#tools">Narzędzia</a>
+  </div>
+</div>
+
+<section id="uslugi">
+  <h2>Czym się zajmujemy</h2>
+  <p class="lead big">Indywidualny chiptuning z pomiarem mocy oraz diagnostyką komputerową.</p>
+</section>
+
+<section id="tools">
+  <a id="download"></a>
+  <h2>Narzędzia</h2>
+  <div class="grid">
+    <div class="card dl">
+      <div>
+        <span class="tag">Online · v1.0</span>
+        <h3>Moc silnika na podstawie przyspieszenia</h3>
+        <p>Szacuje moc silnika na podstawie masy auta i zmierzonego czasu przyspieszenia
+           100–200 lub 100–150 km/h.</p>
+      </div>
+      <div class="btnrow">
+        <a class="btn" href="powerfromacceleration.html">Otwórz kalkulator</a>
+      </div>
+    </div>
+    <div class="card dl">
+      <div>
+        <span class="tag">Online · bez logowania</span>
+        <h3>Adaptacja czujnika doładowania (MAP)</h3>
+        <p>Zmienia linearyzację czujnika ciśnienia doładowania w pliku ze sterownika Bosch EDC16 samochodów BMW (diesel). Plik jest przetwarzany w przeglądarce i nigdzie nie jest wysyłany.</p>
+      </div>
+      <div class="btnrow">
+        <a class="btn" href="mapsensoradapt.html">Otwórz narzędzie</a>
+      </div>
+    </div>
+    <div class="card dl">
+      <div>
+        <span class="tag">Online · bez logowania</span>
+        <h3>Adaptacja czujnika wysokiego ciśnienia paliwa (rail)</h3>
+        <p>Zmienia linearyzację czujnika ciśnienia w listwie wtryskowej w pliku ze sterownika Bosch EDC16 samochodów BMW (diesel). Plik jest przetwarzany w przeglądarce i nigdzie nie jest wysyłany.</p>
+      </div>
+      <div class="btnrow">
+        <a class="btn" href="railsensoradapt.html">Otwórz narzędzie</a>
+      </div>
+    </div>
+    <div class="card dl">
+      <div>
+        <span class="tag">Online · bez logowania</span>
+        <h3>Wyłączanie kodów błędów (DTC off)</h3>
+        <p>Wyszukuje listę błędów w pliku ze sterownika Bosch EDC16 samochodów BMW (diesel) i pozwala wyłączyć wybrane z nich. Plik jest przetwarzany w przeglądarce i nigdzie nie jest wysyłany.</p>
+      </div>
+      <div class="btnrow">
+        <a class="btn" href="dtcoff.html">Otwórz narzędzie</a>
+      </div>
+    </div>
+    <div class="card dl">
+      <div>
+        <span class="tag">Online · v1.0</span>
+        <h3>Moc silnika diesla na podstawie parametrów live-data</h3>
+        <p>Szacuje moc i moment silnika diesla na podstawie obrotów, dawki paliwa (mg/suw),
+           doładowania, lambdy i pojemności. Opcjonalnie uwzględnia dyszę nitro.</p>
+      </div>
+      <div class="btnrow">
+        <a class="btn" href="dieselpowerlivedata.html">Otwórz kalkulator</a>
+      </div>
+    </div>
+    <div class="card dl">
+      <div>
+        <span class="tag">Online · v1.0</span>
+        <h3>Moc silnika benzynowego (turbo) na podstawie parametrów live-data</h3>
+        <p>Szacuje moc i moment turbodoładowanego silnika benzynowego z doładowania, VE lub MAF, lambdy
+           i paliwa (benzyna, E85, mieszanki). Podpowiada też przepływ powietrza i rozmiar wtryskiwaczy.</p>
+      </div>
+      <div class="btnrow">
+        <a class="btn" href="petrolpowerlivedata.html">Otwórz kalkulator</a>
+      </div>
+    </div>
+    <div class="card dl">
+      <div>
+        <span class="tag">Online · v1.0</span>
+        <h3>Kalkulator obwodu opon</h3>
+        <p>Liczy obwód opony (np. 225/55 R17) i pokazuje zamienniki o najbliższym obwodzie
+           z różnicą w cm i w procentach oraz wpływem na prędkościomierz.</p>
+      </div>
+      <div class="btnrow">
+        <a class="btn" href="tyrecalculator.html">Otwórz kalkulator</a>
+      </div>
+    </div>
+    <div class="card dl">
+      <div>
+        <span class="tag">Online · v1.0</span>
+        <h3>Prędkość auta na biegach</h3>
+        <p>Prędkość na każdym z 8 biegów z obrotów silnika, przełożeń skrzyni, dyferencjału i rozmiaru opon.</p>
+      </div>
+      <div class="btnrow">
+        <a class="btn" href="gearspeedcalculator.html">Otwórz kalkulator</a>
+      </div>
+    </div>
+    <div class="card dl">
+      <div>
+        <span class="tag">Online · v1.0</span>
+        <h3>Przelicznik jednostek mocy</h3>
+        <p>kW, KM (PS), HP oraz Nm, lb-ft, kGm – plus przeliczanie mocy na moment przy zadanych obrotach.</p>
+      </div>
+      <div class="btnrow">
+        <a class="btn" href="unitconverter.html">Otwórz przelicznik</a>
+      </div>
+    </div>
+    <div class="card dl">
+      <div>
+        <span class="tag">Poradnik</span>
+        <h3>Silnik diesla – jak to naprawdę działa</h3>
+        <p>Powietrze, paliwo, turbo, EGR, AFR, wtrysk common rail, DPF i AdBlue oraz odczyt parametrów w logach.
+           Z dwoma kalkulatorami (kg/h na mg/suw oraz AFR i lambda).</p>
+      </div>
+      <div class="btnrow">
+        <a class="btn" href="dieselhowdoesitwork.html">Czytaj</a>
+      </div>
+    </div>
+    <div class="card dl">
+      <div>
+        <span class="tag">Linki</span>
+        <h3>Przydatne linki</h3>
+        <p>Wiki o sterownikach (ME7, MS4x, Simos, EDC17), kody błędów BMW i VAG, narzędzia do tuningu,
+           kalkulatory turbo i katalogi części – z krótkim opisem każdej strony.</p>
+      </div>
+      <div class="btnrow">
+        <a class="btn" href="usefullinks.html">Zobacz linki</a>
+      </div>
+    </div>
+  </div>
+  <p class="small">Wyniki kalkulatorów mocy silnika są orientacyjne i nie zastępują pomiaru na hamowni.</p>
+</section>
+
+<section id="kontakt">
+  <h2>Kontakt</h2>
+  <p class="lead">Najszybciej telefonicznie lub przez Facebooka.</p>
+  <div class="contact">
+    <div class="card"><div class="label">Telefon</div><a href="tel:+48603601786">+48 603 601 786</a></div>
+    <div class="card"><div class="label">E-mail</div><a href="mailto:contact@ecu-perfect.pl">contact@ecu-perfect.pl</a></div>
+    <div class="card"><div class="label">Facebook</div><a href="https://www.facebook.com/EcuPerfect/" target="_blank" rel="noopener">/EcuPerfect</a></div>
+  </div>
+</section>
+
+<footer>&copy; ECU-Perfect · chiptuning · Wrocław · <a href="https://www.ecu-perfect.pl">www.ecu-perfect.pl</a><small style="display:block;margin-top:6px;opacity:.8">Kopiowanie, przerabianie i wykorzystywanie treści, narzędzi oraz logo tej strony wymaga zgody. Udostępnianie linków jest dozwolone.</small></footer>
+
+<script>
+(function () {
+  function tr(pl, en) { return window.I18N ? I18N.t(pl, en) : pl; }
+
+  var SERVICES = [
+    { n: ['Adaptacja czujnika wysokiego ciśnienia paliwa', 'High-pressure fuel sensor adaptation'],
+      d: ['Zmiana linearyzacji czujnika ciśnienia w listwie (rail) na czujnik o innym zakresie, np. 1800 ↔ 2700 bar.', 'Changing the linearization of the rail pressure sensor to a sensor with a different range, e.g. 1800 ↔ 2700 bar.'] },
+    { n: ['Adaptacja czujnika doładowania', 'Boost sensor adaptation'],
+      d: ['Zmiana linearyzacji czujnika ciśnienia doładowania (MAP) na czujnik o innym zakresie pomiarowym.', 'Changing the linearization of the boost pressure (MAP) sensor to a sensor with a different measuring range.'] },
+    { n: ['Wyłączanie błędów (DTC off)', 'Error disabling (DTC off)'],
+      d: ['Program sam znajduje listę błędów w pliku, a Ty wybierasz, które wyłączyć.', 'The program finds the error list in the file by itself and you choose which errors to disable.'] },
+    { n: ['Modyfikacja indywidualna', 'Individual modification'],
+      d: ['Modyfikacja na zamówienie: EGR, DPF, AdBlue, DTC, chiptuning. Otrzymasz wycenę i porozmawiasz z nami w panelu.', 'Made-to-order modification: EGR, DPF, AdBlue, DTC, chip tuning. You get a quote and can talk to us in the panel.'] }
+  ];
+
+  var link = document.createElement('a');
+  link.href = 'panel.html';
+  document.querySelector('nav .links').appendChild(link);
+
+  var btn = document.createElement('a');
+  btn.className = 'btn ghost'; btn.href = 'panel.html';
+  var btns = document.querySelector('.invite .btns');
+  if (btns) btns.appendChild(btn);
+
+  var sec = document.createElement('section');
+  sec.id = 'online';
+  document.getElementById('uslugi').parentNode.insertBefore(sec, document.getElementById('tools'));
+
+  function buildFooter() {
+    var f = document.querySelector('footer');
+    if (!f) return;
+    var old = document.getElementById('legalFooter'); if (old) old.remove();
+    var d = document.createElement('div'); d.id = 'legalFooter'; d.style.marginTop = '6px';
+    var a = document.createElement('a'); a.href = 'regulamin.html'; a.textContent = tr('Regulamin', 'Terms of service');
+    var b = document.createElement('a'); b.href = 'polityka-prywatnosci.html'; b.textContent = tr('Polityka prywatności', 'Privacy policy');
+    d.appendChild(a); d.appendChild(document.createTextNode(' · ')); d.appendChild(b);
+    f.appendChild(d);
+  }
+
+  function build() {
+    buildFooter();
+    link.textContent = tr('Panel klienta', 'Client panel');
+    btn.textContent = tr('Panel klienta', 'Client panel');
+    sec.innerHTML = '';
+    var h = document.createElement('h2'); h.textContent = tr('Usługi online', 'Online services'); sec.appendChild(h);
+    var p = document.createElement('p'); p.className = 'lead';
+    p.textContent = tr('Wgraj plik, wybierz usługę i pobierz wynik. Załóż konto w panelu klienta.', 'Upload a file, choose a service and download the result. Create an account in the client panel.');
+    sec.appendChild(p);
+    var g = document.createElement('div'); g.className = 'grid';
+    SERVICES.forEach(function (s) {
+      var c = document.createElement('div'); c.className = 'card';
+      var t = document.createElement('h3'); t.textContent = tr(s.n[0], s.n[1]);
+      var d = document.createElement('p'); d.textContent = tr(s.d[0], s.d[1]);
+      c.appendChild(t); c.appendChild(d); g.appendChild(c);
+    });
+    sec.appendChild(g);
+    var row = document.createElement('div'); row.className = 'btnrow';
+    var go = document.createElement('a'); go.className = 'btn'; go.href = 'panel.html'; go.textContent = tr('Zaloguj się / załóż konto', 'Log in / create an account');
+    row.appendChild(go); sec.appendChild(row);
+  }
+
+  build();
+  if (window.I18N && I18N.onChange) I18N.onChange(build);
+})();
+</script>
+
+</body>
+</html>
