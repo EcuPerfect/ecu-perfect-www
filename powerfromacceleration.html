@@ -57,6 +57,11 @@
   footer { text-align:center; color:var(--muted); font-size:.85rem; padding:30px 20px; border-top:1px solid var(--line); }
   .btn-help { display:inline-block; padding:11px 22px; border-radius:10px; border:2px solid var(--red); background:transparent; color:var(--txt); font-weight:700; font-size:1rem; text-decoration:none; margin-top:14px; line-height:normal; }
   .btn-help:hover { background:var(--red); color:#fff; }
+  .seealso { margin:14px 0 18px; padding:12px 16px; background:#1c1218; border:1px solid var(--line); border-left:4px solid var(--red); border-radius:8px; font-size:1.1rem; }
+  .seealso b { color:var(--muted); font-weight:600; margin-right:6px; }
+  .seealso a { font-weight:700; color:var(--txt); text-decoration:underline; text-decoration-color:var(--red); text-underline-offset:3px; }
+  .seealso a:hover { color:var(--red2); }
+  .seealso .sep { margin:0 8px; color:var(--muted); }
 </style>
 <script src="i18n.js"></script>
 </head>
@@ -68,6 +73,7 @@
 <main>
   <h1 id="h1rng">Moc silnika na podstawie przyspieszenia 100–200 km/h</h1>
   <p class="lead" id="leadRng">Podaj masę auta i zmierzony czas przyspieszenia od 100 do 200 km/h – kalkulator oszacuje moc silnika.</p>
+  <div class="seealso"><b>Zobacz też:</b> <a href="dieselhowdoesitwork.html">Silnik diesla – jak to naprawdę działa</a><span class="sep">·</span><a href="petrolhowdoesitwork.html">Silnik benzynowy – jak to naprawdę działa</a></div>
 
   <div class="card">
     <div class="stats">
@@ -100,7 +106,7 @@
   </div>
   <p class="small" style="margin-top:0">Model: moc na kołach = moc silnika pomniejszona o straty napędu wybranego typu (FWD 90%, RWD 88%, 4x4 84% sprawności; skrzynia pomijana), uwzględnia opór powietrza i toczenia. Pole „Wykorzystanie mocy szczytowej" określa, jaką część mocy maksymalnej silnik oddaje średnio na całym odcinku (zmiany biegów, spadek mocy na wysokich obrotach); domyślnie 90%. Wartości w podpowiedzi są orientacyjne. Wynik to szacunek – dokładność zależy od jakości pomiaru czasu (najlepiej GPS), wiatru, nachylenia drogi, przełożeń i aerodynamiki auta. Nachylenie: wpisz średnie nachylenie odcinka (+ pod górę, − z górki) – kalkulator wyliczy moc z uwzględnieniem siły ciężkości, a następnie pokaże, jaki czas auto uzyska na płaskiej drodze. Wiatru nie uwzględniamy. Najlepiej mierz w obu kierunkach i uśrednij.</p>
 </main>
-<footer>&copy; ECU-Perfect · chiptuning · Wrocław<small style="display:block;margin-top:6px;opacity:.8">Kopiowanie, przerabianie i wykorzystywanie treści, narzędzi oraz logo tej strony wymaga zgody. Udostępnianie linków jest dozwolone. Wyniki są orientacyjne.</small></footer>
+<footer>&copy; ECU-Perfect · chiptuning · Wrocław<small style="display:block;margin-top:6px;opacity:.8">Kopiowanie, przerabianie i wykorzystywanie treści, narzędzi oraz logo tej strony wymaga zgody. <u>Udostępnianie linków jest dozwolone.</u> Wyniki są orientacyjne.</small></footer>
 <script>
 function $(id){return document.getElementById(id);}
 function num(id){var s=$(id).value.trim().replace(',','.');return s===''?NaN:parseFloat(s);}

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Silnik benzynowy – jak to naprawdę działa – ECU-Perfect</title>
+<meta name="description" content="Jak działa silnik benzynowy: powietrze, paliwo, lambda, zapłon, wtrysk, turbo, gaźniki i dwusuwy oraz odczyt parametrów w logach.">
+<meta name="robots" content="noindex">
+<style>
+  :root { --red:#e5202e; --red2:#ff4b57; --bg:#0b0b10; --card:#15151d; --line:#262633; --txt:#f2f2f6; --muted:#9a9aab; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Segoe UI",system-ui,Arial,sans-serif; background:var(--bg); color:var(--txt); line-height:1.5; }
+  a { color:inherit; }
+  nav { position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center; padding:12px 24px; background:rgba(11,11,16,.9); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+  .logo { font-weight:800; letter-spacing:2px; text-decoration:none; } .logo b { color:inherit; }
+  nav .links a { margin-left:20px; text-decoration:none; color:var(--muted); font-size:.95rem; } nav .links a:hover { color:var(--txt); }
+  main { max-width:1000px; margin:0 auto; padding:30px 20px 50px; }
+  h1 { margin:0 0 6px; font-size:clamp(1.6rem,4.5vw,2.4rem); }
+  h1::after { content:""; display:block; width:56px; height:3px; background:var(--red); margin-top:10px; border-radius:2px; }
+  .lead { color:var(--muted); margin:14px 0 26px; max-width:760px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; margin-bottom:18px; }
+  .card h2 { margin:0 0 14px; font-size:1.05rem; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; }
+  label { display:block; font-size:.8rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
+  label small { text-transform:none; letter-spacing:0; display:block; opacity:.8; }
+  select, input, textarea { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:#0f0f16; color:var(--txt); font-size:1.05rem; font-family:inherit; }
+  select:focus, input:focus, textarea:focus { outline:2px solid var(--red); border-color:var(--red); }
+  button { padding:11px 22px; border-radius:10px; border:2px solid var(--red); background:var(--red); color:#fff; font-weight:700; font-size:1rem; cursor:pointer; margin-top:14px; }
+  button:hover { background:var(--red2); border-color:var(--red2); }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-top:6px; }
+  .big { background:#0f0f16; border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .big .v { font-size:1.7rem; font-weight:800; line-height:1.1; } .big .v span { font-size:.9rem; color:var(--muted); font-weight:600; }
+  .big .t { color:var(--muted); font-size:.75rem; text-transform:uppercase; letter-spacing:1.2px; }
+  .scroll { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:.95rem; min-width:520px; }
+  th, td { padding:8px 10px; text-align:center; border-bottom:1px solid var(--line); white-space:nowrap; }
+  th { color:var(--muted); font-weight:600; font-size:.75rem; text-transform:uppercase; }
+  .small { color:var(--muted); font-size:.82rem; margin-top:14px; }
+  .error { color:var(--red2); margin-top:10px; min-height:1em; }
+  footer { text-align:center; color:var(--muted); font-size:.85rem; padding:30px 20px; border-top:1px solid var(--line); }
+  .links-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; }
+  a.lk { display:block; text-decoration:none; background:#0f0f16; border:1px solid var(--line); border-radius:10px; padding:12px 14px; transition:.15s; }
+  a.lk:hover { border-color:var(--red); transform:translateY(-1px); }
+  a.lk b { display:block; color:var(--txt); }
+  a.lk span { display:block; color:var(--muted); font-size:.88rem; margin-top:2px; }
+  a.lk i { display:block; color:var(--red2); font-style:normal; font-size:.75rem; margin-top:4px; word-break:break-all; }
+  .article { max-width:820px; }
+  .article h2 { margin:34px 0 10px; font-size:1.35rem; }
+  .article h3 { margin:24px 0 8px; font-size:1.1rem; color:var(--red2); }
+  .article p, .article li { color:var(--txt); }
+  .article ul { padding-left:22px; } .article li { margin-bottom:8px; }
+  .article .fig { margin:18px 0; } .article .fig img { width:100%; height:auto; border:1px solid var(--line); border-radius:10px; display:block; }
+  .article .fig .cap { color:var(--muted); font-size:.85rem; margin-top:6px; }
+  .calc { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; margin:22px 0; }
+  .calc h3 { margin:0 0 4px; color:var(--txt); font-size:1.1rem; }
+  .calc .sub { color:var(--muted); font-size:.9rem; margin:0 0 14px; }
+  .calc .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; }
+  .calc label { display:block; font-size:.8rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
+  .calc label small { text-transform:none; letter-spacing:0; display:block; opacity:.8; }
+  .calc input { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:#0f0f16; color:var(--txt); font-size:1.05rem; font-family:inherit; }
+  .calc input:focus { outline:2px solid var(--red); border-color:var(--red); }
+  .calc .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-top:16px; }
+  .calc .big { background:#0f0f16; border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .calc .big.main { border-color:var(--red); }
+  .calc .big .v { font-size:1.7rem; font-weight:800; line-height:1.1; } .calc .big .v span { font-size:.9rem; color:var(--muted); font-weight:600; }
+  .calc .big .t { color:var(--muted); font-size:.75rem; text-transform:uppercase; letter-spacing:1.2px; }
+  .calc .note { color:var(--muted); font-size:.85rem; margin:12px 0 0; }
+  .calc .err { color:var(--red2); font-size:.9rem; margin-top:10px; min-height:1em; }
+</style>
+<script src="i18n.js"></script>
+</head>
+<body>
+<nav>
+  <a class="logo" href="index.html">ECU-<b>Perfect</b></a>
+  <div class="links"><a href="index.html">← Strona główna</a><a href="index.html#tools">Narzędzia</a></div>
+</nav>
+<main class="article">
+<h1>Silnik benzynowy – jak to naprawdę działa</h1>
+<p>Zacznijmy od stwierdzenia: silnik benzynowy „jedzie mieszanką", a nie paliwem.</p>
+<p>W dieslu komputer najpierw wybiera dawkę paliwa, a powietrze jest dodatkiem. W benzynowym jest odwrotnie: kierowca przepustnicą (czyli pedałem gazu) decyduje, ile powietrza trafi do cylindrów, a paliwo jest do tego powietrza dobierane tak, żeby mieszanka była prawidłowa. Dlatego w benzynie zwykle znajdziesz przepustnicę (wyjątkiem są nieliczne konstrukcje, jak Valvetronic w BMW, które dławią powietrze skokiem zaworów dolotowych), a mocą steruje się w zasadzie powietrzem.</p>
+<h2>Jak to było kiedyś: gaźnik i dwusuwy</h2>
+<p>Kilkadziesiąt lat temu o paliwie w silniku benzynowym decydował gaźnik: urządzenie bez grama elektroniki. Powietrze zasysane przez silnik przepływa przez zwężkę (gardziel), gdzie powstaje podciśnienie, i to podciśnienie wyciąga paliwo z komory pływakowej przez dyszę. Im więcej powietrza, tym więcej paliwa, więc proporcja sama się trzyma, a przepustnica w gaźniku dławi przepływ powietrza. Na zimny silnik służyło „ssanie", które wzbogacało mieszankę, a pompka przyspieszenia dorzucała paliwo, gdy kierowca gwałtownie wciskał gaz. Dostrajanie polegało na wymianie dysz i śrubokręcie.</p>
+<p>Jeszcze prościej bywało w silnikach dwusuwowych (skutery, WSK, Simson, Trabant, a dziś piły spalinowe i kosy). Dwusuw nie ma zaworów: otwory w cylindrze otwiera i zamyka sam tłok, a świeża mieszanka jest wstępnie sprężana w skrzyni korbowej. Każdy obrót wału to jeden suw pracy (w czterosuwie co drugi), stąd duża moc z małej pojemności. Cena? Olej do smarowania dodawany jest do paliwa (np. w proporcji 1:50), więc takie silniki dymią na niebiesko i pachną charakterystycznie, a paliwo bywa „przepłukiwane" wprost do wydechu.</p>
+<p>Elektronika wchodziła stopniowo: wtrysk mechaniczny i Bosch Jetronic już w latach 70., a od początku lat 90. katalizator trójfunkcyjny wymusił precyzyjne pilnowanie składu mieszanki sondą lambda. Tak powstały dzisiejsze wtryski wielopunktowe i bezpośrednie.</p>
+<h2>Zapłon iskrowy, czyli skąd bierze się wybuch</h2>
+<p>W benzynie mieszanka nie zapala się sama. Zapłon wywołuje iskra świecy w odpowiednim momencie, a od tego momentu zależy, jak dobrze spala się paliwo. Iskrę daje się <b>przed</b> górnym martwym punktem (GMP), bo spalanie też trwa i najwięcej ciśnienia chcemy mieć tuż po GMP. Ten kąt nazywa się kątem wyprzedzenia zapłonu i zmienia się z obrotami i obciążeniem.</p>
+<p>Za wcześnie podana iskra i zbyt wysokie ciśnienie lub temperatura powodują spalanie stukowe (czyli „stuki", w których część mieszanki zapala się nie od iskry), które bardzo szybko niszczy tłoki. Dlatego silniki mają czujnik spalania stukowego, a komputer w razie wykrycia stuku natychmiast opóźnia zapłon. Paliwo o wyższej liczbie oktanowej jest odporniejsze na stuki.</p>
+<h2>Jak komputer steruje silnikiem benzynowym w pigułce</h2>
+<h3>Wolne obroty</h3>
+<p>Na wolnych obrotach (ok. 700–900 obr/min po rozgrzaniu silnika) komputer pilnuje zadanych obrotów biegu jałowego. Kiedyś robił to silniczek krokowy, który uchylał obejście przepustnicy, dziś często robi to przepustnica elektroniczna. Spadają obroty, to uchyla przepustnicę i dodaje paliwa, rosną, to przymyka.</p>
+<p>Mieszanka na wolnych obrotach i przy lekkim obciążeniu ma skład ok. 14,7:1, czyli 14,7 kg powietrza na 1 kg paliwa. Taki skład nazywamy stechiometrycznym, a jego miarą jest <b>lambda</b> (λ = 1). Mieszanka bogatsza (więcej paliwa) ma λ &lt; 1, uboższa λ &gt; 1. Katalizator trójfunkcyjny działa dobrze tylko przy λ bardzo bliskiej 1, dlatego komputer cały czas koryguje dawkę na podstawie sondy lambda. Te korekty widzisz w logach jako korekty krótko- i długoterminowe.</p>
+<h3>Jazda z gazem</h3>
+<p>Wciskasz pedał, a komputer (w nowszych autach) nie otwiera przepustnicy wprost, tylko przelicza to na żądanie momentu/load. Następnie wylicza, ile powietrza potrzeba, otwiera przepustnicę (a w doładowanych dodatkowo steruje turbiną) i na podstawie przepływomierza lub czujnika ciśnienia w kolektorze wie, ile powietrza faktycznie trafiło do cylindra, a do tej ilości powietrza dobiera paliwo według zadanego składu mieszanki.</p>
+<p>Przyjmijmy dla uproszczenia, że 1 m³ powietrza waży 1 kg (w rzeczywistości przy 20°C to ok. 1,2 kg). Wtedy cylinder o pojemności 0,5 l w silniku wolnossącym przy w pełni otwartej przepustnicy „zasysa" ok. 500 mg powietrza, a przy λ = 1 potrzebuje do niego ok. 34 mg paliwa (500/14,7).</p>
+<p>Przy pełnym obciążeniu mieszanka jest zwykle celowo wzbogacana (λ ok. 0,85–0,9). Więcej paliwa chłodzi komorę spalania i chroni silnik przed stukiem, zwłaszcza turbodoładowany. Nowsze konstrukcje coraz częściej jadą nawet na pełnym obciążeniu z λ blisko 1.</p>
+<h3>Wtrysk: czas, ciśnienie, kąt</h3>
+<p>W silnikach z wtryskiem do kolektora (MPI) paliwo jest wtryskiwane pod ciśnieniem ok. 3–5 bar, we wtrysku bezpośrednim (GDI, FSI, TFSI) wprost do cylindra pod ciśnieniem od ok. 100 do ok. 350 bar (w najnowszych konstrukcjach nawet więcej).</p>
+<p>Wtryskiwacz to w uproszczeniu kran: komputer go otwiera i zamyka. Ten sam kran w łazience, otwarty na ten sam czas, wleje różną ilość wody zależnie od ciśnienia w instalacji. Z paliwem jest tak samo, a o wydajności wtryskiwacza mówi się w cm³ na minutę (przy znanym ciśnieniu).</p>
+<p>Czas wtrysku w benzynie podaje się najczęściej w milisekundach: we wtrysku do kolektora typowo od kilku ms na wolnych obrotach do kilkunastu ms przy pełnym obciążeniu, a we wtrysku bezpośrednim zwykle krócej (od ułamków do kilku ms), bo ciśnienie jest dużo wyższe. Skoro znamy obroty, możemy zamienić czas na stopnie obrotu wału: przy 6000 obr/min jedna milisekunda to aż 36°, przy 1000 obr/min tylko 6°. Pełny cykl czterosuwu to 720° (dwa obroty wału), więc im wyższe obroty, tym mniej czasu na wtrysk i tym większy stopień wykorzystania wtryskiwacza.</p>
+<div class="calc" id="angcalc">
+  <h3>Kalkulator: czas wtrysku na stopnie obrotu wału</h3>
+  <p class="sub">Wpisz czas trwania wtrysku i obroty. Czas w stopniach obrotu wału przelicza się automatycznie.</p>
+  <div class="grid">
+    <div><label for="p3_ms">Czas trwania wtrysku [ms]<small>np. 5</small></label><input id="p3_ms" value="5" inputmode="decimal"></div>
+    <div><label for="p3_rpm">Obroty [obr/min]<small>np. 6000</small></label><input id="p3_rpm" value="6000" inputmode="decimal"></div>
+  </div>
+  <div class="stats">
+    <div class="big main"><div class="t">Czas wtrysku w stopniach wału</div><div class="v" id="p3_o1">–<span> °</span></div></div>
+    <div class="big"><div class="t">Część pełnego cyklu (720°)</div><div class="v" id="p3_o2">–<span> %</span></div></div>
+  </div>
+  <div class="err" id="p3_err"></div>
+</div>
+
+<h3>Powietrze, turbo i moc</h3>
+<p>Moc silnika benzynowego jest wprost proporcjonalna do ilości powietrza, które w ciągu cyklu uda się upchnąć w cylindrach (i dobrać do niego paliwo). Wolnossący silnik zassie tyle, ile wynika z pojemności i napełniania. Turbosprężarka (lub kompresor) wciska do cylindra więcej powietrza: ciśnienie bezwzględne 2,5 bara to „wirtualnie" 2,5 razy większa pojemność.</p>
+<p>Policzmy na prostym przykładzie. Załóżmy cylinder 0,5 l i 1,5 bara doładowania względnego. Razem z atmosferycznym (ok. 1 bar) daje to 2,5 bara ciśnienia bezwzględnego, czyli wirtualnie 1,25 l i <b>1250 mg powietrza</b> zamiast 500. Przy λ = 0,85 (AFR ok. 12,5) potrzeba do tego ok. <b>100 mg paliwa</b>, czyli prawie trzy razy więcej niż w silniku wolnossącym przy w pełni otwartej przepustnicy.</p>
+<p>Powietrze pompowane sprężarką się nagrzewa (pompując koło roweru, można poczuć, jak grzeje się pompka), a gorące powietrze jest rzadsze i bardziej skłonne do stuku. Dlatego stosuje się chłodnicę powietrza (intercooler), a o tym, jak dobrze cylinder się napełnia, mówi współczynnik napełnienia (VE). W silnikach wolnossących najwyższe VE (ok. 90–100%, w dobrze dopracowanych konstrukcjach chwilowo nieco więcej) występuje w okolicach maksymalnego momentu obrotowego, dzięki zjawiskom falowym w układzie dolotowym; w pozostałej części zakresu obrotów jest niższe. W silnikach doładowanych VE zwykle podaje się względem warunków w kolektorze dolotowym (ciśnienie i temperatura za sprężarką lub intercoolerem) i wtedy mieści się mniej więcej w przedziale 80–105%. To, że do cylindra wchodzi kilkukrotnie więcej powietrza niż w silniku wolnossącym, wynika z wyższego ciśnienia, a nie z wartości VE. Jeżeli ktoś odnosi masę powietrza do warunków atmosferycznych, wartość „napełnienia” może przekroczyć 100% (przy 1,5 bara doładowania wyjdzie kilkaset procent), dlatego zawsze sprawdź, jaką konwencję przyjmuje program lub kalkulator.</p>
+<h3>Doładowanie a Load</h3>
+<p>Wiele osób stawia znak równości między doładowaniem (tym, co pokazuje zegar w barach) a obciążeniem silnika (w logach często „Load” albo rl, czyli względne napełnienie, np. w silnikach VAG z Bosch Motronic ME7 lub MED17). To nie to samo: ciśnienie mówi, z jaką siłą sprężarka pcha powietrze do kolektora, a Load mówi, ile powietrza faktycznie znalazło się w cylindrze.</p>
+<p>Sterownik przelicza ciśnienie na Load, uwzględniając między innymi temperaturę powietrza i to, jak dobrze silnik „oddycha” (VE, fazy rozrządu, dynamika przepływu). Jeżeli po kilku mocnych przyspieszeniach powietrze w dolocie się nagrzeje, jest rzadsze i przy tym samym ciśnieniu w cylindrze mieści się mniej tlenu, więc Load spada. Podobnie jest, gdy silnik gorzej oddycha, np. przy niskich obrotach.</p>
+<p>W większości sterowników to właśnie Load, a nie samo ciśnienie z zegara, jest główną osią map paliwa i kąta zapłonu. W VAG rl wyraża się w procentach, gdzie 100% odpowiada napełnieniu cylindra powietrzem w warunkach normalnych, więc w silnikach turbo wartości przekraczają 100% (np. 150–250% przy pełnym doładowaniu). To pomost między tym, co robi turbosprężarka, a tym, co dzieje się w komorze spalania.</p>
+<h3>Przepływomierz: od kg/h do mg na suw</h3>
+<p>Komputer najczęściej mierzy powietrze w kg/h (przepływomierz, MAF) albo ciśnienie w kolektorze (MAP) i przelicza je wewnętrznie na mg powietrza na cylinder na suw, bo to właśnie od tej liczby zależy dawka paliwa.</p>
+<p>Przykład: silnik 2 l, 4 cylindry, 6000 obr/min, 900 kg/h powietrza. Daje to dokładnie <b>1250 mg</b> powietrza na cylinder na cykl (900 000 000 mg ÷ 60 min ÷ (4 cylindry × 3000 cykli na minutę)). Policzmy to dokładniej: przy 40°C za intercoolerem gęstość powietrza to ok. 1,11 kg/m³, więc cylinder 0,5 l mieści przy 1 barze ok. 556 mg, a przy napełnianiu na poziomie 95% ok. 528 mg. Żeby upchnąć 1250 mg, potrzebne jest ciśnienie ok. 2,4 bara bezwzględnego, czyli ok. 1,4 bara nadciśnienia (doładowania). Przy λ = 0,85 mamy ok. <b>100 mg paliwa</b> na cylinder na cykl, czyli ok. 72 kg/h paliwa. Przy zużyciu paliwa ok. 300 g/kWh daje to ok. 240 kW, czyli <b>ok. 330 KM</b>.</p>
+<p>Chcesz sprawdzić samemu? Wpisz dane do kalkulatorów poniżej.</p>
+<div class="calc" id="aircalc">
+  <h3>Kalkulator: przepływ powietrza na mg na cylinder</h3>
+  <p class="sub">Wpisz dane silnika i przepływ z przepływomierza (kg/h). Wynik przelicza się automatycznie.</p>
+  <div class="grid">
+    <div><label for="p1_cap">Pojemność silnika [l]<small>np. 2,0</small></label><input id="p1_cap" value="2,0" inputmode="decimal"></div>
+    <div><label for="p1_cyl">Liczba cylindrów<small>np. 4</small></label><input id="p1_cyl" value="4" inputmode="decimal"></div>
+    <div><label for="p1_rpm">Obroty [obr/min]<small>np. 6000</small></label><input id="p1_rpm" value="6000" inputmode="decimal"></div>
+    <div><label for="p1_flow">Przepływ powietrza [kg/h]<small>z przepływomierza, np. 900</small></label><input id="p1_flow" value="900" inputmode="decimal"></div>
+    <div><label for="p1_t">Temperatura powietrza w dolocie [°C]<small>za intercoolerem, np. 40</small></label><input id="p1_t" value="40" inputmode="decimal"></div>
+    <div><label for="p1_ve">Napełnianie cylindra [%]<small>np. 95</small></label><input id="p1_ve" value="95" inputmode="decimal"></div>
+    <div><label for="p1_lam">Lambda<small>np. 0,85</small></label><input id="p1_lam" value="0,85" inputmode="decimal"></div>
+    <div><label for="p1_bsfc">Zużycie paliwa (BSFC)<small>g/kWh, orientacyjnie, np. 300</small></label><input id="p1_bsfc" value="300" inputmode="decimal"></div>
+  </div>
+  <div class="stats">
+    <div class="big main"><div class="t">Powietrze na cylinder</div><div class="v" id="p1_o1">–<span> mg/suw</span></div></div>
+    <div class="big"><div class="t">Ciśnienie bezwzględne</div><div class="v" id="p1_o2">–<span> bar</span></div></div>
+    <div class="big"><div class="t">Doładowanie (względne)</div><div class="v" id="p1_o3">–<span> bar</span></div></div>
+    <div class="big"><div class="t">Paliwo przy zadanej lambdzie</div><div class="v" id="p1_o4">–<span> mg/suw</span></div></div>
+    <div class="big"><div class="t">Szacowana moc</div><div class="v" id="p1_o5">–<span> KM</span></div></div>
+  </div>
+  <div class="err" id="p1_err"></div>
+  <p class="note">Przyjęto ciśnienie otoczenia 1 bar i stechiometrię benzyny 14,7:1 (lambda 1 = AFR 14,7). Ciśnienie, doładowanie i moc to wartości orientacyjne, zależne od założonej temperatury, napełniania cylindra i zużycia paliwa.</p>
+</div>
+<div class="calc" id="aircalc2">
+  <h3>Kalkulator: moc i wtryskiwacze z doładowania i lambdy</h3>
+  <p class="sub">Wpisz dane silnika, doładowanie i lambdę. Ilość powietrza i paliwa, moc oraz potrzebna wydajność wtryskiwaczy przeliczają się automatycznie.</p>
+  <div class="grid">
+    <div><label for="p2_cap">Pojemność silnika [l]<small>np. 2,0</small></label><input id="p2_cap" value="2,0" inputmode="decimal"></div>
+    <div><label for="p2_cyl">Liczba cylindrów<small>np. 4</small></label><input id="p2_cyl" value="4" inputmode="decimal"></div>
+    <div><label for="p2_rpm">Obroty [obr/min]<small>np. 6000</small></label><input id="p2_rpm" value="6000" inputmode="decimal"></div>
+    <div><label for="p2_boost">Doładowanie względne [bar]<small>ponad ciśnienie otoczenia, np. 1,4</small></label><input id="p2_boost" value="1,4" inputmode="decimal"></div>
+    <div><label for="p2_t">Temperatura powietrza w dolocie [°C]<small>za intercoolerem, np. 40</small></label><input id="p2_t" value="40" inputmode="decimal"></div>
+    <div><label for="p2_ve">Napełnianie cylindra [%]<small>np. 95</small></label><input id="p2_ve" value="95" inputmode="decimal"></div>
+    <div><label for="p2_lam">Lambda<small>np. 0,85</small></label><input id="p2_lam" value="0,85" inputmode="decimal"></div>
+    <div><label for="p2_bsfc">Zużycie paliwa (BSFC)<small>g/kWh, orientacyjnie, np. 300</small></label><input id="p2_bsfc" value="300" inputmode="decimal"></div>
+  </div>
+  <div class="stats">
+    <div class="big main"><div class="t">Powietrze na cylinder</div><div class="v" id="p2_o1">–<span> mg/suw</span></div></div>
+    <div class="big"><div class="t">Paliwo na cylinder</div><div class="v" id="p2_o2">–<span> mg/suw</span></div></div>
+    <div class="big"><div class="t">Przepływ powietrza</div><div class="v" id="p2_o3">–<span> kg/h</span></div></div>
+    <div class="big"><div class="t">Szacowana moc</div><div class="v" id="p2_o4">–<span> KM</span></div></div>
+    <div class="big"><div class="t">Wtryskiwacz przy 80% wypełnienia</div><div class="v" id="p2_o5">–<span> cm³/min</span></div></div>
+  </div>
+  <div class="err" id="p2_err"></div>
+  <p class="note">Przyjęto ciśnienie otoczenia 1 bar, stechiometrię benzyny 14,7:1 i gęstość paliwa 740 kg/m³. Wydajność wtryskiwacza podawana jest zwykle dla określonego ciśnienia paliwa, więc to wartość orientacyjna. Wyniki zależą od założonej temperatury, napełniania cylindra i zużycia paliwa.</p>
+</div>
+
+<h2>Logika komputera w jednym akapicie</h2>
+<p>W uproszczeniu sterowanie silnikiem benzynowym w większości nowoczesnych aut wygląda tak: komputer wylicza, ile powietrza silnik ma dostać (żądany moment), steruje przepustnicą i turbiną, sprawdza, ile powietrza faktycznie trafiło do cylindrów, dobiera do niego paliwo i kąt zapłonu, a potem pilnuje składu mieszanki sondą lambda. Szczegóły różnią się między markami i generacjami sterowników.</p>
+<h3>Kto Ci ogranicza moc przy pełnym gazie?</h3>
+<ul>
+  <li><b>Marketingowiec:</b> uznał, że nie zapłaciłeś za wersję mocniejszą o 50 KM, albo obciął moc, bo ubezpieczenie byłoby za drogie.</li>
+  <li><b>Inżynier:</b> stwierdził, że sprzęgło lub skrzynia rozlecą się przy pełnej mocy.</li>
+  <li><b>Czujnik stuku:</b> wykrył spalanie stukowe, więc komputer opóźnił zapłon i moc spadła.</li>
+  <li><b>Czujnik temperatury:</b> wykrył przegrzanie silnika, zbyt gorące powietrze w dolocie albo zbyt gorące spaliny.</li>
+  <li><b>Przepływomierz i czujnik ciśnienia:</b> zgłosiły, że doładowanie jest za wysokie lub że powietrza jest za mało.</li>
+  <li><b>Skrzynia biegów:</b> wysłała do silnika wiadomość: „za dużo, bo się rozlecę".</li>
+  <li><b>Systemy bezpieczeństwa:</b> tną moc, bo auto już „leci bokiem".</li>
+</ul>
+<h2>Katalizator, GPF i dlaczego benzyna też bywa kłopotliwa</h2>
+<p>Benzyna spala się czyściej niż diesel, ale norma jest norma: silnik pracuje przy λ = 1, a spaliny oczyszcza katalizator trójfunkcyjny. W nowszych silnikach z wtryskiem bezpośrednim dochodzi jeszcze filtr cząstek stałych do benzyny (GPF), bo wtrysk wprost do cylindra daje więcej sadzy. Takie układy, jak każdy element w autach z dużymi przebiegami, bywają drogie w naprawie.</p>
+<p>Jest też problem, który znają właściciele silników z wtryskiem bezpośrednim: paliwo trafia wprost do cylindra, więc nie myje zaworów dolotowych, a opary oleju z odmy osadzają się na nich jako nagar. Ten osad może zaburzać przepływ powietrza i napełnianie cylindrów. Czyszczenie zaworów (np. łupinami orzecha) przywraca stan fabryczny.</p>
+<p>Warto też pamiętać o tym, że usunięcie katalizatora lub filtra jest modyfikacją niedozwoloną. Auto bez nich nie ma prawa przejść przeglądu technicznego, a diagnosta sprawdza m.in. skład spalin (CO i lambdę) oraz obecność tych elementów.</p>
+<h2>Logi i diagnostyka: zajrzyj do komputera silnika</h2>
+<p>Komputer silnika to nie blackbox. Zwykle można odczytać nie tylko kody usterek, ale i bieżące parametry pracy: obroty, obciążenie, przepływ powietrza, doładowanie zadane i uzyskane, kąt zapłonu, korekty zapłonu od czujnika stuku, lambdę i korekty paliwa, wypadanie zapłonów.</p>
+</main>
+<footer>&copy; ECU-Perfect · chiptuning · Wrocław<small style="display:block;margin-top:6px;opacity:.8">Kopiowanie, przerabianie i wykorzystywanie treści, narzędzi oraz logo tej strony wymaga zgody. <u>Udostępnianie linków jest dozwolone.</u></small></footer>
+<script>
+(function(){
+  function $(id){return document.getElementById(id);}
+  function num(id){var s=$(id).value.trim().replace(',','.');return s===''?NaN:parseFloat(s);}
+  function set(id,txt,u){$(id).innerHTML=txt+(u?'<span> '+u+'</span>':'');}
+  function dash(ids,us){ids.forEach(function(id,i){set(id,'–',us[i]);});}
+  function calc1(){
+    var cap=num('p1_cap'),cyl=num('p1_cyl'),rpm=num('p1_rpm'),flow=num('p1_flow'),t=num('p1_t'),ve=num('p1_ve'),lam=num('p1_lam'),bs=num('p1_bsfc');
+    var ids=['p1_o1','p1_o2','p1_o3','p1_o4','p1_o5'],us=['mg/'+I18N.t('suw','stroke'),'bar','bar','mg/'+I18N.t('suw','stroke'),I18N.t('KM','hp')];
+    $('p1_err').textContent='';
+    if(!(cap>0)||!(cyl>=1)||!(rpm>0)||!(flow>0)||isNaN(t)||!(ve>0&&ve<=100)||!(lam>0)||!(bs>0)){
+      dash(ids,us);$('p1_err').textContent=I18N.t('Uzupełnij poprawnie pola (napełnianie od 1 do 100%).','Fill in the fields correctly (filling between 1 and 100%).');return;
+    }
+    var mg=flow*1e6/60/(cyl*rpm/2);
+    var perBar=100000/(287.05*(t+273.15))*(cap/cyl/1000)*(ve/100)*1e6;
+    var pabs=mg/perBar;
+    var fuel=mg/(14.7*lam);
+    var fuelKgh=fuel*cyl*(rpm/2)*60/1e6;
+    var ps=fuelKgh/(bs/1000)*1.35962;
+    set('p1_o1',I18N.f(mg,1),us[0]);set('p1_o2',I18N.f(pabs,2),'bar');set('p1_o3',I18N.f(pabs-1,2),'bar');set('p1_o4',I18N.f(fuel,1),us[3]);set('p1_o5',I18N.f(ps,0),us[4]);
+  }
+  function calc2(){
+    var cap=num('p2_cap'),cyl=num('p2_cyl'),rpm=num('p2_rpm'),b=num('p2_boost'),t=num('p2_t'),ve=num('p2_ve'),lam=num('p2_lam'),bs=num('p2_bsfc');
+    var ids=['p2_o1','p2_o2','p2_o3','p2_o4','p2_o5'],us=['mg/'+I18N.t('suw','stroke'),'mg/'+I18N.t('suw','stroke'),'kg/h',I18N.t('KM','hp'),'cm³/min'];
+    $('p2_err').textContent='';
+    if(!(cap>0)||!(cyl>=1)||!(rpm>0)||isNaN(b)||b<-0.9||isNaN(t)||!(ve>0&&ve<=100)||!(lam>0)||!(bs>0)){
+      dash(ids,us);$('p2_err').textContent=I18N.t('Uzupełnij poprawnie pola (napełnianie od 1 do 100%).','Fill in the fields correctly (filling between 1 and 100%).');return;
+    }
+    var rho=(b+1)*100000/(287.05*(t+273.15));
+    var mg=rho*(cap/cyl/1000)*(ve/100)*1e6;
+    var fuel=mg/(14.7*lam);
+    var airKgh=mg*cyl*(rpm/2)*60/1e6;
+    var fuelKgh=fuel*cyl*(rpm/2)*60/1e6;
+    var ps=fuelKgh/(bs/1000)*1.35962;
+    var cc=fuel*(rpm/2)/740/0.8;
+    set('p2_o1',I18N.f(mg,1),us[0]);set('p2_o2',I18N.f(fuel,1),us[1]);set('p2_o3',I18N.f(airKgh,0),'kg/h');set('p2_o4',I18N.f(ps,0),us[3]);set('p2_o5',I18N.f(cc,0),'cm³/min');
+  }
+  function calc3(){
+    var ms=num('p3_ms'),rpm=num('p3_rpm');
+    $('p3_err').textContent='';
+    if(!(ms>0)||!(rpm>0)){dash(['p3_o1','p3_o2'],['°','%']);$('p3_err').textContent=I18N.t('Uzupełnij poprawnie wszystkie pola.','Fill in all the fields correctly.');return;}
+    var deg=ms*1e-3*rpm*6;
+    set('p3_o1',I18N.f(deg,1),'°');set('p3_o2',I18N.f(deg/7.2,1),'%');
+  }
+  function all(){calc1();calc2();calc3();}
+  ['p1_cap','p1_cyl','p1_rpm','p1_flow','p1_t','p1_ve','p1_lam','p1_bsfc','p2_cap','p2_cyl','p2_rpm','p2_boost','p2_t','p2_ve','p2_lam','p2_bsfc','p3_ms','p3_rpm'].forEach(function(id){$(id).addEventListener('input',all);});
+  all();
+  I18N.onChange(all);
+})();
+</script>
+</body>
+</html>

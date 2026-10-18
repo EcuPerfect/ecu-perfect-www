@@ -3,93 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Przelicznik jednostek mocy v1.0 – ECU-Perfect</title>
-<meta name="description" content="Przelicznik kW, KM (PS), HP, Nm, lb-ft oraz moc↔moment przy zadanych obrotach.">
-<style>
-  :root { --red:#e5202e; --red2:#ff4b57; --bg:#0b0b10; --card:#15151d; --line:#262633; --txt:#f2f2f6; --muted:#9a9aab; }
-  * { box-sizing:border-box; }
-  body { margin:0; font-family:"Segoe UI",system-ui,Arial,sans-serif; background:var(--bg); color:var(--txt); line-height:1.5; }
-  a { color:inherit; }
-  nav { position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center; padding:12px 24px; background:rgba(11,11,16,.9); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
-  .logo { font-weight:800; letter-spacing:2px; text-decoration:none; } .logo b { color:inherit; }
-  nav .links a { margin-left:20px; text-decoration:none; color:var(--muted); font-size:.95rem; } nav .links a:hover { color:var(--txt); }
-  main { max-width:1000px; margin:0 auto; padding:30px 20px 50px; }
-  h1 { margin:0 0 6px; font-size:clamp(1.6rem,4.5vw,2.4rem); }
-  h1::after { content:""; display:block; width:56px; height:3px; background:var(--red); margin-top:10px; border-radius:2px; }
-  .lead { color:var(--muted); margin:14px 0 26px; max-width:760px; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; margin-bottom:18px; }
-  .card h2 { margin:0 0 14px; font-size:1.05rem; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; }
-  label { display:block; font-size:.8rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; }
-  label small { text-transform:none; letter-spacing:0; display:block; opacity:.8; }
-  select, input, textarea { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:#0f0f16; color:var(--txt); font-size:1.05rem; font-family:inherit; }
-  select:focus, input:focus, textarea:focus { outline:2px solid var(--red); border-color:var(--red); }
-  button { padding:11px 22px; border-radius:10px; border:2px solid var(--red); background:var(--red); color:#fff; font-weight:700; font-size:1rem; cursor:pointer; margin-top:14px; }
-  button:hover { background:var(--red2); border-color:var(--red2); }
-  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-top:6px; }
-  .big { background:#0f0f16; border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
-  .big .v { font-size:1.7rem; font-weight:800; line-height:1.1; } .big .v span { font-size:.9rem; color:var(--muted); font-weight:600; }
-  .big .t { color:var(--muted); font-size:.75rem; text-transform:uppercase; letter-spacing:1.2px; }
-  .scroll { overflow-x:auto; }
-  table { width:100%; border-collapse:collapse; font-size:.95rem; min-width:520px; }
-  th, td { padding:8px 10px; text-align:center; border-bottom:1px solid var(--line); white-space:nowrap; }
-  th { color:var(--muted); font-weight:600; font-size:.75rem; text-transform:uppercase; }
-  .small { color:var(--muted); font-size:.82rem; margin-top:14px; }
-  .error { color:var(--red2); margin-top:10px; min-height:1em; }
-  footer { text-align:center; color:var(--muted); font-size:.85rem; padding:30px 20px; border-top:1px solid var(--line); }
-</style>
-<script src="i18n.js"></script>
+<title>ECU-Perfect – strona przeniesiona / page moved</title>
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://ecu-perfect.pl/unitconverter.html">
+<meta http-equiv="refresh" content="0; url=unitconverter.html">
+<script>location.replace('unitconverter.html' + location.search + location.hash);</script>
+<style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0b0b10;color:#f2f2f6;font-family:"Segoe UI",system-ui,Arial,sans-serif;text-align:center}a{color:#ff4b57}</style>
 </head>
 <body>
-<nav>
-  <a class="logo" href="index.html">ECU-<b>Perfect</b></a>
-  <div class="links"><a href="index.html">← Strona główna</a><a href="index.html#tools">Narzędzia</a></div>
-</nav>
-<main>
-  <h1>Przelicznik jednostek mocy v1.0</h1>
-  <p class="lead">Przeliczaj kW, KM, HP oraz Nm, lb-ft, kGm – wpisz wartość w dowolnym polu.</p>
-  <div class="card">
-    <h2>Moc</h2>
-    <div class="grid">
-      <div><label for="kw">kW</label><input id="kw" data-u="1" value="100"></div>
-      <div><label for="ps">KM (PS, DIN)</label><input id="ps" data-u="0.735499"></div>
-      <div><label for="hp">HP (SAE / mech.)</label><input id="hp" data-u="0.745700"></div>
-      <div><label for="w">W</label><input id="w" data-u="0.001"></div>
-    </div>
-  </div>
-  <div class="card">
-    <h2>Moment obrotowy</h2>
-    <div class="grid">
-      <div><label for="nm">Nm</label><input id="nm" data-q="1" value="300"></div>
-      <div><label for="lbft">lb-ft</label><input id="lbft" data-q="1.3558179"></div>
-      <div><label for="kgm">kGm (kgf·m)</label><input id="kgm" data-q="9.80665"></div>
-    </div>
-  </div>
-  <div class="card">
-    <h2>Moc ↔ moment przy obrotach</h2>
-    <div class="grid">
-      <div><label for="rpm">Obroty [rpm]<small>np. 4000</small></label><input id="rpm" value="4000"></div>
-      <div class="big"><div class="t">Moc z momentu (pole Nm wyżej)</div><div class="v" id="pFromT">–</div></div>
-      <div class="big"><div class="t">Moment z mocy (pole kW wyżej)</div><div class="v" id="tFromP">–</div></div>
-    </div>
-    <p class="small">1 KM (PS) = 0,735499 kW, 1 HP = 0,7457 kW, 1 kW = 1,35962 KM. Moc [kW] = moment [Nm] × obroty / 9549. Wpisz wartość w dowolnym polu – pozostałe przeliczą się automatycznie. Polskie „KM” to koń mechaniczny metryczny (PS), a „HP” anglosaski jest ok. 1,4% większy.</p>
-  </div></main>
-<footer>&copy; ECU-Perfect · chiptuning · Wrocław</footer>
-<script>
-function $(id){return document.getElementById(id);}
-function num(id){var s=$(id).value.trim().replace(',','.');return s===''?NaN:parseFloat(s);}
-function f(x,d){return I18N.f(x,d);}
-var U=document.querySelectorAll('input[data-u]'),Q=document.querySelectorAll('input[data-q]');
-function conv(list,src){var base=num(src.id)*parseFloat(src.getAttribute(list===U?'data-u':'data-q'));
-  list.forEach(function(el){if(el===src)return;el.value=isNaN(base)?'':f(base/parseFloat(el.getAttribute(list===U?'data-u':'data-q')),2);});}
-function extra(){var rpm=num('rpm'),nm=num('nm'),kw=num('kw');
-  $('pFromT').innerHTML=(rpm>0&&nm>=0)?f(nm*rpm/9549,1)+' kW<br><small style="font-size:.9rem;color:var(--muted)">'+f(nm*rpm/9549/0.735499,0)+I18N.t(' KM',' hp')+'</small>':'–';
-  $('tFromP').innerHTML=(rpm>0&&kw>=0)?f(kw*9549/rpm,0)+' Nm':'–';}
-U.forEach(function(e){e.addEventListener('input',function(){conv(U,e);extra();});});
-Q.forEach(function(e){e.addEventListener('input',function(){conv(Q,e);extra();});});
-$('rpm').addEventListener('input',extra);
-conv(U,$('kw'));conv(Q,$('nm'));extra();
-I18N.onChange(function(){extra();});
-</script>
+<p>Strona została przeniesiona / This page has moved.<br><a href="unitconverter.html">unitconverter.html</a></p>
 </body>
 </html>

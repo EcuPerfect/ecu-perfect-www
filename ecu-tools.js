@@ -211,6 +211,9 @@
     '.dtcwrap table { width:100%; border-collapse:collapse; } .dtcwrap th, .dtcwrap td { padding:6px 10px; text-align:left; border-bottom:1px solid var(--line); }',
     '.dtcwrap th { position:sticky; top:0; background:#1a1a25; font-size:.75rem; text-transform:uppercase; letter-spacing:1px; color:var(--muted); }',
     '.dtcwrap td.code { font-family:Consolas,monospace; } .dtcwrap tr.chg { background:#2a1519; } .dtcwrap a.gq { text-decoration:none; color:var(--txt); } .dtcwrap a.gq:hover { color:var(--red2); text-decoration:underline; }',
+    '.seealso { margin:14px 0 18px; padding:12px 16px; background:#1c1218; border:1px solid var(--line); border-left:4px solid var(--red); border-radius:8px; font-size:1.1rem; }',
+    '.seealso b { color:var(--muted); font-weight:600; margin-right:6px; }',
+    '.seealso a { font-weight:700; text-decoration:underline; text-decoration-color:var(--red); text-underline-offset:3px; } .seealso a:hover { color:var(--red2); }',
     'footer { text-align:center; color:var(--muted); font-size:.85rem; padding:30px 20px; border-top:1px solid var(--line); }'
   ].join('\n');
 
@@ -254,7 +257,7 @@
       info: [
         ['Usługa polega na wyłączeniu wybranych błędów w sterowniku. Tego typu zabieg stosuje się np. w przypadku konieczności pozbycia się uciążliwego „check engine” na skutek niesprawności jakiegoś niekluczowego dla pracy silnika komponentu lub pozbycia się błędów, które check engine nie powodują, ale są widoczne po odczytaniu błędów (np. błąd podgrzewacza paliwa, błąd nastawnika klapek w kolektorze ssącym itp.).', 'The tool disables selected errors in the ECU. It is used, for example, to get rid of an annoying "check engine" light caused by a fault in a component that is not critical for engine operation, or to remove errors that do not turn on the check engine light but are visible when reading the errors (e.g. fuel heater error, intake manifold flap actuator error, etc.).'],
         ['Wyłączenie błędu, np. niskiego ciśnienia paliwa (kłopoty z układem paliwowym), nie jest rozwiązaniem problemu, ale ukryciem problemu. Używaj narzędzia z rozwagą.', 'Disabling an error, e.g. low fuel pressure (fuel system problems), does not solve the problem – it hides it. Use the tool with caution.'],
-        ['Uwaga: to są wewnętrzne numery błędów BMW, a nie tzw. P-Codes!', 'Note: these are internal BMW error numbers, not so-called P-codes!'],
+        ['Uwaga: to są wewnętrzne numery błędów BMW (kody producenta), a nie tzw. P-Codes! Przykład: kod BMW 4501 (EGR, zbyt mały przepływ) odpowiada kodowi P0401.', 'Note: these are internal BMW error numbers (manufacturer codes), not so-called P-codes! Example: BMW code 4501 (EGR, insufficient flow) corresponds to P0401.'],
         ['Uwaga: jeden wiersz tabeli obejmuje cztery kody błędów i ma jedno pole „Włączony” (tak wygląda wewnętrzna organizacja błędów w sterownikach BMW EDC16). Odznaczenie wiersza wyłącza wszystkie cztery kody naraz.', 'Note: one table row covers four error codes and has a single "Enabled" box (this is how errors are organised internally in BMW EDC16 control units). Unticking a row disables all four codes at once.']
       ]
     }
@@ -348,6 +351,7 @@
       var a = st.analysis, card = el('div', { cls: 'card' });
       card.appendChild(el('h2', { text: T('2. Lista błędów', '2. Error list') }));
       card.appendChild(el('p', { cls: 'det', text: T(cfg.cur[0], cfg.cur[1]) + a.count + T(' wierszy (po 4 kody).', ' rows (4 codes each).') }));
+      card.appendChild(el('div', { cls: 'notice', style: 'margin:0 0 12px', text: T('To nie są kody P (P-Codes), tylko kody błędów producenta (BMW), widoczne np. w diagnostyce BMW. Przykład: kod BMW 4501 (zbyt mały przepływ EGR) odpowiada kodowi P0401. Odpowiedniki nie zawsze są jednoznaczne, dlatego kliknij kod, aby wyszukać go w Google.', 'These are not P-codes, but manufacturer (BMW) error codes, as shown e.g. by BMW diagnostics. Example: BMW code 4501 (insufficient EGR flow) corresponds to P0401. The equivalents are not always one-to-one, so click a code to search for it on Google.') }));
       var q = el('input', { type: 'text', placeholder: T('Szukaj kodu błędu (np. 4820)', 'Search error code (e.g. 4820)'), autocomplete: 'off' });
       q.value = st.dtcQ;
       var g = el('button', { type: 'button', cls: 'sm ghost', text: T('Szukaj w Google', 'Search on Google') });
@@ -419,7 +423,7 @@
       card.appendChild(el('h2', { text: T('2. Wybór czujnika', '2. Choose the sensor') }));
       var labels = CURVES[cfg.curve].labels;
       var lab = function (id) { return T(labels[id][0], labels[id][1]); };
-      card.appendChild(el('p', { cls: 'det', text: T(cfg.cur[0], cfg.cur[1]) + lab(a.current) + ' (' + T('adres ', 'offset ') + a.offset + ')' }));
+      card.appendChild(el('p', { cls: 'det', text: T(cfg.cur[0], cfg.cur[1]) + lab(a.current) }));
       card.appendChild(el('label', { text: T('Nowy czujnik', 'New sensor') }));
       var sel = el('select'); sel.appendChild(el('option', { value: '', text: T('— proszę wybrać czujnik —', '— please select a sensor —') }));
       a.options.forEach(function (id) { sel.appendChild(el('option', { value: id, text: lab(id) })); });
@@ -442,6 +446,7 @@
       app.innerHTML = '';
       app.appendChild(el('h1', { text: T(cfg.title[0], cfg.title[1]) }));
       app.appendChild(el('p', { cls: 'lead', text: T(cfg.lead[0], cfg.lead[1]) }));
+      app.appendChild(el('div', { cls: 'seealso' }, [el('b', { text: T('Zobacz też:', 'See also:') }), el('a', { href: 'dieselhowdoesitwork.html', text: T('Silnik diesla – jak to naprawdę działa', 'How a diesel engine really works') })]));
 
       var c1 = el('div', { cls: 'card' });
       c1.appendChild(el('h2', { text: T('1. Wybierz plik ze sterownika', '1. Choose the ECU file') }));
@@ -481,7 +486,7 @@
       if (!f) { f = el('footer', { id: 'siteFoot' }); document.body.appendChild(f); }
       f.textContent = '';
       f.appendChild(document.createTextNode('© ECU-Perfect · chiptuning · Wrocław'));
-      f.appendChild(el('small', { style: 'display:block;margin-top:6px;opacity:.8', text: T('Kopiowanie, przerabianie i wykorzystywanie treści, narzędzi oraz logo tej strony wymaga zgody. Udostępnianie linków jest dozwolone.', 'Copying, modifying and using the content, tools and logo of this website requires permission. Sharing links is allowed.') }));
+      f.appendChild(el('small', { style: 'display:block;margin-top:6px;opacity:.8' }, [T('Kopiowanie, przerabianie i wykorzystywanie treści, narzędzi oraz logo tej strony wymaga zgody. ', 'Copying, modifying and using the content, tools and logo of this website requires permission. '), el('u', { text: T('Udostępnianie linków jest dozwolone.', 'Sharing links is allowed.') })]));
     }
 
     render();
