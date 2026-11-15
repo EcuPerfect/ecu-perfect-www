@@ -120,16 +120,18 @@
     <h2 id="tTitle" style="margin:0 0 10px;font-size:1.15rem"></h2>
     <div id="tInfo"></div>
     <div id="tMsgs" class="thread"></div>
-    <textarea id="tText" maxlength="2000" rows="3" placeholder="Napisz wiadomość…"></textarea>
-    <div class="filters" style="margin:10px 0 0">
-      <button type="button" class="sm" id="tSend">Wyślij</button>
-      <button type="button" class="sm ghost" id="tProg">W trakcie</button>
-      <button type="button" class="sm ghost" id="tWait">Czekam na użytkownika</button>
-      <button type="button" class="sm ghost" id="tOpen">Otwórz ponownie</button>
+    <div class="filters" style="margin:0 0 8px">
+      <label for="tStatus" class="small">Status:</label>
+      <select id="tStatus">
+        <option value="open">Otwarte</option>
+        <option value="in_progress">W trakcie</option>
+        <option value="waiting_user">Czekam na użytkownika</option>
+        <option value="closed">Zamknięte (komentarz = rozwiązanie)</option>
+      </select>
     </div>
-    <div class="filters" style="margin:6px 0 0">
-      <input id="tRes" maxlength="2000" placeholder="Rozwiązanie (widoczne dla użytkownika)" style="flex:1;min-width:260px">
-      <button type="button" class="sm" id="tClose">Zamknij zgłoszenie</button>
+    <textarea id="tText" maxlength="2000" rows="3" placeholder="Komentarz widoczny dla użytkownika (przy statusie „Zamknięte” to rozwiązanie)"></textarea>
+    <div class="filters" style="margin:10px 0 0">
+      <button type="button" class="sm" id="tSave">Zapisz</button>
       <button type="button" class="sm ghost" id="tHide">Zamknij okno</button>
     </div>
     <div id="tMsg" class="msg"></div>
@@ -894,7 +896,7 @@
     $('tInfo').innerHTML = '';
     [fmtDate(t.created_at) + ' · ' + (TK_ST[t.status] || t.status) + (t.category === 'other' ? ' · inne' : ''), t.doc_ref ? 'ID projektu: ' + t.doc_ref : '', parts.length ? 'Kontekst: ' + parts.join(' | ') : '', 'Opis: ' + t.body, t.resolution ? 'Rozwiązanie: ' + t.resolution : '']
       .filter(Boolean).forEach(function (s) { var p = document.createElement('p'); p.textContent = s; p.style.whiteSpace = 'pre-wrap'; if (s.indexOf('Kontekst') === 0) p.className = 'small'; $('tInfo').appendChild(p); });
-    $('tText').value = ''; $('tRes').value = ''; say('tMsg', '');
+    $('tText').value = ''; $('tStatus').value = t.status; say('tMsg', '');
     $('tmodal').className = 'modal';
     await loadTkThread();
     if (t.unread_admin) { sb.rpc('ticket_mark_read', { p_ticket: t.id }).then(updateTikBadge); }
@@ -903,6 +905,28 @@
     var x = await sb.rpc(fn, args);
     if (x.error) { say('tMsg', tkErr(x.error), true); return false; }
     say('tMsg', okText); await loadTkThread(); loadTickets(); return true;
+  }
+  async function saveTicket() {
+    var st = $('tStatus').value, c = $('tText').value.trim();
+    if (st === 'closed' && !c && curTk.status !== 'closed') { say('tMsg', 'Przy zamykaniu wpisz rozwiązanie w polu komentarza.', true); return; }
+    if (st === curTk.status && !c) { say('tMsg', 'Nic do zapisania: zmień status albo wpisz komentarz.', true); return; }
+    if (st === 'closed' && curTk.status === 'closed') { say('tMsg', 'Zgłoszenie jest zamknięte. Zmień status, żeby dopisać komentarz.', true); return; }
+    $('tSave').disabled = true;
+    try {
+      if (st !== curTk.status) {
+        var x = await sb.rpc('admin_set_ticket_status', { p_ticket: curTk.id, p_status: st, p_resolution: st === 'closed' ? c : null });
+        if (x.error) { say('tMsg', tkErr(x.error), true); return; }
+        curTk.status = st;
+        if (st === 'closed') { curTk.resolution = c; $('tText').value = ''; c = ''; }
+      }
+      if (c) {
+        var y = await sb.rpc('ticket_post_message', { p_ticket: curTk.id, p_body: c });
+        if (y.error) { say('tMsg', tkErr(y.error), true); return; }
+        $('tText').value = '';
+      }
+      say('tMsg', 'Zapisano.');
+      await loadTkThread(); loadTickets();
+    } finally { $('tSave').disabled = false; }
   }
   function exportTickets() {
     saveCsv('zgloszenia', ['Data', 'Użytkownik', 'Aplikacja', 'ID projektu', 'Rodzaj', 'Opis', 'Status', 'Rozwiązanie'], lastTickets.map(function (t) {
@@ -938,11 +962,7 @@
     $('ftGo').onclick = loadTickets; $('ftStatus').onchange = loadTickets; $('ftApp').onchange = loadTickets; $('ftUser').oninput = loadTickets; $('ftDoc').oninput = loadTickets;
     $('xTik').onclick = exportTickets;
     $('tHide').onclick = function () { $('tmodal').className = 'modal hidden'; loadTickets(); };
-    $('tSend').onclick = async function () { var t = $('tText').value; if (!t.trim()) return; if (await tkRpc('ticket_post_message', { p_ticket: curTk.id, p_body: t }, 'Wysłano.')) $('tText').value = ''; };
-    $('tProg').onclick = function () { tkRpc('admin_set_ticket_status', { p_ticket: curTk.id, p_status: 'in_progress', p_resolution: null }, 'Status: w trakcie.'); };
-    $('tWait').onclick = function () { tkRpc('admin_set_ticket_status', { p_ticket: curTk.id, p_status: 'waiting_user', p_resolution: null }, 'Status: czekam na użytkownika.'); };
-    $('tOpen').onclick = function () { tkRpc('admin_set_ticket_status', { p_ticket: curTk.id, p_status: 'open', p_resolution: null }, 'Zgłoszenie otwarte.'); };
-    $('tClose').onclick = function () { tkRpc('admin_set_ticket_status', { p_ticket: curTk.id, p_status: 'closed', p_resolution: $('tRes').value }, 'Zgłoszenie zamknięte.'); };
+    $('tSave').onclick = saveTicket;
     updateTikBadge();
     $('retInfo').onclick = function () {
       alert('Konto aktywne do = ostatnia aktywność (logowanie lub zdarzenie w logu) + 24 miesiące. Na 30 dni przed tą datą worker wysyła ostrzeżenie e-mail, a po upływie terminu (jeśli konto dalej nieaktywne) usuwa konto razem z plikami. Pliki są usuwane po 12 miesiącach od dodania, wpisy logu po 12 miesiącach. Administratorzy są pomijani (—). Usuwanie działa tylko gdy worker ma RETENTION_ENABLED=1 i skonfigurowany SMTP.');
