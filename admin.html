@@ -63,6 +63,8 @@
     <button type="button" class="tabBtn ghost" data-tab="usr">Użytkownicy</button>
     <button type="button" class="tabBtn ghost" data-tab="fil">Pliki</button>
     <button type="button" class="tabBtn ghost" data-tab="ord" id="tabOrd">Zamówienia</button>
+    <button type="button" class="tabBtn ghost" data-tab="tik" id="tabTik">Zgłoszenia</button>
+    <button type="button" class="tabBtn ghost" data-tab="lim">Limity</button>
   </div>
   <div class="filters" style="margin-top:14px">
     <button type="button" class="sm ghost" id="xAll">Eksport wszystkich tabel (ZIP)</button>
@@ -90,6 +92,76 @@
       <tbody id="ordBody"></tbody>
     </table></div>
     <div id="ordMsg" class="msg"></div>
+  </div>
+
+  <div id="tab_tik" class="card hidden">
+    <div class="filters">
+      <select id="ftStatus">
+        <option value="open">Do obsługi</option>
+        <option value="">Wszystkie</option>
+        <option value="in_progress">W trakcie</option>
+        <option value="waiting_user">Czekam na użytkownika</option>
+        <option value="closed">Zamknięte</option>
+      </select>
+      <select id="ftApp"><option value="">Wszystkie aplikacje</option></select>
+      <input id="ftUser" list="userList" placeholder="Filtr: użytkownik" autocomplete="off">
+      <input id="ftDoc" placeholder="Filtr: ID projektu">
+      <button type="button" class="sm" id="ftGo">Odśwież</button>
+      <button type="button" class="sm ghost" id="xTik">Eksport CSV</button>
+    </div>
+    <div class="scroll"><table>
+      <thead><tr><th>Data</th><th>Użytkownik</th><th>Aplikacja</th><th>ID projektu</th><th>Opis</th><th>Status</th><th></th></tr></thead>
+      <tbody id="tikBody"></tbody>
+    </table></div>
+    <div id="tikMsg" class="msg"></div>
+  </div>
+
+  <div id="tmodal" class="modal hidden"><div class="mbox">
+    <h2 id="tTitle" style="margin:0 0 10px;font-size:1.15rem"></h2>
+    <div id="tInfo"></div>
+    <div id="tMsgs" class="thread"></div>
+    <textarea id="tText" maxlength="2000" rows="3" placeholder="Napisz wiadomość…"></textarea>
+    <div class="filters" style="margin:10px 0 0">
+      <button type="button" class="sm" id="tSend">Wyślij</button>
+      <button type="button" class="sm ghost" id="tProg">W trakcie</button>
+      <button type="button" class="sm ghost" id="tWait">Czekam na użytkownika</button>
+      <button type="button" class="sm ghost" id="tOpen">Otwórz ponownie</button>
+    </div>
+    <div class="filters" style="margin:6px 0 0">
+      <input id="tRes" maxlength="2000" placeholder="Rozwiązanie (widoczne dla użytkownika)" style="flex:1;min-width:260px">
+      <button type="button" class="sm" id="tClose">Zamknij zgłoszenie</button>
+      <button type="button" class="sm ghost" id="tHide">Zamknij okno</button>
+    </div>
+    <div id="tMsg" class="msg"></div>
+  </div></div>
+
+  <div id="tab_lim" class="card hidden">
+    <h2 style="margin:0 0 8px;font-size:1.05rem">Atrybuty użytkownika</h2>
+    <div class="filters">
+      <input id="flUser" list="userList" placeholder="Wybierz użytkownika (e-mail)" autocomplete="off" style="min-width:280px">
+      <button type="button" class="sm" id="flGo">Pokaż</button>
+    </div>
+    <div class="scroll"><table>
+      <thead><tr><th>Atrybut</th><th>Opis</th><th>Domyślna</th><th>Obowiązuje</th><th>Źródło</th><th>Nowa wartość</th><th></th></tr></thead>
+      <tbody id="limBody"></tbody>
+    </table></div>
+    <div id="limMsg" class="msg"></div>
+    <h2 style="margin:22px 0 8px;font-size:1.05rem">Słownik atrybutów</h2>
+    <p class="small">Brak przypisania = wartość domyślna. Liczby całkowite (int) lub tekst. Atrybut tak/nie to int 0/1. Nazwy z prefiksem aplikacji, np. <code>gearbox.day.export_bin</code>.</p>
+    <details class="addbox"><summary>Dodaj lub zmień atrybut</summary>
+      <div class="filters" style="margin-top:10px">
+        <input id="adId" placeholder="id, np. gearbox.projects" style="min-width:230px">
+        <select id="adType"><option value="int">int</option><option value="text">text</option></select>
+        <input id="adDef" placeholder="wartość domyślna" style="width:140px">
+        <input id="adDesc" placeholder="opis" style="min-width:260px">
+        <button type="button" class="sm" id="adSave">Zapisz</button>
+      </div>
+    </details>
+    <div class="scroll"><table>
+      <thead><tr><th>Atrybut</th><th>Typ</th><th>Opis</th><th>Domyślna</th><th></th></tr></thead>
+      <tbody id="defBody"></tbody>
+    </table></div>
+    <div id="defMsg" class="msg"></div>
   </div>
 
   <div id="omodal" class="modal hidden"><div class="mbox">
@@ -626,7 +698,8 @@
 
   var EXPORT_TABLES = [
     ['profiles', 'id'], ['files', 'id'], ['jobs', 'id'], ['orders', 'id'], ['order_messages', 'id'], ['activity_log', 'id'],
-    ['coin_ledger', 'id'], ['consents', 'id'], ['billing_profiles', 'user_id'], ['services', 'id'], ['account_deletions', 'user_id']
+    ['coin_ledger', 'id'], ['consents', 'id'], ['billing_profiles', 'user_id'], ['services', 'id'], ['account_deletions', 'user_id'],
+    ['attribute_defs', 'id'], ['user_attributes', 'user_id'], ['tickets', 'id'], ['ticket_messages', 'id']
   ];
 
   async function fetchAllRows(table, orderCol) {
@@ -676,9 +749,170 @@
     $('xAll').disabled = false;
   }
 
-  var loaders = { act: loadActivity, usr: loadUsers, fil: loadFiles, ord: loadOrders };
+  // ---- attributes / limits ----
+  var limUser = null;
+  function attrErr(e) {
+    var m = e && e.message ? e.message : '';
+    var map = { bad_value: 'Wartość nie pasuje do typu (int = liczba całkowita).', attribute_not_found: 'Nie ma takiego atrybutu.', user_not_found: 'Nie ma takiego użytkownika.', type_change_not_allowed: 'Typu istniejącego atrybutu nie można zmienić.', forbidden: 'Brak uprawnień.' };
+    for (var k in map) { if (m.indexOf(k) >= 0) return map[k]; }
+    return m || 'Błąd';
+  }
+  function btn(text, cls, fn) { var b = document.createElement('button'); b.type = 'button'; b.className = 'sm' + (cls ? ' ' + cls : ''); b.textContent = text; b.onclick = fn; return b; }
+
+  async function loadDefs() {
+    var r = await sb.from('attribute_defs').select('id,description,type,default_value').order('id');
+    var b = $('defBody'); b.innerHTML = '';
+    if (r.error) { say('defMsg', r.error.message, true); return; }
+    r.data.forEach(function (d) {
+      var row = document.createElement('tr');
+      td(row, d.id); td(row, d.type); td(row, d.description, 'small');
+      var c = document.createElement('td');
+      var inp = document.createElement('input'); inp.value = d.default_value; inp.style.width = '110px'; c.appendChild(inp); row.appendChild(c);
+      var c2 = document.createElement('td'); c2.style.whiteSpace = 'nowrap';
+      c2.appendChild(btn('Zapisz domyślną', '', async function () {
+        var x = await sb.rpc('admin_upsert_attribute', { p_id: d.id, p_description: d.description, p_type: d.type, p_default: inp.value.trim() });
+        if (x.error) { say('defMsg', attrErr(x.error), true); return; }
+        say('defMsg', 'Zapisano domyślną wartość: ' + d.id); loadDefs(); if (limUser) loadUserAttrs();
+      }));
+      var del = btn('Usuń', 'ghost', async function () {
+        if (!confirm('Usunąć atrybut ' + d.id + ' razem z przypisaniami użytkowników?')) return;
+        var x = await sb.rpc('admin_delete_attribute', { p_id: d.id });
+        if (x.error) { say('defMsg', attrErr(x.error), true); return; }
+        say('defMsg', 'Usunięto: ' + d.id); loadDefs(); if (limUser) loadUserAttrs();
+      });
+      del.style.marginLeft = '6px'; c2.appendChild(del); row.appendChild(c2);
+      b.appendChild(row);
+    });
+    say('defMsg', r.data.length + ' atrybutów.');
+  }
+
+  async function saveDef() {
+    var id = $('adId').value.trim().toLowerCase();
+    var x = await sb.rpc('admin_upsert_attribute', { p_id: id, p_description: $('adDesc').value.trim(), p_type: $('adType').value, p_default: $('adDef').value.trim() });
+    if (x.error) { say('defMsg', /check|violates/.test(x.error.message) ? 'Zła nazwa: małe litery, cyfry, _ i kropki, z prefiksem aplikacji (np. gearbox.projects).' : attrErr(x.error), true); return; }
+    $('adId').value = ''; $('adDef').value = ''; $('adDesc').value = '';
+    say('defMsg', 'Zapisano atrybut: ' + id); loadDefs(); if (limUser) loadUserAttrs();
+  }
+
+  async function loadUserAttrs() {
+    var b = $('limBody'); b.innerHTML = '';
+    if (!limUser) { say('limMsg', 'Wybierz użytkownika z podpowiedzi (wpisz fragment e-maila i kliknij pozycję na liście).'); return; }
+    say('limMsg', 'Ładowanie…');
+    var r = await sb.rpc('admin_user_attributes', { p_user: limUser });
+    if (r.error) { say('limMsg', attrErr(r.error), true); return; }
+    r.data.forEach(function (a) {
+      var row = document.createElement('tr');
+      td(row, a.id); td(row, a.description, 'small'); td(row, a.default_value);
+      var ce = document.createElement('td'); var strong = document.createElement('b'); strong.textContent = a.value; ce.appendChild(strong); row.appendChild(ce);
+      var cs = document.createElement('td'); var tg = document.createElement('span'); tg.className = 'tag' + (a.is_custom ? ' bad' : ''); tg.textContent = a.is_custom ? 'ustawiona ręcznie' : 'domyślna'; cs.appendChild(tg); row.appendChild(cs);
+      var ci = document.createElement('td'); var inp = document.createElement('input'); inp.style.width = '110px'; inp.placeholder = a.type; ci.appendChild(inp); row.appendChild(ci);
+      var cb = document.createElement('td'); cb.style.whiteSpace = 'nowrap';
+      cb.appendChild(btn('Ustaw', '', async function () {
+        if (!inp.value.trim()) { say('limMsg', 'Wpisz wartość.', true); return; }
+        var x = await sb.rpc('admin_set_user_attribute', { p_user: limUser, p_attr: a.id, p_value: inp.value.trim() });
+        if (x.error) { say('limMsg', attrErr(x.error), true); return; }
+        loadUserAttrs();
+      }));
+      if (a.is_custom) {
+        var rs = btn('Przywróć domyślną', 'ghost', async function () {
+          var x = await sb.rpc('admin_reset_user_attribute', { p_user: limUser, p_attr: a.id });
+          if (x.error) { say('limMsg', attrErr(x.error), true); return; }
+          loadUserAttrs();
+        });
+        rs.style.marginLeft = '6px'; cb.appendChild(rs);
+      }
+      row.appendChild(cb); b.appendChild(row);
+    });
+    say('limMsg', (emails[limUser] || limUser) + ': ' + r.data.length + ' atrybutów.');
+  }
+
+  function showUserAttrs() {
+    limUser = findUserId($('flUser').value);
+    loadUserAttrs();
+  }
+  function loadLimits() { loadDefs(); if (limUser) loadUserAttrs(); }
+
+  // ---- tickets ----
+  var TK_ST = { open: 'Otwarte', in_progress: 'W trakcie', waiting_user: 'Czeka na użytkownika', closed: 'Zamknięte' };
+  var lastTickets = [], curTk = null, tkAppsFilled = false;
+  function tkErr(e) {
+    var m = e && e.message ? e.message : '';
+    var map = { resolution_required: 'Przy zamykaniu wpisz rozwiązanie.', ticket_closed: 'Zgłoszenie jest zamknięte (najpierw otwórz ponownie).', ticket_not_found: 'Nie znaleziono zgłoszenia.', bad_message: 'Tekst musi mieć 1–2000 znaków.', forbidden: 'Brak uprawnień.' };
+    for (var k in map) { if (m.indexOf(k) >= 0) return map[k]; }
+    return m || 'Błąd';
+  }
+  async function updateTikBadge() {
+    var r = await sb.from('tickets').select('id', { count: 'exact', head: true }).eq('unread_admin', true);
+    var n = r.error ? 0 : (r.count || 0);
+    $('tabTik').textContent = 'Zgłoszenia' + (n ? ' (' + n + ')' : '');
+  }
+  async function loadTickets() {
+    say('tikMsg', 'Ładowanie…');
+    var q = sb.from('tickets').select('id,user_id,app,doc_ref,kind,category,body,context,status,resolution,unread_admin,created_at,updated_at').order('updated_at', { ascending: false }).limit(300);
+    var st = $('ftStatus').value;
+    if (st === 'open') q = q.in('status', ['open', 'in_progress']); else if (st) q = q.eq('status', st);
+    if ($('ftApp').value) q = q.eq('app', $('ftApp').value);
+    var r = await q;
+    var b = $('tikBody'); b.innerHTML = '';
+    if (r.error) { say('tikMsg', r.error.message, true); return; }
+    if (!tkAppsFilled) {
+      var seen = {}; r.data.forEach(function (t) { seen[t.app] = 1; });
+      Object.keys(seen).sort().forEach(function (a) { var o = document.createElement('option'); o.value = a; o.textContent = a === 'general' ? 'Problem ogólny' : a; $('ftApp').appendChild(o); });
+      tkAppsFilled = true;
+    }
+    var u = $('ftUser').value.trim().toLowerCase(), d = $('ftDoc').value.trim().toLowerCase();
+    lastTickets = r.data.filter(function (t) {
+      if (u && (emails[t.user_id] || '').toLowerCase().indexOf(u) < 0) return false;
+      if (d && (t.doc_ref || '').toLowerCase().indexOf(d) < 0) return false;
+      return true;
+    });
+    lastTickets.forEach(function (t) {
+      var row = document.createElement('tr');
+      td(row, fmtDate(t.created_at)); td(row, emails[t.user_id] || t.user_id);
+      td(row, t.app === 'general' ? 'ogólny' : t.app); td(row, t.doc_ref || '', 'small');
+      td(row, (t.unread_admin ? '● ' : '') + t.body.slice(0, 100) + (t.body.length > 100 ? '…' : ''), 'det');
+      var cs = document.createElement('td'); var tg = document.createElement('span'); tg.className = 'tag' + (t.status === 'open' ? ' bad' : ''); tg.textContent = TK_ST[t.status] || t.status; cs.appendChild(tg); row.appendChild(cs);
+      var cb = document.createElement('td'); cb.appendChild(btn('Otwórz', '', function () { openTicket(t); })); row.appendChild(cb);
+      b.appendChild(row);
+    });
+    say('tikMsg', lastTickets.length + ' zgłoszeń.');
+    updateTikBadge();
+  }
+  async function loadTkThread() {
+    var r = await sb.from('ticket_messages').select('author_role,body,created_at').eq('ticket_id', curTk.id).order('created_at', { ascending: true });
+    var box = $('tMsgs'); box.innerHTML = '';
+    (r.data || []).forEach(function (m) {
+      var w = document.createElement('div'); w.className = 'who'; w.textContent = (m.author_role === 'admin' ? 'Admin' : m.author_role === 'system' ? 'System' : 'Użytkownik') + ' · ' + fmtDate(m.created_at);
+      var x = document.createElement('div'); x.className = 'txt'; x.textContent = m.body; box.appendChild(w); box.appendChild(x);
+    });
+    box.scrollTop = box.scrollHeight;
+  }
+  async function openTicket(t) {
+    curTk = t;
+    $('tTitle').textContent = (t.app === 'general' ? 'Problem ogólny' : t.app) + ' · ' + (emails[t.user_id] || t.user_id);
+    var ctx = t.context || {}, parts = Object.keys(ctx).map(function (k) { return k + ': ' + ctx[k]; });
+    $('tInfo').innerHTML = '';
+    [fmtDate(t.created_at) + ' · ' + (TK_ST[t.status] || t.status) + (t.category === 'other' ? ' · inne' : ''), t.doc_ref ? 'ID projektu: ' + t.doc_ref : '', parts.length ? 'Kontekst: ' + parts.join(' | ') : '', 'Opis: ' + t.body, t.resolution ? 'Rozwiązanie: ' + t.resolution : '']
+      .filter(Boolean).forEach(function (s) { var p = document.createElement('p'); p.textContent = s; p.style.whiteSpace = 'pre-wrap'; if (s.indexOf('Kontekst') === 0) p.className = 'small'; $('tInfo').appendChild(p); });
+    $('tText').value = ''; $('tRes').value = ''; say('tMsg', '');
+    $('tmodal').className = 'modal';
+    await loadTkThread();
+    if (t.unread_admin) { sb.rpc('ticket_mark_read', { p_ticket: t.id }).then(updateTikBadge); }
+  }
+  async function tkRpc(fn, args, okText) {
+    var x = await sb.rpc(fn, args);
+    if (x.error) { say('tMsg', tkErr(x.error), true); return false; }
+    say('tMsg', okText); await loadTkThread(); loadTickets(); return true;
+  }
+  function exportTickets() {
+    saveCsv('zgloszenia', ['Data', 'Użytkownik', 'Aplikacja', 'ID projektu', 'Rodzaj', 'Opis', 'Status', 'Rozwiązanie'], lastTickets.map(function (t) {
+      return [iso(t.created_at), emails[t.user_id] || t.user_id, t.app, t.doc_ref || '', t.category, t.body, TK_ST[t.status] || t.status, t.resolution || ''];
+    }), 'tikMsg');
+  }
+
+  var loaders = { act: loadActivity, usr: loadUsers, fil: loadFiles, ord: loadOrders, tik: loadTickets, lim: loadLimits };
   function showTab(name) {
-    ['act', 'usr', 'fil', 'ord'].forEach(function (t) { $('tab_' + t).className = 'card' + (t === name ? '' : ' hidden'); });
+    ['act', 'usr', 'fil', 'ord', 'tik', 'lim'].forEach(function (t) { $('tab_' + t).className = 'card' + (t === name ? '' : ' hidden'); });
     Array.prototype.forEach.call(document.querySelectorAll('.tabBtn'), function (b) { b.className = 'tabBtn' + (b.getAttribute('data-tab') === name ? '' : ' ghost'); });
     loaders[name]();
   }
@@ -700,6 +934,16 @@
     $('addBtn').onclick = addFileToUser;
     $('xAct').onclick = exportActivity; $('xUsr').onclick = exportUsers; $('xFil').onclick = exportFiles; $('xOrd').onclick = exportOrders;
     $('xAll').onclick = exportAll;
+    $('flGo').onclick = showUserAttrs; $('adSave').onclick = saveDef;
+    $('ftGo').onclick = loadTickets; $('ftStatus').onchange = loadTickets; $('ftApp').onchange = loadTickets; $('ftUser').oninput = loadTickets; $('ftDoc').oninput = loadTickets;
+    $('xTik').onclick = exportTickets;
+    $('tHide').onclick = function () { $('tmodal').className = 'modal hidden'; loadTickets(); };
+    $('tSend').onclick = async function () { var t = $('tText').value; if (!t.trim()) return; if (await tkRpc('ticket_post_message', { p_ticket: curTk.id, p_body: t }, 'Wysłano.')) $('tText').value = ''; };
+    $('tProg').onclick = function () { tkRpc('admin_set_ticket_status', { p_ticket: curTk.id, p_status: 'in_progress', p_resolution: null }, 'Status: w trakcie.'); };
+    $('tWait').onclick = function () { tkRpc('admin_set_ticket_status', { p_ticket: curTk.id, p_status: 'waiting_user', p_resolution: null }, 'Status: czekam na użytkownika.'); };
+    $('tOpen').onclick = function () { tkRpc('admin_set_ticket_status', { p_ticket: curTk.id, p_status: 'open', p_resolution: null }, 'Zgłoszenie otwarte.'); };
+    $('tClose').onclick = function () { tkRpc('admin_set_ticket_status', { p_ticket: curTk.id, p_status: 'closed', p_resolution: $('tRes').value }, 'Zgłoszenie zamknięte.'); };
+    updateTikBadge();
     $('retInfo').onclick = function () {
       alert('Konto aktywne do = ostatnia aktywność (logowanie lub zdarzenie w logu) + 24 miesiące. Na 30 dni przed tą datą worker wysyła ostrzeżenie e-mail, a po upływie terminu (jeśli konto dalej nieaktywne) usuwa konto razem z plikami. Pliki są usuwane po 12 miesiącach od dodania, wpisy logu po 12 miesiącach. Administratorzy są pomijani (—). Usuwanie działa tylko gdy worker ma RETENTION_ENABLED=1 i skonfigurowany SMTP.');
     };
