@@ -151,6 +151,9 @@
   var cfg = window.ECUP_SUPABASE;
   var sb = window.supabase.createClient(cfg.url, cfg.key);
   var APPS = window.ECUP_APPS || [];
+  var isAdmin = false;
+  // applications marked adminOnly (apps-config.js) are shown and used only for administrators (staged rollout)
+  function visibleApps() { return APPS.filter(function (a) { return !a.adminOnly || isAdmin; }); }
   var mode = 'in', loggedIn = false, pwRecovery = false;
 
   function $(id) { return document.getElementById(id); }
@@ -186,7 +189,7 @@
     $('newPwLab').textContent = tr('Nowe hasło (min. 8 znaków)', 'New password (min. 8 characters)');
     $('newPw2Lab').textContent = tr('Powtórz nowe hasło', 'Repeat the new password');
     $('pwBtn').textContent = tr('Zmień hasło', 'Change password');
-    $('accText').textContent = tr('Usunięcie konta usuwa trwale wszystkie Twoje dane we wszystkich aplikacjach ECU-Perfect.', 'Deleting the account permanently removes all your data in all ECU-Perfect applications.');
+    $('accText').textContent = tr('Usunięcie konta usuwa wszystkie Twoje dane we wszystkich aplikacjach ECU-Perfect: od razu przestają być dla Ciebie dostępne, a z serwera znikają trwale najpóźniej po 30 dniach.', 'Deleting the account removes all your data in all ECU-Perfect applications: you lose access to it immediately and it is permanently erased from the server within 30 days.');
     $('delAccBtn').textContent = tr('Usuń konto', 'Delete account');
     buildTerms(); buildFooter(); buildTiles(); syncEyes();
   }
@@ -194,10 +197,10 @@
   // ---------------- application tiles
   function buildTiles() {
     var box = $('tiles'); box.innerHTML = '';
-    APPS.forEach(function (a) {
+    visibleApps().forEach(function (a) {
       var t = document.createElement('div'); t.className = 'tile';
       var h = document.createElement('h3'); h.textContent = L(a.name);
-      var p = document.createElement('p'); p.textContent = L(a.desc);
+      var p = document.createElement('p'); p.textContent = L(a.desc) + (a.adminOnly ? ' ' + tr('(Widoczne tylko dla administratora.)', '(Visible to administrators only.)') : '');
       var b = document.createElement('button'); b.type = 'button'; b.textContent = tr('Otwórz', 'Open'); b.style.marginTop = '4px';
       b.onclick = function () { openApp(a); };
       t.appendChild(h); t.appendChild(p); t.appendChild(b); box.appendChild(t);
@@ -290,14 +293,16 @@
   }
   async function checkAdmin() {
     var r = await sb.rpc('is_admin');
-    $('adminLink').className = !r.error && r.data ? '' : 'hidden';
+    isAdmin = !r.error && !!r.data;
+    $('adminLink').className = isAdmin ? '' : 'hidden';
+    buildTiles();
   }
   function show(session) {
     loggedIn = !!session;
     $('authBox').className = session ? 'card hidden' : 'card';
     $('appBox').className = session ? '' : 'hidden';
     if (session) { recordTerms(session.user.id); $('who').textContent = session.user.email; checkAdmin(); startTickets(); }
-    else $('adminLink').className = 'hidden';
+    else { isAdmin = false; $('adminLink').className = 'hidden'; }
     buildTexts();
   }
 
@@ -306,7 +311,7 @@
   function startTickets() {
     if (!window.ECUP_TICKETS) return;
     if (!ticketsReady) {
-      ECUP_TICKETS.init({ sb: sb, apps: APPS });
+      ECUP_TICKETS.init({ sb: sb, apps: visibleApps });
       $('tkNew').onclick = function () { ECUP_TICKETS.openForm({}); };
       ticketsReady = true;
       var m = /[#&]ticket=([^&]*)/.exec(location.hash || '');
@@ -323,8 +328,9 @@
   async function deleteAccount() {
     say('accMsg', tr('Sprawdzanie danych w aplikacjach...', 'Checking the data in the applications...'));
     var info = [], failed = [];
-    for (var i = 0; i < APPS.length; i++) {
-      var a = APPS[i]; if (!a.api) continue;
+    var usable = visibleApps();
+    for (var i = 0; i < usable.length; i++) {
+      var a = usable[i]; if (!a.api) continue;
       try { var d = await appCall(a, 'account_info'); info.push({ app: a, n: d.projects + (d.deleted || 0) }); }
       catch (e) { failed.push(a); }
     }
@@ -339,7 +345,7 @@
     var ok = await confirmBox({
       title: tr('Usunąć konto?', 'Delete the account?'),
       lines: [
-        tr('Usunięte zostaną trwale wszystkie Twoje dane we wszystkich aplikacjach ECU-Perfect:', 'All your data in all ECU-Perfect applications will be permanently deleted:'),
+        tr('Twoje konto zostanie usunięte, a wszystkie Twoje dane we wszystkich aplikacjach ECU-Perfect zostaną trwale usunięte najpóźniej po 30 dniach. Od razu przestaną być dla Ciebie dostępne:', 'Your account will be deleted and all your data in all ECU-Perfect applications will be permanently removed within 30 days. You lose access to it immediately:'),
         ul,
         tr('Tej operacji nie można cofnąć. Jeśli chcesz zachować swoje pliki, najpierw pobierz je w aplikacjach (np. „Pobierz wszystko (ZIP)” w edytorze skrzyń).', 'This cannot be undone. If you want to keep your files, download them in the applications first (e.g. "Download all (ZIP)" in the gearbox editor).')
       ],

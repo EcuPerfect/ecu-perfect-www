@@ -31,9 +31,12 @@
     (kids || []).forEach(function (c) { if (c) e.appendChild(c); });
     return e;
   }
+  function appList() { return typeof apps === 'function' ? apps() : apps; }   // apps may be a function (list can change after login)
+  function allApps() { return window.ECUP_APPS || appList(); }                 // names of ALL apps (also admin-only ones, for existing tickets)
   function appName(code) {
     if (code === 'general') return tr('Problem ogólny', 'General problem');
-    for (var i = 0; i < apps.length; i++) if (apps[i].id === code) { var n = apps[i].name; return n ? tr(n.pl, n.en) : code; }
+    var all = allApps();
+    for (var i = 0; i < all.length; i++) if (all[i].id === code) { var n = all[i].name; return n ? tr(n.pl, n.en) : code; }
     return code;
   }
   function fmt(s) { return s ? new Date(s).toLocaleString() : ''; }
@@ -52,7 +55,7 @@
     pref = pref || {};
     var o = overlay(tr('Zgłoś problem', 'Report a problem'));
     var sel = el('select', { style: TA });
-    var codes = apps.map(function (a) { return a.id; }).concat(['general']);
+    var codes = appList().map(function (a) { return a.id; }).concat(['general']);
     codes.forEach(function (c) { var op = el('option', { value: c, text: appName(c) }); sel.appendChild(op); });
     sel.value = codes.indexOf(pref.app) >= 0 ? pref.app : 'general';
     var doc = el('input', { type: 'text', maxLength: 100, value: pref.docRef || '', style: TA, placeholder: tr('np. GUID projektu (opcjonalnie)', 'e.g. project ID (optional)') });

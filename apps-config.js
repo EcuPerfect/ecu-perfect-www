@@ -11,5 +11,14 @@ window.ECUP_APPS = [
             en: 'Shift points and torque limiters in automatic gearbox controller (TCU) files. Versions, checks, bin export.' },
     url: 'https://gearbox.ecu-perfect.pl/',
     api: 'https://gearbox.ecu-perfect.pl/api/gearbox/op'
+  },
+  {
+    id: 'mappack',
+    adminOnly: true,   // staged rollout: shown only to administrators; remove this line to open it to everybody
+    name: { pl: 'Konwerter mappacków', en: 'Mappack converter' },
+    desc: { pl: 'Konwersja mappacków WinOLS (KP, CSV) i TunerPro (XDF).',
+            en: 'Mappack conversion between WinOLS (KP, CSV) and TunerPro (XDF).' },
+    url: 'https://mappack.ecu-perfect.pl/',
+    api: 'https://mappack.ecu-perfect.pl/api/mappack/op'
   }
 ];
