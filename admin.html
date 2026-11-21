@@ -850,11 +850,16 @@
   }
   async function loadTickets() {
     say('tikMsg', 'Ładowanie…');
-    var q = sb.from('tickets').select('id,user_id,app,doc_ref,kind,category,body,context,status,resolution,unread_admin,created_at,updated_at').order('updated_at', { ascending: false }).limit(300);
-    var st = $('ftStatus').value;
-    if (st === 'open') q = q.in('status', ['open', 'in_progress']); else if (st) q = q.eq('status', st);
-    if ($('ftApp').value) q = q.eq('app', $('ftApp').value);
-    var r = await q;
+    var tkCols = 'id,user_id,app,doc_ref,kind,category,body,context,status,resolution,unread_admin,created_at,updated_at';
+    function tkQuery(cols) {
+      var q = sb.from('tickets').select(cols).order('updated_at', { ascending: false }).limit(300);
+      var st = $('ftStatus').value;
+      if (st === 'open') q = q.in('status', ['open', 'in_progress']); else if (st) q = q.eq('status', st);
+      if ($('ftApp').value) q = q.eq('app', $('ftApp').value);
+      return q;
+    }
+    var r = await tkQuery(tkCols + ',context_text,consents');
+    if (r.error) r = await tkQuery(tkCols);   // migration with context columns not applied yet
     var b = $('tikBody'); b.innerHTML = '';
     if (r.error) { say('tikMsg', r.error.message, true); return; }
     if (!tkAppsFilled) {
@@ -896,6 +901,19 @@
     $('tInfo').innerHTML = '';
     [fmtDate(t.created_at) + ' · ' + (TK_ST[t.status] || t.status) + (t.category === 'other' ? ' · inne' : ''), t.doc_ref ? 'ID projektu: ' + t.doc_ref : '', parts.length ? 'Kontekst: ' + parts.join(' | ') : '', 'Opis: ' + t.body, t.resolution ? 'Rozwiązanie: ' + t.resolution : '']
       .filter(Boolean).forEach(function (s) { var p = document.createElement('p'); p.textContent = s; p.style.whiteSpace = 'pre-wrap'; if (s.indexOf('Kontekst') === 0) p.className = 'small'; $('tInfo').appendChild(p); });
+    // consents given in the ticket (user's own clicks) and the application context text (informational only, shown as plain text)
+    if (t.consents && t.consents.length) {
+      var ch = document.createElement('p'); ch.textContent = 'Zgody:'; ch.style.margin = '8px 0 2px'; $('tInfo').appendChild(ch);
+      t.consents.forEach(function (c) {
+        var l = document.createElement('p'); l.className = 'small'; l.style.margin = '2px 0';
+        l.textContent = (c.value ? 'TAK' : 'NIE') + ' · ' + c.id + ' (v' + c.version + (c.required ? ', wymagana' : ', opcjonalna') + ') · ' + c.pl + ' · ' + fmtDate(t.created_at);
+        $('tInfo').appendChild(l);
+      });
+    }
+    if (t.context_text) {
+      var cx = document.createElement('p'); cx.textContent = 'Kontekst aplikacji (informacyjnie, składa go strona aplikacji, może być zmieniony przez użytkownika):'; cx.style.margin = '8px 0 2px'; $('tInfo').appendChild(cx);
+      var cp = document.createElement('p'); cp.className = 'small'; cp.style.whiteSpace = 'pre-wrap'; cp.style.margin = '2px 0'; cp.textContent = t.context_text; $('tInfo').appendChild(cp);
+    }
     $('tText').value = ''; $('tStatus').value = t.status; say('tMsg', '');
     $('tmodal').className = 'modal';
     await loadTkThread();

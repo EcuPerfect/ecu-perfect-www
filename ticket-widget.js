@@ -16,7 +16,10 @@
     bad_message: ['Wiadomość musi mieć od 1 do 2000 znaków.', 'The message must be 1 to 2000 characters.'],
     ticket_closed: ['Zgłoszenie jest zamknięte. Otwórz je ponownie, żeby napisać.', 'The ticket is closed. Reopen it to write.'],
     ticket_not_found: ['Nie znaleziono zgłoszenia.', 'Ticket not found.'],
-    bad_doc_ref: ['Identyfikator projektu jest za długi (max 100 znaków).', 'The project ID is too long (max 100 characters).']
+    bad_doc_ref: ['Identyfikator projektu jest za długi (max 100 znaków).', 'The project ID is too long (max 100 characters).'],
+    consent_required: ['Zaznacz wymagane zgody (oznaczone gwiazdką).', 'Tick the required consents (marked with an asterisk).'],
+    bad_consents: ['Niepoprawne zgody w zgłoszeniu.', 'Invalid consents in the ticket.'],
+    bad_context_text: ['Informacje dołączane automatycznie są za długie.', 'The automatically attached information is too long.']
   };
   function tr(pl, en) { return window.I18N ? I18N.t(pl, en) : pl; }
   function T(p) { return tr(p[0], p[1]); }
@@ -68,14 +71,41 @@
     var send = el('button', { type: 'button', text: tr('Wyślij', 'Send') });
     var cancel = el('button', { type: 'button', className: 'ghost', text: tr('Anuluj', 'Cancel'), style: 'margin-left:8px' });
     var note = el('p', { className: 'small', text: tr('Nie wpisuj haseł ani danych osobowych osób trzecich. Odpowiedź zobaczysz w panelu w „Moje zgłoszenia”.', 'Do not enter passwords or third-party personal data. You will see the reply in the panel under "My tickets".') });
+    // optional extras prepared by the application: automatic context text + consent checkboxes
+    var consents = (pref.consents || []).slice(0, 5), boxes = [];
+    var extra = [];
+    if (pref.contextText) {
+      extra.push(el('details', { style: 'margin:10px 0' }, [
+        el('summary', { text: tr('Informacje dołączane automatycznie (podgląd)', 'Information attached automatically (preview)'), style: 'cursor:pointer' }),
+        el('div', { className: 'small', style: 'white-space:pre-wrap;margin-top:6px', text: String(pref.contextText).slice(0, 4000) })
+      ]));
+    }
+    consents.forEach(function (c) {
+      var cb = el('input', { type: 'checkbox', style: 'margin-right:8px;vertical-align:top;margin-top:4px' });
+      boxes.push(cb);
+      extra.push(el('label', { style: 'display:block;margin:8px 0;font-size:.92rem;line-height:1.4' }, [cb,
+        el('span', { text: tr(c.pl, c.en) + (c.required ? ' *' : ' ' + tr('(opcjonalnie)', '(optional)')) })]));
+    });
+    function consentsOk() { for (var i = 0; i < consents.length; i++) if (consents[i].required && !boxes[i].checked) return false; return true; }
+    function syncSend() { send.disabled = !consentsOk(); }
+    boxes.forEach(function (cb) { cb.onchange = syncSend; });
     [el('label', { text: tr('Aplikacja', 'Application') }), sel, el('label', { text: tr('ID projektu', 'Project ID') }), doc,
-     el('label', { text: tr('Rodzaj', 'Type') }), cat, el('label', { text: tr('Opis', 'Description') }), body, note, send, cancel, msg].forEach(function (n) { o.box.appendChild(n); });
+     el('label', { text: tr('Rodzaj', 'Type') }), cat, el('label', { text: tr('Opis', 'Description') }), body, note].concat(extra, [send, cancel, msg]).forEach(function (n) { o.box.appendChild(n); });
+    syncSend();
     cancel.onclick = o.close;
     send.onclick = async function () {
       if (!body.value.trim()) { msg.textContent = T(ERR.bad_body); msg.className = 'msg err'; return; }
+      if (!consentsOk()) { msg.textContent = T(ERR.consent_required); msg.className = 'msg err'; return; }
       send.disabled = true; msg.textContent = ''; msg.className = 'msg';
       var ctx = Object.assign({ browser: (navigator.userAgent || '').slice(0, 200), page: location.pathname }, pref.context || {});
-      var r = await sb.rpc('create_ticket', { p_app: sel.value, p_doc_ref: doc.value.trim() || null, p_category: cat.value, p_body: body.value, p_context: ctx });
+      var r;
+      if (pref.contextText || consents.length) {
+        r = await sb.rpc('create_ticket_ex', { p_app: sel.value, p_doc_ref: doc.value.trim() || null, p_category: cat.value, p_body: body.value, p_context: ctx,
+          p_context_text: pref.contextText || null,
+          p_consents: consents.map(function (c, i) { return { id: c.id, version: c.version, required: !!c.required, value: boxes[i].checked, pl: c.pl, en: c.en }; }) });
+      } else {
+        r = await sb.rpc('create_ticket', { p_app: sel.value, p_doc_ref: doc.value.trim() || null, p_category: cat.value, p_body: body.value, p_context: ctx });
+      }
       send.disabled = false;
       if (r.error) { msg.textContent = errText(r.error); msg.className = 'msg err'; return; }
       o.close();
@@ -95,7 +125,16 @@
     var send = el('button', { type: 'button', text: tr('Wyślij', 'Send') });
     var reopen = el('button', { type: 'button', className: 'ghost', text: tr('Otwórz ponownie', 'Reopen'), style: 'margin-left:8px' });
     var close = el('button', { type: 'button', className: 'ghost', text: tr('Zamknij okno', 'Close'), style: 'margin-left:8px' });
-    [info, first, thread, res].forEach(function (n) { if (n) o.box.appendChild(n); });
+    // read-only: automatic context and consents given with the ticket
+    var extra = null;
+    if (t.context_text || (t.consents && t.consents.length)) {
+      extra = el('details', { style: 'margin:8px 0' }, [el('summary', { text: tr('Dołączone informacje i zgody', 'Attached information and consents'), style: 'cursor:pointer' })]);
+      (t.consents || []).forEach(function (c) {
+        extra.appendChild(el('div', { className: 'small', style: 'margin-top:6px', text: (c.value ? '☑ ' : '☐ ') + tr(c.pl, c.en) + ' (v' + c.version + ')' }));
+      });
+      if (t.context_text) extra.appendChild(el('div', { className: 'small', style: 'white-space:pre-wrap;margin-top:6px', text: t.context_text }));
+    }
+    [info, first, extra, thread, res].forEach(function (n) { if (n) o.box.appendChild(n); });
     if (t.status !== 'closed') { o.box.appendChild(text); o.box.appendChild(send); }
     else o.box.appendChild(reopen);
     o.box.appendChild(close); o.box.appendChild(msg);
@@ -131,7 +170,9 @@
   async function renderList(container) {
     listEl = container;
     container.innerHTML = '';
-    var r = await sb.from('tickets').select('id,app,doc_ref,category,body,status,resolution,unread_user,created_at,updated_at').order('updated_at', { ascending: false }).limit(100);
+    var cols = 'id,app,doc_ref,category,body,status,resolution,unread_user,created_at,updated_at';
+    var r = await sb.from('tickets').select(cols + ',context_text,consents').order('updated_at', { ascending: false }).limit(100);
+    if (r.error) r = await sb.from('tickets').select(cols).order('updated_at', { ascending: false }).limit(100);   // migration with context columns not applied yet
     if (r.error) { container.appendChild(el('p', { className: 'small', text: errText(r.error) })); return; }
     if (!r.data.length) { container.appendChild(el('p', { className: 'small', text: tr('Nie masz jeszcze zgłoszeń.', 'You have no tickets yet.') })); return; }
     r.data.forEach(function (t) {
@@ -156,18 +197,24 @@
 /* Standalone widget for applications on their own address (e.g. gearbox.ecu-perfect.pl).
    No supabase-js, no page CSS needed. Contract (agreed with GEARBOX):
      ECUP_TICKET.open({ app: 'gearbox', doc_ref: '<project guid>' | null, lang: 'pl'|'en',
-                        token: '<user access token>', config: { url: '<supabase url>', key: '<publishable key>' } })
+                        token: '<user access token>', config: { url: '<supabase url>', key: '<publishable key>' },
+                        // optional (needs migration 20261121000100): automatic context and consents
+                        context_text: 'free text prepared by the app, max 4000 chars, informational only',
+                        context: { engine: '...', ai_version: '...', transfer_at: '...', request_id: '...' },   // whitelisted keys only
+                        consents: [{ id: '<app>.<name>', version: 1, required: true|false, pl: '...', en: '...' }] })   // max 5, id starts with '<app>.'
        -> Promise<{ ok: true, ticket_id } | { ok: false, canceled: true } | { ok: false, error }> */
 (function () {
   var TX = {
     pl: { title: 'Zgłoś problem', cat: 'Rodzaj', c_problem: 'Zgłoś problem', c_other: 'Inne', desc: 'Opis', ph: 'Opisz, co się stało i czego oczekiwałeś.',
           send: 'Wyślij', cancel: 'Anuluj', note: 'Nie wpisuj haseł ani danych osobowych osób trzecich. Odpowiedź zobaczysz w panelu ecu-perfect.pl w „Moje zgłoszenia”.',
           need: 'Opisz problem.', ok: 'Zgłoszenie wysłane. Odpowiedź zobaczysz w panelu ecu-perfect.pl w „Moje zgłoszenia”.', close: 'Zamknij',
-          rate: 'Za dużo zgłoszeń dzisiaj. Spróbuj jutro albo napisz na contact@ecu-perfect.pl.', err: 'Nie udało się wysłać zgłoszenia.' },
+          rate: 'Za dużo zgłoszeń dzisiaj. Spróbuj jutro albo napisz na contact@ecu-perfect.pl.', err: 'Nie udało się wysłać zgłoszenia.',
+          ctx: 'Informacje dołączane automatycznie (podgląd)', opt: '(opcjonalnie)', needc: 'Zaznacz wymagane zgody (oznaczone gwiazdką).' },
     en: { title: 'Report a problem', cat: 'Type', c_problem: 'Report a problem', c_other: 'Other', desc: 'Description', ph: 'Describe what happened and what you expected.',
           send: 'Send', cancel: 'Cancel', note: 'Do not enter passwords or third-party personal data. You will see the reply in the ecu-perfect.pl panel under "My tickets".',
           need: 'Describe the problem.', ok: 'Ticket sent. You will see the reply in the ecu-perfect.pl panel under "My tickets".', close: 'Close',
-          rate: 'Too many reports today. Try tomorrow or write to contact@ecu-perfect.pl.', err: 'Could not send the ticket.' }
+          rate: 'Too many reports today. Try tomorrow or write to contact@ecu-perfect.pl.', err: 'Could not send the ticket.',
+          ctx: 'Information attached automatically (preview)', opt: '(optional)', needc: 'Tick the required consents (marked with an asterisk).' }
   };
   var CSS = {
     wrap: 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:20px;font-family:Segoe UI,system-ui,Arial,sans-serif',
@@ -195,19 +242,47 @@
         box.appendChild(mk('label', '', t.desc));
         var body = mk('textarea', CSS.field); body.rows = 6; body.maxLength = 4000; body.placeholder = t.ph; box.appendChild(body);
         box.appendChild(mk('p', CSS.small, t.note));
+        // optional extras prepared by the application: context_text (string, max 4000), context (object, whitelisted keys), consents (max 5)
+        var lng = o.lang === 'en' ? 'en' : 'pl';
+        var consents = (o.consents || []).slice(0, 5), boxes = [];
+        var ctext = o.context_text ? String(o.context_text).slice(0, 4000) : '';
+        if (ctext) {
+          var det = mk('details', 'margin:10px 0');
+          det.appendChild(mk('summary', 'cursor:pointer', t.ctx));
+          det.appendChild(mk('div', CSS.small + ';white-space:pre-wrap;margin-top:6px', ctext));
+          box.appendChild(det);
+        }
+        consents.forEach(function (c) {
+          var lab = mk('label', 'display:block;margin:8px 0;font-size:.92rem;line-height:1.4');
+          var cb = document.createElement('input'); cb.type = 'checkbox'; cb.style.cssText = 'margin-right:8px;vertical-align:top;margin-top:4px';
+          boxes.push(cb); lab.appendChild(cb);
+          lab.appendChild(mk('span', '', (c[lng] || c.pl) + (c.required ? ' *' : ' ' + t.opt)));
+          box.appendChild(lab);
+        });
+        function consentsOk() { for (var i = 0; i < consents.length; i++) if (consents[i].required && !boxes[i].checked) return false; return true; }
         var msg = mk('div', 'min-height:1.3em;margin-top:10px;color:#ff4b57');
         var send = mk('button', CSS.btn, t.send), cancel = mk('button', CSS.ghost, t.cancel);
         send.type = 'button'; cancel.type = 'button';
+        function syncSend() { send.disabled = !consentsOk(); send.style.opacity = send.disabled ? '.5' : '1'; }
+        boxes.forEach(function (cb) { cb.onchange = syncSend; });
+        syncSend();
         box.appendChild(send); box.appendChild(cancel); box.appendChild(msg);
         cancel.onclick = function () { done({ ok: false, canceled: true }); };
         send.onclick = function () {
           if (!body.value.trim()) { msg.textContent = t.need; return; }
+          if (!consentsOk()) { msg.textContent = t.needc; return; }
           send.disabled = true; msg.textContent = '';
-          var ctx = { browser: (navigator.userAgent || '').slice(0, 200), page: location.host + location.pathname };
-          fetch(String(o.config.url).replace(/\/+$/, '') + '/rest/v1/rpc/create_ticket', {
+          var ctx = Object.assign({ browser: (navigator.userAgent || '').slice(0, 200), page: location.host + location.pathname }, o.context || {});
+          var extended = !!(ctext || consents.length);
+          var payload = { p_app: o.app || 'general', p_doc_ref: o.doc_ref || null, p_category: cat.value, p_body: body.value, p_context: ctx };
+          if (extended) {
+            payload.p_context_text = ctext || null;
+            payload.p_consents = consents.map(function (c, i) { return { id: c.id, version: c.version, required: !!c.required, value: boxes[i].checked, pl: c.pl, en: c.en }; });
+          }
+          fetch(String(o.config.url).replace(/\/+$/, '') + '/rest/v1/rpc/' + (extended ? 'create_ticket_ex' : 'create_ticket'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', apikey: o.config.key, Authorization: 'Bearer ' + o.token },
-            body: JSON.stringify({ p_app: o.app || 'general', p_doc_ref: o.doc_ref || null, p_category: cat.value, p_body: body.value, p_context: ctx })
+            body: JSON.stringify(payload)
           }).then(function (r) { return r.json().catch(function () { return null; }).then(function (j) { return { status: r.status, ok: r.ok, j: j }; }); })
             .then(function (x) {
               if (x.ok && typeof x.j === 'string') {
@@ -219,7 +294,8 @@
               }
               send.disabled = false;
               var m = (x.j && (x.j.message || '')) || '';
-              msg.textContent = m.indexOf('rate_limited') >= 0 ? t.rate : t.err;
+              msg.textContent = m.indexOf('rate_limited') >= 0 ? t.rate : m.indexOf('consent_required') >= 0 ? t.needc : t.err;
+              syncSend();
             })
             .catch(function () { send.disabled = false; msg.textContent = t.err; });
         };

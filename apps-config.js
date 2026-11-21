@@ -14,11 +14,18 @@ window.ECUP_APPS = [
   },
   {
     id: 'mappack',
-    adminOnly: true,   // staged rollout: shown only to administrators; remove this line to open it to everybody
     name: { pl: 'Konwerter mappacków', en: 'Mappack converter' },
     desc: { pl: 'Konwersja mappacków WinOLS (KP, CSV) i TunerPro (XDF).',
             en: 'Mappack conversion between WinOLS (KP, CSV) and TunerPro (XDF).' },
     url: 'https://mappack.ecu-perfect.pl/',
     api: 'https://mappack.ecu-perfect.pl/api/mappack/op'
+  }
+  ,{
+    id: 'migrate',
+    name: { pl: 'Migracja tuningu', en: 'Tune Migration' },
+    desc: { pl: 'Przenieś mappack i zmiany tunera ze starej wersji oprogramowania na nową.',
+            en: 'Move the mappack and the tuner\'s changes from an old software version to a new one.' },
+    url: 'https://migrate.ecu-perfect.pl/',
+    api: 'https://migrate.ecu-perfect.pl/api/v1/op'
   }
 ];

@@ -34,7 +34,7 @@
 
 <div id="pl">
 <h1>Regulamin serwisu i panelu klienta</h1>
-<p class="muted">Wersja 2 · obowiązuje od 15.11.2026 (wersja 1: od 16.10.2026)</p>
+<p class="muted">Wersja 2 · obowiązuje od 16.11.2026 (wersja 1: od 16.10.2026)</p>
 
 <h2>1. Postanowienia ogólne</h2>
 <p>Regulamin określa zasady korzystania z serwisu internetowego ecu-perfect.pl oraz panelu klienta („Serwis”), prowadzonych przez ECU-Perfect. Kontakt: <a href="mailto:contact@ecu-perfect.pl">contact@ecu-perfect.pl</a>, tel. +48 603 601 786. Użytkownikiem jest osoba korzystająca z Serwisu, w szczególności posiadająca konto w panelu klienta.</p>
@@ -46,7 +46,7 @@
 <ul>
   <li>Założenie konta jest bezpłatne i wymaga akceptacji Regulaminu oraz Polityki prywatności.</li>
   <li>Użytkownik chroni dane logowania i nie udostępnia ich innym osobom. Konto jest przypisane do jednej osoby.</li>
-  <li>Użytkownik może w każdej chwili usunąć konto w panelu. Usunięcie konta powoduje trwałe usunięcie jego plików, a dostęp do nich nie będzie już możliwy.</li>
+  <li>Użytkownik może w każdej chwili usunąć konto w panelu. Usunięcie konta powoduje trwałe usunięcie jego plików, a dostęp do nich nie będzie już możliwy. Dane w aplikacjach (edytor skrzyń biegów, konwerter mappacków) przestają być dostępne od razu i są trwale usuwane z serwera najpóźniej po 30 dniach; w tym czasie dostęp ma tylko administrator.</li>
 </ul>
 
 <h2>4. Usługi</h2>
@@ -93,6 +93,27 @@
   <li>Bazy map, identyfikatory i opisy map oraz inne dane udostępniane w edytorze stanowią własność ECU-Perfect (lub licencjodawców) i są chronione prawem. Zabronione jest ich masowe pobieranie, kopiowanie, odtwarzanie struktury bazy, automatyczne zbieranie danych (scraping), a także przekazywanie ich osobom trzecim lub budowanie na ich podstawie konkurencyjnych baz lub usług. Naruszenie może skutkować zablokowaniem konta i dochodzeniem roszczeń.</li>
 </ul>
 
+<h2>9b. Konwerter mappacków (wersja testowa)</h2>
+<ul>
+  <li>Konwerter mappacków jest aplikacją dostępną z panelu klienta, obecnie w <b>wersji testowej</b> i bezpłatnie. Przekształca mappacki (listy map) wgrane przez Użytkownika między formatami używanymi w programach WinOLS i TunerPro (m.in. KP, CSV, XDF, A2L). Zakres funkcji i dostępne formaty mogą się zmieniać.</li>
+  <li>Użytkownik oświadcza, że ma prawo dysponować wgrywanymi plikami. Projekty są prywatne i przypisane do konta; dostęp mają Użytkownik i administrator Serwisu. Projekt usunięty przez Użytkownika jest fizycznie kasowany po 30 dniach.</li>
+  <li>Dostępność poszczególnych formatów eksportu zależy od uprawnień konta; niektóre opcje mogą być niedostępne w wersji testowej. Konwerter stosuje limity (m.in. liczby projektów, miejsca, rozmiaru pliku oraz operacji na dobę), które mogą być zmieniane.</li>
+  <li>Wynik konwersji ma charakter pomocniczy. ECU-Perfect nie gwarantuje jego kompletności ani zgodności z danym programem lub sterownikiem; Użytkownik sprawdza wynik w docelowym programie przed użyciem. Obowiązują zasady z punktów 6 i 10.</li>
+  <li>Zabronione jest automatyczne lub masowe wgrywanie i eksportowanie plików oraz wykorzystywanie konwertera do budowania baz danych lub usług konkurencyjnych wobec ECU-Perfect.</li>
+  <li>WinOLS, TunerPro i inne nazwy programów są znakami ich właścicieli. ECU-Perfect nie jest z nimi powiązany.</li>
+</ul>
+
+<h2>9c. Migracja tuningu (wersja testowa)</h2>
+<ul>
+  <li>Migracja tuningu jest aplikacją dostępną z panelu klienta, obecnie w <b>wersji testowej</b> i bezpłatnie; może być udostępniana stopniowo wybranym Użytkownikom. Pomaga przenieść mappack oraz zmiany wprowadzone przez tunera (mod) ze starej wersji oprogramowania sterownika na nową, na podstawie plików wgranych przez Użytkownika (m.in. OLS, bin, KP, CSV, A2L, XDF). Zakres funkcji i dostępne formaty mogą się zmieniać.</li>
+  <li>Przy zakładaniu projektu Użytkownik oświadcza, że ma prawo dysponować wgrywanymi plikami oraz że pliki nie zawierają danych osobowych. Projekty są prywatne i przypisane do konta; dostęp mają Użytkownik i administrator Serwisu. Projekt usunięty przez Użytkownika jest fizycznie kasowany po 30 dniach. Aplikacja stosuje limity (m.in. liczby projektów, miejsca, rozmiaru pliku oraz operacji na dobę), które mogą być zmieniane.</li>
+  <li>Wynik przeniesienia ma charakter <b>pomocniczy</b> i służy oszczędności czasu. Nie jest gotowym plikiem do wgrania w ciemno: Użytkownik zawsze sprawdza wynik w programie (np. WinOLS) i w razie potrzeby przelicza sumy kontrolne. Aplikacja ostrzega o pozycjach niepewnych, ale nie ocenia celu użycia; to Użytkownik decyduje, które zmiany przenosi. Obowiązują zasady z punktów 6, 7 i 10, w tym odpowiedzialność Użytkownika za zgodność wprowadzanych zmian z prawem (m.in. dotyczącym emisji spalin i ograniczeń prędkości).</li>
+  <li>Funkcje wykorzystujące sztuczną inteligencję (AI) są opcjonalne i domyślnie wyłączone. Włączenie ich w projekcie wymaga zaznaczenia opcji i udzielenia zgody opisanej w Polityce prywatności. Wyniki AI mają charakter sugestii do sprawdzenia i mogą być błędne; ich dostępność może być ograniczona (np. awaria lub wyczerpanie budżetu), wtedy przeniesienie wykonuje się bez AI.</li>
+  <li>Użytkownik może dobrowolnie przesłać opinię o wyniku oraz zgłoszenie problemu z danymi technicznymi projektu. Anonimowe dane techniczne z opinii i zgłoszeń (bez plików, konta i identyfikatora projektu) mogą być wykorzystywane do ulepszania aplikacji. Zgłoszenie problemu można zawsze złożyć także z poziomu panelu portalu, opisując problem własnymi słowami i bez udzielania dodatkowych zgód.</li>
+  <li>Zabronione jest automatyczne lub masowe wgrywanie i eksportowanie plików oraz wykorzystywanie aplikacji do budowania baz danych lub usług konkurencyjnych wobec ECU-Perfect.</li>
+  <li>WinOLS i inne nazwy programów są znakami ich właścicieli. ECU-Perfect nie jest z nimi powiązany.</li>
+</ul>
+
 <h2>10. Odpowiedzialność</h2>
 <ul>
   <li>ECU-Perfect odpowiada na zasadach określonych przepisami prawa. W granicach dozwolonych prawem nie odpowiada za szkody wynikłe z użycia wyniku niezgodnie z Regulaminem lub przepisami, z braku przeliczenia sumy kontrolnej oraz z przerw technicznych w działaniu Serwisu.</li>
@@ -119,7 +140,7 @@
 
 <div id="en" hidden>
 <h1>Terms of service for the website and client panel</h1>
-<p class="muted">Version 2 · effective from 15 November 2026 (version 1: from 16 October 2026)</p>
+<p class="muted">Version 2 · effective from 16 November 2026 (version 1: from 16 October 2026)</p>
 
 <h2>1. General</h2>
 <p>These terms govern the use of the website ecu-perfect.pl and the client panel (the "Service") operated by ECU-Perfect. Contact: <a href="mailto:contact@ecu-perfect.pl">contact@ecu-perfect.pl</a>, tel. +48 603 601 786. A User is a person using the Service, in particular a person with an account in the client panel.</p>
@@ -131,7 +152,7 @@
 <ul>
   <li>Creating an account is free and requires acceptance of these Terms and the Privacy Policy.</li>
   <li>The User protects their login data and does not share it. An account belongs to one person.</li>
-  <li>The User can delete the account at any time in the panel. Deleting the account permanently deletes the User's files, and access to them will no longer be possible.</li>
+  <li>The User can delete the account at any time in the panel. Deleting the account permanently deletes the User's files, and access to them will no longer be possible. Data in the applications (gearbox editor, mappack converter) stops being available immediately and is permanently erased from the server within 30 days at the latest; during that time only the administrator has access.</li>
 </ul>
 
 <h2>4. Services</h2>
@@ -176,6 +197,27 @@
   <li>The editor's output (the file after changes) is auxiliary; sections 6 and 7 apply, including the duty to check the result yourself and to recalculate the checksum.</li>
   <li>Exported data may contain a provenance mark and an export number (an identifier for accountability and database protection). Removing or modifying this mark is prohibited.</li>
   <li>The map databases, map identifiers and descriptions and other data provided in the editor are the property of ECU-Perfect (or its licensors) and are protected by law. Mass downloading, copying, reconstructing the database structure, automated data collection (scraping), passing them to third parties, or building competing databases or services from them is prohibited. A breach may result in account blocking and legal claims.</li>
+</ul>
+
+<h2>9b. Mappack converter (test version)</h2>
+<ul>
+  <li>The mappack converter is an application available from the client panel, currently in a <b>test version</b> and free of charge. It converts mappacks (map lists) uploaded by the User between the formats used by WinOLS and TunerPro (including KP, CSV, XDF, A2L). The scope of functions and available formats may change.</li>
+  <li>The User declares that they have the right to use the uploaded files. Projects are private and assigned to the account; they are accessible to the User and to the Service administrator. A project deleted by the User is physically erased after 30 days.</li>
+  <li>The availability of individual export formats depends on the account's permissions; some options may be unavailable in the test version. The converter applies limits (including the number of projects, storage, file size and the number of operations per day), which may change.</li>
+  <li>The conversion result is auxiliary. ECU-Perfect does not guarantee its completeness or compatibility with a given program or control unit; the User checks the result in the target program before use. Sections 6 and 10 apply.</li>
+  <li>Automated or mass uploading and exporting of files, and using the converter to build databases or services competing with ECU-Perfect, are prohibited.</li>
+  <li>WinOLS, TunerPro and other program names are trademarks of their owners. ECU-Perfect is not affiliated with them.</li>
+</ul>
+
+<h2>9c. Tune Migration (test version)</h2>
+<ul>
+  <li>Tune Migration is an application available from the client panel, currently in a <b>test version</b> and free of charge; it may be made available gradually to selected Users. It helps move the mappack and the changes made by the tuner (the mod) from an old software version of a control unit to a new one, based on files uploaded by the User (including OLS, bin, KP, CSV, A2L, XDF). The scope of functions and available formats may change.</li>
+  <li>When creating a project the User declares that they have the right to use the uploaded files and that the files contain no personal data. Projects are private and assigned to the account; the User and the Service administrator have access. A project deleted by the User is physically erased after 30 days. The application applies limits (including the number of projects, storage, file size and the number of operations per day), which may change.</li>
+  <li>The transfer result is <b>auxiliary</b> and meant to save time. It is not a file to be flashed blindly: the User always checks the result in a program (e.g. WinOLS) and recalculates checksums where needed. The application warns about uncertain items but does not judge the purpose of use; the User decides which changes are transferred. Sections 6, 7 and 10 apply, including the User's responsibility for the legal compliance of the changes made (e.g. regarding exhaust emissions and speed limits).</li>
+  <li>Functions using artificial intelligence (AI) are optional and off by default. Enabling them in a project requires ticking the option and giving the consent described in the Privacy Policy. AI results are suggestions to be checked and may be wrong; availability may be limited (e.g. a failure or an exhausted budget), in which case the transfer is performed without AI.</li>
+  <li>The User may voluntarily send feedback on a result and a problem report containing the technical data of the project. Anonymous technical data from feedback and reports (without files, account and project identifier) may be used to improve the application. A problem report can always also be submitted from the portal panel, describing the problem in your own words and without giving additional consents.</li>
+  <li>Automated or mass uploading and exporting of files, and using the application to build databases or services competing with ECU-Perfect, are prohibited.</li>
+  <li>WinOLS and other program names are trademarks of their owners. ECU-Perfect is not affiliated with them.</li>
 </ul>
 
 <h2>10. Liability</h2>
