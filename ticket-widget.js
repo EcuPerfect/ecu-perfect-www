@@ -61,7 +61,7 @@
     var codes = appList().map(function (a) { return a.id; }).concat(['general']);
     codes.forEach(function (c) { var op = el('option', { value: c, text: appName(c) }); sel.appendChild(op); });
     sel.value = codes.indexOf(pref.app) >= 0 ? pref.app : 'general';
-    var doc = el('input', { type: 'text', maxLength: 100, value: pref.docRef || '', style: TA, placeholder: tr('np. GUID projektu (opcjonalnie)', 'e.g. project ID (optional)') });
+    var doc = el('input', { type: 'text', maxLength: 100, value: pref.docRef || '', style: TA, placeholder: tr('np. ID projektu (opcjonalnie)', 'e.g. project ID (optional)') });
     var cat = el('select', { style: TA }, [
       el('option', { value: 'problem', text: tr('Zgłoś problem', 'Report a problem') }),
       el('option', { value: 'other', text: tr('Inne', 'Other') })

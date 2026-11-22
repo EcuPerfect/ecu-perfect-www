@@ -22,9 +22,10 @@ window.ECUP_APPS = [
   }
   ,{
     id: 'migrate',
-    name: { pl: 'Migracja tuningu', en: 'Tune Migration' },
-    desc: { pl: 'Przenieś mappack i zmiany tunera ze starej wersji oprogramowania na nową.',
-            en: 'Move the mappack and the tuner\'s changes from an old software version to a new one.' },
+    name: { pl: 'Przenoszenie mappacka i modyfikacji', en: 'Mappack & Mod Transfer' },
+    sub: { pl: 'na inny software', en: 'to another software' },
+    desc: { pl: 'Przenieś mappack, modyfikację albo oba ze starej wersji oprogramowania sterownika na nową.',
+            en: 'Move the mappack, the mod or both from an old software version of a control unit to a new one.' },
     url: 'https://migrate.ecu-perfect.pl/',
     api: 'https://migrate.ecu-perfect.pl/api/v1/op'
   }

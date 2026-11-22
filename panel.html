@@ -200,10 +200,11 @@
     visibleApps().forEach(function (a) {
       var t = document.createElement('div'); t.className = 'tile';
       var h = document.createElement('h3'); h.textContent = L(a.name);
+      var sub = a.sub ? document.createElement('div') : null; if (sub) { sub.className = 'small'; sub.style.margin = '-4px 0 8px'; sub.textContent = L(a.sub); }
       var p = document.createElement('p'); p.textContent = L(a.desc) + (a.adminOnly ? ' ' + tr('(Widoczne tylko dla administratora.)', '(Visible to administrators only.)') : '');
       var b = document.createElement('button'); b.type = 'button'; b.textContent = tr('Otwórz', 'Open'); b.style.marginTop = '4px';
       b.onclick = function () { openApp(a); };
-      t.appendChild(h); t.appendChild(p); t.appendChild(b); box.appendChild(t);
+      t.appendChild(h); if (sub) t.appendChild(sub); t.appendChild(p); t.appendChild(b); box.appendChild(t);
     });
   }
   async function openApp(a) {
