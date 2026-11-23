@@ -3,6 +3,7 @@
 // url  = address of the application (it gets the login session in the address: #access_token=...&refresh_token=...)
 // api  = address of the application's account API (number of the user's data, deletion with the account);
 //        empty = the application keeps no user data.
+// meta = public version address of the application (shown only to administrators under the tile; optional).
 window.ECUP_APPS = [
   {
     id: 'gearbox',
@@ -10,7 +11,8 @@ window.ECUP_APPS = [
     desc: { pl: 'Punkty zmian biegów i ograniczniki momentu w plikach sterowników skrzyń automatycznych (TCU). Wersje, kontrole, eksport binu.',
             en: 'Shift points and torque limiters in automatic gearbox controller (TCU) files. Versions, checks, bin export.' },
     url: 'https://gearbox.ecu-perfect.pl/',
-    api: 'https://gearbox.ecu-perfect.pl/api/gearbox/op'
+    api: 'https://gearbox.ecu-perfect.pl/api/gearbox/op',
+    meta: 'https://gearbox.ecu-perfect.pl/api/gearbox/describe'
   },
   {
     id: 'mappack',
@@ -18,7 +20,8 @@ window.ECUP_APPS = [
     desc: { pl: 'Konwersja mappacków WinOLS (KP, CSV) i TunerPro (XDF).',
             en: 'Mappack conversion between WinOLS (KP, CSV) and TunerPro (XDF).' },
     url: 'https://mappack.ecu-perfect.pl/',
-    api: 'https://mappack.ecu-perfect.pl/api/mappack/op'
+    api: 'https://mappack.ecu-perfect.pl/api/mappack/op',
+    meta: 'https://mappack.ecu-perfect.pl/api/mappack/describe'
   }
   ,{
     id: 'migrate',
@@ -27,6 +30,7 @@ window.ECUP_APPS = [
     desc: { pl: 'Przenieś mappack, modyfikację albo oba ze starej wersji oprogramowania sterownika na nową.',
             en: 'Move the mappack, the mod or both from an old software version of a control unit to a new one.' },
     url: 'https://migrate.ecu-perfect.pl/',
-    api: 'https://migrate.ecu-perfect.pl/api/v1/op'
+    api: 'https://migrate.ecu-perfect.pl/api/v1/op',
+    meta: 'https://migrate.ecu-perfect.pl/api/v1/meta'
   }
 ];

@@ -204,8 +204,30 @@
       var p = document.createElement('p'); p.textContent = L(a.desc) + (a.adminOnly ? ' ' + tr('(Widoczne tylko dla administratora.)', '(Visible to administrators only.)') : '');
       var b = document.createElement('button'); b.type = 'button'; b.textContent = tr('Otwórz', 'Open'); b.style.marginTop = '4px';
       b.onclick = function () { openApp(a); };
-      t.appendChild(h); if (sub) t.appendChild(sub); t.appendChild(p); t.appendChild(b); box.appendChild(t);
+      t.appendChild(h); if (sub) t.appendChild(sub); t.appendChild(p);
+      if (isAdmin && a.meta) { var vl = document.createElement('div'); vl.className = 'small'; vl.style.margin = '0 0 8px'; t.appendChild(vl); showVersion(a, vl); }   // administrators only
+      t.appendChild(b); box.appendChild(t);
     });
+  }
+  // administrators only: version line under a tile, from the application's public version address (a.meta); silent when unavailable
+  var verCache = {};
+  function verText(j) {
+    var parts = [];
+    var prog = j.server || j.version, api = j.api_version || j.api;
+    if (prog) parts.push(tr('program ', 'program ') + prog);
+    if (api) parts.push('API ' + api);
+    if (j.features && typeof j.features.ai === 'boolean') parts.push('AI: ' + (j.features.ai ? tr('dostępne', 'available') : tr('niedostępne', 'unavailable')));
+    return parts.length ? tr('Wersja: ', 'Version: ') + parts.join(' · ') : '';
+  }
+  async function showVersion(a, el) {
+    try {
+      if (!(a.id in verCache)) {
+        var ctl = new AbortController(), tm = setTimeout(function () { ctl.abort(); }, 5000);
+        var r = await fetch(a.meta, { signal: ctl.signal }); clearTimeout(tm);
+        verCache[a.id] = r.ok ? verText(await r.json()) : '';
+      }
+      el.textContent = verCache[a.id];
+    } catch (e) { verCache[a.id] = ''; el.textContent = ''; }
   }
   async function openApp(a) {
     // the application runs on its own address: it gets the session in the address fragment (never sent to a server)
