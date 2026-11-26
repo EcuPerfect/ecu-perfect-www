@@ -33,17 +33,16 @@ window.ECUP_APPS = [
     api: 'https://migrate.ecu-perfect.pl/api/v1/op',
     meta: 'https://migrate.ecu-perfect.pl/api/v1/meta'
   }
-  // STAGED, NOT ACTIVE: BMW Sport Display Calibration tile. Uncomment ONLY after sportdisplay.ecu-perfect.pl is deployed and tested
-  // (DNS + server), otherwise the administrator gets a dead address. Keep adminOnly until the stage-5 decision.
-  // ,{
-  //   id: 'sportdisplay',
-  //   adminOnly: true,
-  //   name: { pl: 'Kalibracja wskaźników SPORT – BMW', en: 'BMW Sport Display Calibration' },
-  //   sub: { pl: 'Skala mocy i momentu po tuningu', en: 'Power & torque gauge scale after tuning' },
-  //   desc: { pl: 'Skala wskaźników SPORT mocy i momentu w BMW po tuningu (MG1, MEVD17, MD1, EDC17). Projekty, podgląd, eksport binu.',
-  //           en: 'Scale of the BMW power and torque sport gauges after tuning (MG1, MEVD17, MD1, EDC17). Projects, preview, bin export.' },
-  //   url: 'https://sportdisplay.ecu-perfect.pl/',
-  //   api: 'https://sportdisplay.ecu-perfect.pl/api/v1/op',
-  //   meta: 'https://sportdisplay.ecu-perfect.pl/api/v1/meta'
-  // }
+  // BMW Sport Display Calibration: deployed 2026-11-26. Keep adminOnly until the stage-5 decision.
+  ,{
+    id: 'sportdisplay',
+    adminOnly: true,
+    name: { pl: 'Kalibracja wskaźników SPORT – BMW', en: 'BMW Sport Display Calibration' },
+    sub: { pl: 'Skala mocy i momentu po tuningu', en: 'Power & torque gauge scale after tuning' },
+    desc: { pl: 'Skala wskaźników SPORT mocy i momentu w BMW po tuningu (MG1, MEVD17, MD1, EDC17). Projekty, podgląd, eksport binu.',
+            en: 'Scale of the BMW power and torque sport gauges after tuning (MG1, MEVD17, MD1, EDC17). Projects, preview, bin export.' },
+    url: 'https://sportdisplay.ecu-perfect.pl/',
+    api: 'https://sportdisplay.ecu-perfect.pl/api/v1/op',
+    meta: 'https://sportdisplay.ecu-perfect.pl/api/v1/meta'
+  }
 ];
