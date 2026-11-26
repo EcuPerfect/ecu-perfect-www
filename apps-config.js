@@ -33,10 +33,9 @@ window.ECUP_APPS = [
     api: 'https://migrate.ecu-perfect.pl/api/v1/op',
     meta: 'https://migrate.ecu-perfect.pl/api/v1/meta'
   }
-  // BMW Sport Display Calibration: deployed 2026-11-26. Keep adminOnly until the stage-5 decision.
+  // BMW Sport Display Calibration: deployed 2026-11-26, opened to all logged-in users 2026-11-27.
   ,{
     id: 'sportdisplay',
-    adminOnly: true,
     name: { pl: 'Kalibracja wskaźników SPORT – BMW', en: 'BMW Sport Display Calibration' },
     sub: { pl: 'Skala mocy i momentu po tuningu', en: 'Power & torque gauge scale after tuning' },
     desc: { pl: 'Skala wskaźników SPORT mocy i momentu w BMW po tuningu (MG1, MEVD17, MD1, EDC17). Projekty, podgląd, eksport binu.',
